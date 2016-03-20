@@ -7,17 +7,6 @@ Redmine::Plugin.register :full_text_search do
   author_url 'https://gihub.com/'
 end
 
-Rails.configuration.to_prepare do
-  case
-  when Redmine::Database.postgresql?
-    # TODO
-  when Redmine::Database.mysql?
-    # TODO
-  else
-    "This plugin supports PostgreSQL or MySQL(MariaDB)."
-  end
-end
-
 module FullTextSearch
   def self.prepended(base)
     base.extend(ClassMethods)
