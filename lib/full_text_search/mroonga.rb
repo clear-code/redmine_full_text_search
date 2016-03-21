@@ -113,7 +113,7 @@ module FullTextSearch
         end
 
         if queries > 1
-          r = r.sort.reverse
+          r = r.sort_by{|score, id| -score }
           if options[:limit] && r.size > options[:limit]
             r = r[0, options[:limit]]
           end
