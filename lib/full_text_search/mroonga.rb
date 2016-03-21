@@ -8,11 +8,11 @@ module FullTextSearch
       # Overwrite ActsAsSearchable
       def fetch_ranks_and_ids(scope, limit)
         if self == WikiPage
-          scope.reorder("score1 DESC, score2 DESC").limit(limit).map do |record|
+          scope.reorder("score1 DESC, score2 DESC").distinct.limit(limit).map do |record|
             [record.score1 * 100 + record.score2, record.id]
           end
         else
-          scope.reorder("score DESC").limit(limit).map do |record|
+          scope.reorder("score DESC").distinct.limit(limit).map do |record|
             [record.score, record.id]
           end
         end
