@@ -9,11 +9,9 @@ This plugin provides full text search to Redmine.
 
 ## How to use with PostgreSQL
 
-TODO
+### Install PGroonga or Mroonga
 
-## How to use with MySQL(MariaDB)
-
-### Install Mroonga
+See [PGroonga document](https://pgroonga.github.io/install/)
 
 See [Mroonga document](http://mroonga.org/docs/install.html)
 
@@ -24,7 +22,7 @@ $ cd redmine/plugins
 $ git clone https://github.com/okkez/redmine_full_text_search.git full_text_search
 ```
 
-### Setup this plugin
+### Set up this plugin
 
 ```text
 $ cd redmine
