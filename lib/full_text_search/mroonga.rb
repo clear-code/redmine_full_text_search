@@ -13,7 +13,9 @@ module FullTextSearch
       # Overwrite ActsAsSearchable
       def fetch_ranks_and_ids(scope, limit)
         if self == ::WikiPage
-          scope.reorder("score1 DESC, score2 DESC").distinct.limit(limit).map do |record|
+          scope.
+            joins("INNER JOIN fts_wiki_contents ON (wiki_contents.id = fts_wiki_contents.wiki_content_id)").
+            reorder("score1 DESC, score2 DESC").distinct.limit(limit).map do |record|
             [record.score1 * 100 + record.score2, record.id]
           end
         else
@@ -84,6 +86,7 @@ module FullTextSearch
                 select(:id, "#{s} AS score").
                 joins(fts_relation).
                 joins(:custom_values).
+                joins("INNER JOIN fts_custom_values ON (custom_values.id = fts_custom_values.custom_value_id)").
                 where(visibility).
                 where(search_tokens_condition(["#{::CustomValue.table_name}.value"], tokens, options[:all_words])),
                 options[:limit]
@@ -100,6 +103,7 @@ module FullTextSearch
               select(:id, "#{s} AS score").
               joins(fts_relation).
               joins(:journals).
+              joins("INNER JOIN fts_journals ON (journals.id = fts_journals.journal_id)").
               where("#{::Journal.table_name}.private_notes = ? OR (#{::Project.allowed_to_condition(user, :view_private_notes)})", false).
               where(search_tokens_condition(["#{::Journal.table_name}.notes"], tokens, options[:all_words])),
               options[:limit]
@@ -116,6 +120,7 @@ module FullTextSearch
             select(:id, "#{s} AS score").
             joins(fts_relation).
             joins(:attachments).
+            joins("INNER JOIN fts_attachments ON (attachments.id = fts_attachments.attachment_id)").
             where(search_tokens_condition(["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"], tokens, options[:all_words])),
             options[:limit]
           )
