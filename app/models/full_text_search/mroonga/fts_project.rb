@@ -1,7 +1,6 @@
 module FullTextSearch
   module Mroonga
-    class Project < ActiveRecord::Base
-      self.table_name = "fts_projects"
+    class FtsProject < ActiveRecord::Base
       belongs_to :project
     end
   end

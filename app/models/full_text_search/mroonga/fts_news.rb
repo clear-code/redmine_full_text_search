@@ -1,7 +1,6 @@
 module FullTextSearch
   module Mroonga
-    class News < ActiveRecord::Base
-      self.table_name = "fts_news"
+    class FtsNews < ActiveRecord::Base
       belongs_to :news
     end
   end

@@ -5,7 +5,7 @@ module FullTextSearch
       base.class_eval do
         has_one("fts_#{table_name.singularize}".to_sym,
                 dependent: :destroy,
-                class_name: "FullTextSearch::Mroonga::#{base.name}")
+                class_name: "FullTextSearch::Mroonga::Fts#{base.name}")
       end
     end
 

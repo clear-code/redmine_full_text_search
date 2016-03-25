@@ -1,7 +1,6 @@
 module FullTextSearch
   module Mroonga
-    class Changeset < ActiveRecord::Base
-      self.table_name = "fts_changesets"
+    class FtsChangeset < ActiveRecord::Base
       belongs_to :changeset
     end
   end

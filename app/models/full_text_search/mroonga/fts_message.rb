@@ -1,7 +1,6 @@
 module FullTextSearch
   module Mroonga
-    class Message < ActiveRecord::Base
-      self.table_name = "fts_messages"
+    class FtsMessage < ActiveRecord::Base
       belongs_to :message
     end
   end

@@ -1,7 +1,6 @@
 module FullTextSearch
   module Mroonga
-    class CustomValue < ActiveRecord::Base
-      self.table_name = "fts_custom_values"
+    class FtsCustomValue < ActiveRecord::Base
       belongs_to :custom_value
     end
   end

@@ -1,7 +1,6 @@
 module FullTextSearch
   module Mroonga
-    class Document < ActiveRecord::Base
-      self.table_name = "fts_documents"
+    class FtsDocument < ActiveRecord::Base
       belongs_to :document
     end
   end
