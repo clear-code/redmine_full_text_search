@@ -47,6 +47,7 @@ module FullTextSearch
             r = fetch_ranks_and_ids(
               search_scope(user, projects, options).
               select(:id, "#{s1} AS score1", "#{s2} AS score2").
+              joins(fts_relation).
               where([c.join(" OR "), *t]),
               options[:limit]
             )
@@ -56,6 +57,7 @@ module FullTextSearch
             r = fetch_ranks_and_ids(
               search_scope(user, projects, options).
               select(:id, "#{s} AS score").
+              joins(fts_relation).
               where(search_tokens_condition(columns, tokens, options[:all_words])),
               options[:limit]
             )
@@ -80,6 +82,7 @@ module FullTextSearch
               r |= fetch_ranks_and_ids(
                 search_scope(user, projects, options).
                 select(:id, "#{s} AS score").
+                joins(fts_relation).
                 joins(:custom_values).
                 where(visibility).
                 where(search_tokens_condition(["#{::CustomValue.table_name}.value"], tokens, options[:all_words])),
@@ -95,6 +98,7 @@ module FullTextSearch
             r |= fetch_ranks_and_ids(
               search_scope(user, projects, options).
               select(:id, "#{s} AS score").
+              joins(fts_relation).
               joins(:journals).
               where("#{::Journal.table_name}.private_notes = ? OR (#{::Project.allowed_to_condition(user, :view_private_notes)})", false).
               where(search_tokens_condition(["#{::Journal.table_name}.notes"], tokens, options[:all_words])),
@@ -110,6 +114,7 @@ module FullTextSearch
           r |= fetch_ranks_and_ids(
             search_scope(user, projects, options).
             select(:id, "#{s} AS score").
+            joins(fts_relation).
             joins(:attachments).
             where(search_tokens_condition(["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"], tokens, options[:all_words])),
             options[:limit]
@@ -128,10 +133,25 @@ module FullTextSearch
       end
 
       def search_tokens_condition(columns, tokens, all_words)
+        columns = columns.map do |column|
+          if column.include?(".")
+            "fts_#{column}"
+          else
+            "#{fts_table_name}.#{column}"
+          end
+        end
         token_clauses = "MATCH(#{columns.join(",")})"
         pragma = all_words ? "*D+" : "*DOR"
         sql = %Q!#{token_clauses} AGAINST (? IN BOOLEAN MODE)!
         [sql, "#{pragma} #{tokens.join(" ")}"]
+      end
+
+      def fts_table_name
+        "fts_#{table_name}"
+      end
+
+      def fts_relation
+        "fts_#{table_name.singularize}".to_sym
       end
     end
   end
