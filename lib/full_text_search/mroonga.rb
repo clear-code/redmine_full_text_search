@@ -2,6 +2,11 @@ module FullTextSearch
   module Mroonga
     def self.prepended(base)
       base.extend(ClassMethods)
+      base.class_eval do
+        has_one("fts_#{table_name.singularize}".to_sym,
+                dependent: :destroy,
+                class_name: "FullTextSearch::Mroonga::#{base.name}")
+      end
     end
 
     module ClassMethods
