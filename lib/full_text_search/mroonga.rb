@@ -110,7 +110,7 @@ module FullTextSearch
 
         if searchable_options[:search_attachments] && (options[:titles_only] ? options[:attachments] == 'only' : options[:attachments] != '0')
           s = ActiveRecord::Base.send(:sanitize_sql_array,
-                                      search_tokens_condition(columns, tokens, options[:all_words]))
+                                      search_tokens_condition(["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"], tokens, options[:all_words]))
           r |= fetch_ranks_and_ids(
             search_scope(user, projects, options).
             select(:id, "#{s} AS score").
