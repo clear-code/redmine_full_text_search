@@ -11,8 +11,8 @@ module FullTextSearch
 
     module ClassMethods
       # Overwrite ActsAsSearchable
-      def fetch_ranks_and_ids(scope, limit)
-        if self == ::WikiPage
+      def fetch_ranks_and_ids(scope, limit, attachments: false)
+        if self == ::WikiPage && !attachments
           scope.
             joins("INNER JOIN fts_wiki_contents ON (wiki_contents.id = fts_wiki_contents.wiki_content_id)").
             reorder("score1 DESC, score2 DESC").distinct.limit(limit).map do |record|
@@ -122,7 +122,8 @@ module FullTextSearch
             joins(:attachments).
             joins("INNER JOIN fts_attachments ON (attachments.id = fts_attachments.attachment_id)").
             where(search_tokens_condition(["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"], tokens, options[:all_words])),
-            options[:limit]
+            options[:limit],
+            attachments: true
           )
           queries += 1
         end
