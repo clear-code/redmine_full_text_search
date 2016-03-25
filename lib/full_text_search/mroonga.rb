@@ -12,7 +12,7 @@ module FullTextSearch
     module ClassMethods
       # Overwrite ActsAsSearchable
       def fetch_ranks_and_ids(scope, limit)
-        if self == WikiPage
+        if self == ::WikiPage
           scope.reorder("score1 DESC, score2 DESC").distinct.limit(limit).map do |record|
             [record.score1 * 100 + record.score2, record.id]
           end
@@ -23,9 +23,9 @@ module FullTextSearch
         end
       end
 
-      def search_result_ranks_and_ids(tokens, user=User.current, projects=nil, options={})
+      def search_result_ranks_and_ids(tokens, user=::User.current, projects=nil, options={})
         tokens = [] << tokens unless tokens.is_a?(Array)
-        projects = [] << projects if projects.is_a?(Project)
+        projects = [] << projects if projects.is_a?(::Project)
 
         columns = searchable_options[:columns]
         columns = columns[0..0] if options[:titles_only]
@@ -34,7 +34,7 @@ module FullTextSearch
         queries = 0
 
         unless options[:attachments] == 'only'
-          if self == WikiPage
+          if self == ::WikiPage
             columns1 = [columns.first]
             columns2 = [columns.last]
             s1 = ActiveRecord::Base.send(:sanitize_sql_array,
@@ -63,7 +63,7 @@ module FullTextSearch
           queries += 1
 
           if !options[:titles_only] && searchable_options[:search_custom_fields]
-            searchable_custom_fields = CustomField.where(:type => "#{self.name}CustomField", :searchable => true).to_a
+            searchable_custom_fields = ::CustomField.where(:type => "#{self.name}CustomField", :searchable => true).to_a
 
             if searchable_custom_fields.any?
               fields_by_visibility = searchable_custom_fields.group_by {|field|
@@ -71,7 +71,7 @@ module FullTextSearch
               }
               clauses = []
               fields_by_visibility.each do |visibility, fields|
-                clauses << "(#{CustomValue.table_name}.custom_field_id IN (#{fields.map(&:id).join(',')}) AND (#{visibility}))"
+                clauses << "(#{::CustomValue.table_name}.custom_field_id IN (#{fields.map(&:id).join(',')}) AND (#{visibility}))"
               end
               visibility = clauses.join(' OR ')
               s = ActiveRecord::Base.send(:sanitize_sql_array,
@@ -82,7 +82,7 @@ module FullTextSearch
                 select(:id, "#{s} AS score").
                 joins(:custom_values).
                 where(visibility).
-                where(search_tokens_condition(["#{CustomValue.table_name}.value"], tokens, options[:all_words])),
+                where(search_tokens_condition(["#{::CustomValue.table_name}.value"], tokens, options[:all_words])),
                 options[:limit]
               )
               queries += 1
@@ -96,8 +96,8 @@ module FullTextSearch
               search_scope(user, projects, options).
               select(:id, "#{s} AS score").
               joins(:journals).
-              where("#{Journal.table_name}.private_notes = ? OR (#{Project.allowed_to_condition(user, :view_private_notes)})", false).
-              where(search_tokens_condition(["#{Journal.table_name}.notes"], tokens, options[:all_words])),
+              where("#{::Journal.table_name}.private_notes = ? OR (#{::Project.allowed_to_condition(user, :view_private_notes)})", false).
+              where(search_tokens_condition(["#{::Journal.table_name}.notes"], tokens, options[:all_words])),
               options[:limit]
             )
             queries += 1
@@ -111,7 +111,7 @@ module FullTextSearch
             search_scope(user, projects, options).
             select(:id, "#{s} AS score").
             joins(:attachments).
-            where(search_tokens_condition(["#{Attachment.table_name}.filename", "#{Attachment.table_name}.description"], tokens, options[:all_words])),
+            where(search_tokens_condition(["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"], tokens, options[:all_words])),
             options[:limit]
           )
           queries += 1
