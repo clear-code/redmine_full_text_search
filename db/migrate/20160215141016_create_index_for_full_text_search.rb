@@ -13,6 +13,7 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       add_index(:wiki_pages, [:id, :title], using: "pgroonga")
       add_index(:wiki_contents, [:id, :text], using: "pgroonga")
       add_index(:custom_values, [:id, :value], using: "pgroonga")
+      add_index(:attachments, [:id, :filename, :description], using: "pgroonga")
     when Redmine::Database.mysql?
       create_table(:fts_projects, options: "ENGINE=Mroonga") do |t|
         t.references :project, index: true
@@ -49,6 +50,11 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
         t.references :journal, index: true
         t.text :notes, limit: 65535
       end
+      create_table(:fts_attachments, options: "ENGINE=Mroonga") do |t|
+        t.references :attachment, index: true
+        t.string :filename, default: "", null: false
+        t.string :description
+      end
       create_table(:fts_wiki_pages, options: "ENGINE=Mroonga") do |t|
         t.references :wiki_page, index: true
         t.string :title, null: false
@@ -69,6 +75,7 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       execute("INSERT INTO fts_changesets(changeset_id, comments) SELECT id, comments FROM changesets;")
       execute("INSERT INTO fts_messages(message_id, subject, content) SELECT id, subject, content FROM messages;")
       execute("INSERT INTO fts_journals(journal_id, notes) SELECT id, notes FROM journals;")
+      execute("INSERT INTO fts_attachments(attachment_id, filename, description) SELECT id, filename, description from attachments;")
       execute("INSERT INTO fts_wiki_pages(wiki_page_id, title) SELECT id, title FROM wiki_pages;")
       execute("INSERT INTO fts_wiki_contents(wiki_content_id, `text`) SELECT id, `text` FROM wiki_contents;")
       execute("INSERT INTO fts_custom_values(custom_value_id, value) SELECT id, value FROM custom_values;")
@@ -80,6 +87,7 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       add_index(:fts_changesets, :comments, type: "fulltext")
       add_index(:fts_messages, [:subject, :content], type: "fulltext")
       add_index(:fts_journals, :notes, type: "fulltext")
+      add_index(:fts_attachments, [:filename, :description], type: "fulltext")
       add_index(:fts_wiki_pages, :title, type: "fulltext")
       add_index(:fts_wiki_contents, :text, type: "fulltext")
       add_index(:fts_custom_values, :value, type: "fulltext")
@@ -98,6 +106,7 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       remove_index(:changesets, column: [:id, :comments])
       remove_index(:messages, column: [:id, :subject, :content])
       remove_index(:journals, column: [:id, :notes])
+      remove_index(:attachments, column: [:id, :filename, :description])
       remove_index(:wiki_pages, column: [:id, :title])
       remove_index(:wiki_contents, column: [:id, :text])
       remove_index(:custom_values, column: [:id, :value])
@@ -110,6 +119,7 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       remove_index(:fts_changesets, column: :comments)
       remove_index(:fts_messages, column: [:subject, :content])
       remove_index(:fts_journals, column: :notes)
+      remove_index(:fts_attachments, column: [:filename, :description])
       remove_index(:fts_wiki_pages, column: :title)
       remove_index(:fts_wiki_contents, column: :text)
       remove_index(:fts_custom_values, column: :value)
@@ -121,6 +131,7 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       drop_table(:fts_changesets)
       drop_table(:fts_messages)
       drop_table(:fts_journals)
+      drop_table(:fts_attachments)
       drop_table(:fts_wiki_pages)
       drop_table(:fts_wiki_contents)
       drop_table(:fts_custom_values)
