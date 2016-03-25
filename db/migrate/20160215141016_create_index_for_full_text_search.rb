@@ -14,19 +14,75 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       add_index(:wiki_contents, [:id, :text], using: "pgroonga")
       add_index(:custom_values, [:id, :value], using: "pgroonga")
     when Redmine::Database.mysql?
-      %w[projects news issues documents changesets messages journals wiki_pages wiki_contents custom_values].each do |name|
-        execute "ALTER TABLE #{name} ENGINE = Mroonga;"
+      create_table(:fts_projects, options: "ENGINE=Mroonga") do |t|
+        t.references :project, index: true
+        t.string :name
+        t.string :identifier
+        t.text :description, limit: 65535
       end
-      add_index(:projects, [:name, :identifier, :description], type: "fulltext")
-      add_index(:news, [:title, :summary, :description], type: "fulltext")
-      add_index(:issues, [:subject, :description], type: "fulltext")
-      add_index(:documents, [:title, :description], type: "fulltext")
-      add_index(:changesets, :comments, type: "fulltext")
-      add_index(:messages, [:subject, :content], type: "fulltext")
-      add_index(:journals, :notes, type: "fulltext")
-      add_index(:wiki_pages, :title, type: "fulltext")
-      add_index(:wiki_contents, :text, type: "fulltext")
-      add_index(:custom_values, :value, type: "fulltext")
+      create_table(:fts_news, options: "ENGINE=Mroonga") do |t|
+        t.references :news, index: true
+        t.string :title, limit: 60, default: "", null: false
+        t.string :summary, default: ""
+        t.text :description, limit: 65535
+      end
+      create_table(:fts_issues, options: "ENGINE=Mroonga") do |t|
+        t.references :issue, index: true
+        t.string :subject, default: "", null: false
+        t.text :description, limit: 65535
+      end
+      create_table(:fts_documents, options: "ENGINE=Mroonga") do |t|
+        t.references :document, index: true
+        t.string :title, default: "", null: false
+        t.text :description, limit: 65535
+      end
+      create_table(:fts_changesets, options: "ENGINE=Mroonga") do |t|
+        t.references :changeset, index: true
+        t.text :comments, limit: 4294967295
+      end
+      create_table(:fts_messages, options: "ENGINE=Mroonga") do |t|
+        t.references :message, index: true
+        t.string :subject, default: "", null: false
+        t.text :content, limit: 65535
+      end
+      create_table(:fts_journals, options: "ENGINE=Mroonga") do |t|
+        t.references :journal, index: true
+        t.text :notes, limit: 65535
+      end
+      create_table(:fts_wiki_pages, options: "ENGINE=Mroonga") do |t|
+        t.references :wiki_page, index: true
+        t.string :title, null: false
+      end
+      create_table(:fts_wiki_contents, options: "ENGINE=Mroonga") do |t|
+        t.references :wiki_content, index: true
+        t.text :text, limit: 4294967295
+      end
+      create_table(:fts_custom_values, options: "ENGINE=Mroonga") do |t|
+        t.references :custom_value, index: true
+        t.text :value, limit: 65535
+      end
+
+      execute("INSERT INTO fts_projects(project_id, name, identifier, description) SELECT id, name, identifier, description FROM projects;")
+      execute("INSERT INTO fts_news(news_id, title, summary, description) SELECT id, title, summary, description FROM news;")
+      execute("INSERT INTO fts_issues(issue_id, subject, description) SELECT id, subject, description FROM issues;")
+      execute("INSERT INTO fts_documents(document_id, title, description) SELECT id, title, description FROM documents;")
+      execute("INSERT INTO fts_changesets(changeset_id, comments) SELECT id, comments FROM changesets;")
+      execute("INSERT INTO fts_messages(message_id, subject, content) SELECT id, subject, content FROM messages;")
+      execute("INSERT INTO fts_journals(journal_id, notes) SELECT id, notes FROM journals;")
+      execute("INSERT INTO fts_wiki_pages(wiki_page_id, title) SELECT id, title FROM wiki_pages;")
+      execute("INSERT INTO fts_wiki_contents(wiki_content_id, `text`) SELECT id, `text` FROM wiki_contents;")
+      execute("INSERT INTO fts_custom_values(custom_value_id, value) SELECT id, value FROM custom_values;")
+
+      add_index(:fts_projects, [:name, :identifier, :description], type: "fulltext")
+      add_index(:fts_news, [:title, :summary, :description], type: "fulltext")
+      add_index(:fts_issues, [:subject, :description], type: "fulltext")
+      add_index(:fts_documents, [:title, :description], type: "fulltext")
+      add_index(:fts_changesets, :comments, type: "fulltext")
+      add_index(:fts_messages, [:subject, :content], type: "fulltext")
+      add_index(:fts_journals, :notes, type: "fulltext")
+      add_index(:fts_wiki_pages, :title, type: "fulltext")
+      add_index(:fts_wiki_contents, :text, type: "fulltext")
+      add_index(:fts_custom_values, :value, type: "fulltext")
     else
       # Do nothing
     end
@@ -47,19 +103,27 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       remove_index(:custom_values, column: [:id, :value])
       disable_extension("pgroonga")
     when Redmine::Database.mysql?
-      remove_index(:projects, column: [:name, :identifier, :description])
-      remove_index(:news, column: [:title, :summary, :description])
-      remove_index(:issues, column: [:subject, :description])
-      remove_index(:documents, column: [:title, :description])
-      remove_index(:changesets, column: :comments)
-      remove_index(:messages, column: [:subject, :content])
-      remove_index(:journals, column: :notes)
-      remove_index(:wiki_pages, column: :title)
-      remove_index(:wiki_contents, column: :text)
-      remove_index(:custom_values, column: :value)
-      %w[projects news issues documents changesets messages jounals wiki_pages wiki_contents custom_values].each do |name|
-        execute "ALTER TABLE #{name} ENGINE = InnoDB;"
-      end
+      remove_index(:fts_projects, column: [:name, :identifier, :description])
+      remove_index(:fts_news, column: [:title, :summary, :description])
+      remove_index(:fts_issues, column: [:subject, :description])
+      remove_index(:fts_documents, column: [:title, :description])
+      remove_index(:fts_changesets, column: :comments)
+      remove_index(:fts_messages, column: [:subject, :content])
+      remove_index(:fts_journals, column: :notes)
+      remove_index(:fts_wiki_pages, column: :title)
+      remove_index(:fts_wiki_contents, column: :text)
+      remove_index(:fts_custom_values, column: :value)
+
+      drop_table(:fts_projects)
+      drop_table(:fts_news)
+      drop_table(:fts_issues)
+      drop_table(:fts_documents)
+      drop_table(:fts_changesets)
+      drop_table(:fts_messages)
+      drop_table(:fts_journals)
+      drop_table(:fts_wiki_pages)
+      drop_table(:fts_wiki_contents)
+      drop_table(:fts_custom_values)
     else
       # Do nothing
     end
