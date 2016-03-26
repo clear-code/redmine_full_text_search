@@ -135,18 +135,6 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       remove_index(:custom_values, column: [:id, :value])
       disable_extension("pgroonga")
     when Redmine::Database.mysql?
-      remove_index(:fts_projects, column: [:name, :identifier, :description])
-      remove_index(:fts_news, column: [:title, :summary, :description])
-      remove_index(:fts_issues, column: [:subject, :description])
-      remove_index(:fts_documents, column: [:title, :description])
-      remove_index(:fts_changesets, column: :comments)
-      remove_index(:fts_messages, column: [:subject, :content])
-      remove_index(:fts_journals, column: :notes)
-      remove_index(:fts_attachments, column: [:filename, :description])
-      remove_index(:fts_wiki_pages, column: :title)
-      remove_index(:fts_wiki_contents, column: :text)
-      remove_index(:fts_custom_values, column: :value)
-
       drop_table(:fts_projects)
       drop_table(:fts_news)
       drop_table(:fts_issues)
