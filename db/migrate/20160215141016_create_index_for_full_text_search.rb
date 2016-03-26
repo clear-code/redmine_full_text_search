@@ -68,17 +68,20 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
         t.text :value, limit: 65535
       end
 
-      execute("INSERT INTO fts_projects(project_id, name, identifier, description) SELECT id, name, identifier, description FROM projects;")
-      execute("INSERT INTO fts_news(news_id, title, summary, description) SELECT id, title, summary, description FROM news;")
-      execute("INSERT INTO fts_issues(issue_id, subject, description) SELECT id, subject, description FROM issues;")
-      execute("INSERT INTO fts_documents(document_id, title, description) SELECT id, title, description FROM documents;")
-      execute("INSERT INTO fts_changesets(changeset_id, comments) SELECT id, comments FROM changesets;")
-      execute("INSERT INTO fts_messages(message_id, subject, content) SELECT id, subject, content FROM messages;")
-      execute("INSERT INTO fts_journals(journal_id, notes) SELECT id, notes FROM journals;")
-      execute("INSERT INTO fts_attachments(attachment_id, filename, description) SELECT id, filename, description from attachments;")
-      execute("INSERT INTO fts_wiki_pages(wiki_page_id, title) SELECT id, title FROM wiki_pages;")
-      execute("INSERT INTO fts_wiki_contents(wiki_content_id, `text`) SELECT id, `text` FROM wiki_contents;")
-      execute("INSERT INTO fts_custom_values(custom_value_id, value) SELECT id, value FROM custom_values;")
+      sql = <<-SQL
+        INSERT INTO fts_projects(project_id, name, identifier, description) SELECT id, name, identifier, description FROM projects;
+        INSERT INTO fts_news(news_id, title, summary, description) SELECT id, title, summary, description FROM news;
+        INSERT INTO fts_issues(issue_id, subject, description) SELECT id, subject, description FROM issues;
+        INSERT INTO fts_documents(document_id, title, description) SELECT id, title, description FROM documents;
+        INSERT INTO fts_changesets(changeset_id, comments) SELECT id, comments FROM changesets;
+        INSERT INTO fts_messages(message_id, subject, content) SELECT id, subject, content FROM messages;
+        INSERT INTO fts_journals(journal_id, notes) SELECT id, notes FROM journals;
+        INSERT INTO fts_attachments(attachment_id, filename, description) SELECT id, filename, description from attachments;
+        INSERT INTO fts_wiki_pages(wiki_page_id, title) SELECT id, title FROM wiki_pages;
+        INSERT INTO fts_wiki_contents(wiki_content_id, `text`) SELECT id, `text` FROM wiki_contents;
+        INSERT INTO fts_custom_values(custom_value_id, value) SELECT id, value FROM custom_values;
+      SQL
+      execute(sql)
 
       add_index(:fts_projects, [:name, :identifier, :description], type: "fulltext")
       add_index(:fts_news, [:title, :summary, :description], type: "fulltext")
