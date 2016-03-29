@@ -9,6 +9,27 @@ module FullTextSearch
       end
     end
 
+    def self.included(base)
+      base.class_eval do
+        after_save Callbacks
+      end
+    end
+
+    class Callbacks
+      def self.after_save(record)
+        fts_class = "FullTextSearch::Mroonga::Fts#{record.class.name}".constantize
+        fts_record = fts_class.new
+        fts_record.columns.each do |column|
+          if column.end_with?("_id")
+            fts_record[column] = record["id"]
+          else
+            fts_record[column] = record[column]
+          end
+        end
+        fts_record.save!
+      end
+    end
+
     module ClassMethods
       # Overwrite ActsAsSearchable
       def fetch_ranks_and_ids(scope, limit, attachments: false)
