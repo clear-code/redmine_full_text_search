@@ -18,10 +18,14 @@ module FullTextSearch
     class Callbacks
       def self.after_save(record)
         fts_class = "FullTextSearch::Mroonga::Fts#{record.class.name}".constantize
-        fts_record = fts_class.new
-        fts_class.columns.map(&:name).each do |column|
+        columns = fts_class.columns.map(&:name)
+        id_column = columns.detect do |column|
+          column.end_with?("_id")
+        end
+        fts_record = fts_class.find_or_initialize_by(id_column => record.id)
+        columns.each do |column|
           if column.end_with?("_id")
-            fts_record[column] = record["id"]
+            fts_record[column] = record.id
           else
             fts_record[column] = record[column]
           end
