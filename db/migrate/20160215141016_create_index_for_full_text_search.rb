@@ -81,7 +81,9 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
         INSERT INTO fts_wiki_contents(wiki_content_id, `text`) SELECT id, `text` FROM wiki_contents;
         INSERT INTO fts_custom_values(custom_value_id, value) SELECT id, value FROM custom_values;
       SQL
-      execute(sql)
+      sql.each_line do |line|
+        execute(line.chomp)
+      end
 
       add_index(:fts_projects, [:name, :identifier, :description], type: "fulltext")
       add_index(:fts_news, [:title, :summary, :description], type: "fulltext")
@@ -113,7 +115,9 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
           ALTER TABLE fts_#{table} ENABLE KEYS;
         SQL
       end
-      execute(sql)
+      sql.each_line do |line|
+        execute(line.chomp)
+      end
     else
       # Do nothing
     end
