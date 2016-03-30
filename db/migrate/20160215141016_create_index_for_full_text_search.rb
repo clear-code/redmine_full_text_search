@@ -15,55 +15,55 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       add_index(:custom_values, [:id, :value], using: "pgroonga")
       add_index(:attachments, [:id, :filename, :description], using: "pgroonga")
     when Redmine::Database.mysql?
-      create_table(:fts_projects, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_projects, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :project, index: true
         t.string :name
         t.string :identifier
         t.text :description, limit: 65535
       end
-      create_table(:fts_news, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_news, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :news, index: true
         t.string :title, limit: 60, default: "", null: false
         t.string :summary, default: ""
         t.text :description, limit: 65535
       end
-      create_table(:fts_issues, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_issues, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :issue, index: true
         t.string :subject, default: "", null: false
         t.text :description, limit: 65535
       end
-      create_table(:fts_documents, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_documents, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :document, index: true
         t.string :title, default: "", null: false
         t.text :description, limit: 65535
       end
-      create_table(:fts_changesets, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_changesets, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :changeset, index: true
         t.text :comments, limit: 4294967295
       end
-      create_table(:fts_messages, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_messages, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :message, index: true
         t.string :subject, default: "", null: false
         t.text :content, limit: 65535
       end
-      create_table(:fts_journals, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_journals, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :journal, index: true
         t.text :notes, limit: 65535
       end
-      create_table(:fts_attachments, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_attachments, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :attachment, index: true
         t.string :filename, default: "", null: false
         t.string :description
       end
-      create_table(:fts_wiki_pages, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_wiki_pages, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :wiki_page, index: true
         t.string :title, null: false
       end
-      create_table(:fts_wiki_contents, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_wiki_contents, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :wiki_content, index: true
         t.text :text, limit: 4294967295
       end
-      create_table(:fts_custom_values, options: "ENGINE=Mroonga") do |t|
+      create_table(:fts_custom_values, id: false, options: "ENGINE=Mroonga") do |t|
         t.references :custom_value, index: true
         t.text :value, limit: 65535
       end
