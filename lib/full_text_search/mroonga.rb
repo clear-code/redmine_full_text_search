@@ -19,7 +19,7 @@ module FullTextSearch
       def self.after_save(record)
         fts_class = "FullTextSearch::Mroonga::Fts#{record.class.name}".constantize
         fts_record = fts_class.new
-        fts_record.columns.each do |column|
+        fts_class.columns.map(&:name).each do |column|
           if column.end_with?("_id")
             fts_record[column] = record["id"]
           else
