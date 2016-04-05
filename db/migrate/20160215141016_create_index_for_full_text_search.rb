@@ -96,28 +96,6 @@ class CreateIndexForFullTextSearch < ActiveRecord::Migration
       add_index(:fts_wiki_pages, :title, type: "fulltext")
       add_index(:fts_wiki_contents, :text, type: "fulltext")
       add_index(:fts_custom_values, :value, type: "fulltext")
-
-      # Reconstruct fulltext index
-      sql = %w[
-        projects
-        news
-        issues
-        documents
-        changesets
-        messages
-        journals
-        attachments
-        wiki_pages
-        wiki_contents
-      ].inject("") do |memo, table|
-        memo += <<-SQL
-          ALTER TABLE fts_#{table} DISABLE KEYS;
-          ALTER TABLE fts_#{table} ENABLE KEYS;
-        SQL
-      end
-      sql.each_line do |line|
-        execute(line.chomp)
-      end
     else
       # Do nothing
     end
