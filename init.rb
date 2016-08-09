@@ -3,8 +3,8 @@ Redmine::Plugin.register :full_text_search do
   author 'Kenji Okimoto'
   description 'This plugin provides full text search for Redmine'
   version '0.1.0'
-  url 'https://gihub.com/okkez/redmine_full_text_search'
-  author_url 'https://gihub.com/okkez/redmine_full_text_search'
+  url 'https://github.com/okkez/redmine_full_text_search'
+  author_url 'https://github.com/okkez/redmine_full_text_search'
 end
 
 Rails.configuration.to_prepare do
