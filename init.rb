@@ -1,3 +1,6 @@
+require_dependency "full_text_search/hooks/search_index_options_content_bottom_hook"
+require "full_text_search/fetcher"
+
 Redmine::Plugin.register :full_text_search do
   name 'Full Text Search plugin'
   author 'Kenji Okimoto'
@@ -26,4 +29,6 @@ Rails.configuration.to_prepare do
   else
     # Do nothing
   end
+  SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
+  Redmine::Search::Fetcher.prepend(FullTextSearch::Fetcher)
 end
