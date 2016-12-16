@@ -1,4 +1,5 @@
 ja:
+  label_full_text_search_result_order: 検索結果の並び順
   label_full_text_search_order_target_score: スコア
   label_full_text_search_order_target_date: 更新日時
   label_full_text_search_order_type_asc: 昇順
