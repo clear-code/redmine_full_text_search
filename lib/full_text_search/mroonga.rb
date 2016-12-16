@@ -36,16 +36,24 @@ module FullTextSearch
 
     module ClassMethods
       # Overwrite ActsAsSearchable
-      def fetch_ranks_and_ids(scope, limit, attachments: false)
+      def fetch_ranks_and_ids(scope, limit, attachments: false, order_target: "score", order_type: "desc")
         if self == ::WikiPage && !attachments
           scope.
             joins("INNER JOIN fts_wiki_contents ON (wiki_contents.id = fts_wiki_contents.wiki_content_id)").
             reorder("score1 DESC, score2 DESC").distinct.limit(limit).map do |record|
-            [record.score1 * 100 + record.score2, record.id]
+            if order_target == "score"
+              [record.score1 * 100 + record.score2, record.id]
+            else
+              [record.order_target.to_i, record.id]
+            end
           end
         else
           scope.reorder("score DESC").distinct.limit(limit).map do |record|
-            [record.score, record.id]
+            if order_target == "score"
+              [record.score, record.id]
+            else
+              [record.order_target.to_i, record.id]
+            end
           end
         end
       end
@@ -53,6 +61,12 @@ module FullTextSearch
       def search_result_ranks_and_ids(tokens, user=::User.current, projects=nil, options={})
         tokens = [] << tokens unless tokens.is_a?(Array)
         projects = [] << projects if projects.is_a?(::Project)
+        params = options[:params]
+        target_column_name = "#{table_name}.#{order_column_name}"
+        kw = {
+          order_type: params[:order_type] || "desc",
+          order_target: params[:order_target] || "score",
+        }
 
         columns = searchable_options[:columns]
         columns = columns[0..0] if options[:titles_only]
@@ -73,20 +87,22 @@ module FullTextSearch
             c, t = c1.zip(c2).to_a
             r = fetch_ranks_and_ids(
               search_scope(user, projects, options).
-              select(:id, "#{s1} AS score1", "#{s2} AS score2").
+              select(:id, "#{s1} AS score1", "#{s2} AS score2, #{target_column_name} AS order_target").
               joins(fts_relation).
               where([c.join(" OR "), *t]),
-              options[:limit]
+              options[:limit],
+              **kw
             )
           else
             s = ActiveRecord::Base.send(:sanitize_sql_array,
                                         search_tokens_condition(columns, tokens, options[:all_words]))
             r = fetch_ranks_and_ids(
               search_scope(user, projects, options).
-              select(:id, "#{s} AS score").
+              select(:id, "#{s} AS score, #{target_column_name} AS order_target").
               joins(fts_relation).
               where(search_tokens_condition(columns, tokens, options[:all_words])),
-              options[:limit]
+              options[:limit],
+              **kw
             )
           end
           queries += 1
@@ -108,13 +124,14 @@ module FullTextSearch
 
               r |= fetch_ranks_and_ids(
                 search_scope(user, projects, options).
-                select(:id, "#{s} AS score").
+                select(:id, "#{s} AS score, #{target_column_name} AS order_target").
                 joins(fts_relation).
                 joins(:custom_values).
                 joins("INNER JOIN fts_custom_values ON (custom_values.id = fts_custom_values.custom_value_id)").
                 where(visibility).
                 where(search_tokens_condition(["#{::CustomValue.table_name}.value"], tokens, options[:all_words])),
-                options[:limit]
+                options[:limit],
+                **kw
               )
               queries += 1
             end
@@ -125,13 +142,14 @@ module FullTextSearch
                                         search_tokens_condition(columns, tokens, options[:all_words]))
             r |= fetch_ranks_and_ids(
               search_scope(user, projects, options).
-              select(:id, "#{s} AS score").
+              select(:id, "#{s} AS score, #{target_column_name} AS order_target").
               joins(fts_relation).
               joins(:journals).
               joins("INNER JOIN fts_journals ON (journals.id = fts_journals.journal_id)").
               where("#{::Journal.table_name}.private_notes = ? OR (#{::Project.allowed_to_condition(user, :view_private_notes)})", false).
               where(search_tokens_condition(["#{::Journal.table_name}.notes"], tokens, options[:all_words])),
-              options[:limit]
+              options[:limit],
+              **kw
             )
             queries += 1
           end
@@ -142,19 +160,21 @@ module FullTextSearch
                                       search_tokens_condition(["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"], tokens, options[:all_words]))
           r |= fetch_ranks_and_ids(
             search_scope(user, projects, options).
-            select(:id, "#{s} AS score").
+            select(:id, "#{s} AS score, #{target_column_name} AS order_target").
             joins(fts_relation).
             joins(:attachments).
             joins("INNER JOIN fts_attachments ON (attachments.id = fts_attachments.attachment_id)").
             where(search_tokens_condition(["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"], tokens, options[:all_words])),
             options[:limit],
-            attachments: true
+            attachments: true,
+            **kw
           )
           queries += 1
         end
 
         if queries > 1
-          r = r.sort_by{|score, id| -score }
+          sign = params[:order_type] == "desc" ? -1 : 1
+          r = r.sort_by {|score, _id| sign * score }
           if options[:limit] && r.size > options[:limit]
             r = r[0, options[:limit]]
           end
@@ -183,6 +203,11 @@ module FullTextSearch
 
       def fts_relation
         "fts_#{table_name.singularize}".to_sym
+      end
+
+      def order_column_name
+        timestamp_columns = ["created_on", "updated_on", "commited_on"]
+        column_names.select{|column_name| timestamp_columns.include?(column_name) }.sort.last || "id"
       end
     end
   end
