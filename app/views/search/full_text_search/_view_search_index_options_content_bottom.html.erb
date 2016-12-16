@@ -1,23 +1,23 @@
 <fieldset>
   <legend><%= l(:label_full_text_search_result_order)%></legend>
-<p>
-  <label>
-    <%= radio_button_tag 'order_target', 'score', @full_text_search_order_target == 'score' %>
-    <%= l(:label_full_text_search_order_target_score) %>
-  </label>
-  <label>
-    <%= radio_button_tag 'order_target', 'date', @full_text_search_order_target == 'date' %>
-    <%= l(:label_full_text_search_order_target_date) %>
-  </label>
-</p>
-<p>
-  <label>
-    <%= radio_button_tag 'order_type', 'asc', @full_text_search_order_type == 'asc' %>
-    <%= l(:label_full_text_search_order_type_asc) %>
-  </label>
-  <label>
-    <%= radio_button_tag 'order_type', 'desc', @full_text_search_order_type == 'desc' %>
-    <%= l(:label_full_text_search_order_type_desc) %>
-  </label>
-</p>
+  <p>
+    <label>
+      <%= radio_button_tag 'order_target', 'score', @full_text_search_order_target == 'score' %>
+      <%= l(:label_full_text_search_order_target_score) %>
+    </label>
+    <label>
+      <%= radio_button_tag 'order_target', 'date', @full_text_search_order_target == 'date' %>
+      <%= l(:label_full_text_search_order_target_date) %>
+    </label>
+  </p>
+  <p>
+    <label>
+      <%= radio_button_tag 'order_type', 'asc', @full_text_search_order_type == 'asc' %>
+      <%= l(:label_full_text_search_order_type_asc) %>
+    </label>
+    <label>
+      <%= radio_button_tag 'order_type', 'desc', @full_text_search_order_type == 'desc' %>
+      <%= l(:label_full_text_search_order_type_desc) %>
+    </label>
+  </p>
 </fieldset>
