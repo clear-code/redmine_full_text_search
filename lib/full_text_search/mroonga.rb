@@ -205,6 +205,11 @@ module FullTextSearch
         "fts_#{table_name.singularize}".to_sym
       end
 
+      #
+      # searchable_options[:date_column] is not enough
+      # Because almost all models does not use `acts_as_searchable :data_column` option,
+      # and searchable_options[:data] default value is `:created_on`
+      #
       def order_column_name
         timestamp_columns = ["created_on", "updated_on", "commited_on"]
         column_names.select{|column_name| timestamp_columns.include?(column_name) }.sort.last || "id"
