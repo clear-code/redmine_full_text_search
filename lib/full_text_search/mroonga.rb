@@ -40,9 +40,9 @@ module FullTextSearch
         if self == ::WikiPage && !attachments
           scope.
             joins("INNER JOIN fts_wiki_contents ON (wiki_contents.id = fts_wiki_contents.wiki_content_id)").
-            reorder("score1 DESC, score2 DESC").distinct.limit(limit).map do |record|
+            reorder("score DESC").distinct.limit(limit).map do |record|
             if order_target == "score"
-              [record.score1 * 100 + record.score2, record.id]
+              [record.score, record.id]
             else
               [record.order_target.to_i, record.id]
             end
@@ -76,31 +76,49 @@ module FullTextSearch
 
         unless options[:attachments] == 'only'
           if self == ::WikiPage
-            columns1 = [columns.first]
-            columns2 = [columns.last]
+            column1 = columns.first
+            column2 = columns.last
             s1 = ActiveRecord::Base.send(:sanitize_sql_array,
-                                         search_tokens_condition(columns1, tokens, options[:all_words]))
+                                         search_tokens_condition_single(column1, tokens, options[:all_words]))
             s2 = ActiveRecord::Base.send(:sanitize_sql_array,
-                                         search_tokens_condition(columns2, tokens, options[:all_words]))
-            c1 = search_tokens_condition(columns1, tokens, options[:all_words])
-            c2 = search_tokens_condition(columns2, tokens, options[:all_words])
+                                         search_tokens_condition_single(column2, tokens, options[:all_words]))
+            c1 = search_tokens_condition_single(column1, tokens, options[:all_words])
+            c2 = search_tokens_condition_single(column2, tokens, options[:all_words])
             c, t = c1.zip(c2).to_a
             r = fetch_ranks_and_ids(
               search_scope(user, projects, options).
-              select(:id, "#{s1} AS score1", "#{s2} AS score2, #{target_column_name} AS order_target").
+              select(:id, "#{s1} * 100 + #{s2} AS score, #{target_column_name} AS order_target").
               joins(fts_relation).
               where([c.join(" OR "), *t]),
               options[:limit],
               **kw
             )
           else
-            s = ActiveRecord::Base.send(:sanitize_sql_array,
-                                        search_tokens_condition(columns, tokens, options[:all_words]))
+            conditions = columns.map do |column|
+              search_tokens_condition_single(column, tokens, options[:all_words])
+            end
+            scores = columns.zip(conditions).map do |column, condition; s|
+              s = ActiveRecord::Base.send(:sanitize_sql_array, condition)
+              case column
+              when "title", "subject"
+                "#{s} * 100"
+              else
+                s
+              end
+            end
+            if columns.size == 1
+              ct = conditions.flatten
+              c = [ct.first]
+              t = [ct.last]
+            else
+              c, t = conditions.first.zip(*conditions[1..-1]).to_a
+              p [2, c, t]
+            end
             r = fetch_ranks_and_ids(
               search_scope(user, projects, options).
-              select(:id, "#{s} AS score, #{target_column_name} AS order_target").
+              select(:id, "#{scores.join(" + ")} AS score, #{target_column_name} AS order_target").
               joins(fts_relation).
-              where(search_tokens_condition(columns, tokens, options[:all_words])),
+              where([c.join(" OR "), *t]),
               options[:limit],
               **kw
             )
@@ -119,17 +137,17 @@ module FullTextSearch
                 clauses << "(#{::CustomValue.table_name}.custom_field_id IN (#{fields.map(&:id).join(',')}) AND (#{visibility}))"
               end
               visibility = clauses.join(' OR ')
-              s = ActiveRecord::Base.send(:sanitize_sql_array,
-                                          search_tokens_condition(columns, tokens, options[:all_words]))
+              condition = search_tokens_condition_single("#{::CustomValue.table_name}.value", tokens, options[:all_words])
+              score = ActiveRecord::Base.send(:sanitize_sql_array, condition)
 
               r |= fetch_ranks_and_ids(
                 search_scope(user, projects, options).
-                select(:id, "#{s} AS score, #{target_column_name} AS order_target").
+                select(:id, "#{score} AS score, #{target_column_name} AS order_target").
                 joins(fts_relation).
                 joins(:custom_values).
                 joins("INNER JOIN fts_custom_values ON (custom_values.id = fts_custom_values.custom_value_id)").
                 where(visibility).
-                where(search_tokens_condition(["#{::CustomValue.table_name}.value"], tokens, options[:all_words])),
+                where(condition),
                 options[:limit],
                 **kw
               )
@@ -138,16 +156,32 @@ module FullTextSearch
           end
 
           if !options[:titles_only] && searchable_options[:search_journals]
-            s = ActiveRecord::Base.send(:sanitize_sql_array,
-                                        search_tokens_condition(columns, tokens, options[:all_words]))
+            conditions = columns.map do |column|
+              search_tokens_condition_single(column, tokens, options[:all_words])
+            end
+            scores = columns.zip(conditions).map do |column, _condition; m|
+              m = ActiveRecord::Base.send(:sanitize_sql_array, _condition)
+              case column
+              when "subject"
+                "#{m} * 100"
+              else
+                m
+              end
+            end
+            note_condition = search_tokens_condition_single("#{::Journal.table_name}.notes", tokens, options[:all_words])
+            note_score = ActiveRecord::Base.send(:sanitize_sql_array, note_condition)
+            conditions << note_condition
+            scores << note_score
+            c, t = conditions.first.zip(*conditions[1..-1]).to_a
             r |= fetch_ranks_and_ids(
               search_scope(user, projects, options).
-              select(:id, "#{s} AS score, #{target_column_name} AS order_target").
+              select(:id, "SUM(#{scores.join(" + ")}) AS score, #{target_column_name} AS order_target").
               joins(fts_relation).
               joins(:journals).
               joins("INNER JOIN fts_journals ON (journals.id = fts_journals.journal_id)").
               where("#{::Journal.table_name}.private_notes = ? OR (#{::Project.allowed_to_condition(user, :view_private_notes)})", false).
-              where(search_tokens_condition(["#{::Journal.table_name}.notes"], tokens, options[:all_words])),
+              where([c.join(" OR "), *t]).
+              group(:id),
               options[:limit],
               **kw
             )
@@ -156,15 +190,20 @@ module FullTextSearch
         end
 
         if searchable_options[:search_attachments] && (options[:titles_only] ? options[:attachments] == 'only' : options[:attachments] != '0')
-          s = ActiveRecord::Base.send(:sanitize_sql_array,
-                                      search_tokens_condition(["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"], tokens, options[:all_words]))
+          conditions = ["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"].map do |column|
+            search_tokens_condition_single(column, tokens, options[:all_words])
+          end
+          scores = conditions.map do |condition|
+            ActiveRecord::Base.send(:sanitize_sql_array, condition)
+          end
+          c, t = conditions.first.zip(*conditions[1..-1]).to_a
           r |= fetch_ranks_and_ids(
             search_scope(user, projects, options).
-            select(:id, "#{s} AS score, #{target_column_name} AS order_target").
+            select(:id, "#{scores.join(" + ")} AS score, #{target_column_name} AS order_target").
             joins(fts_relation).
             joins(:attachments).
             joins("INNER JOIN fts_attachments ON (attachments.id = fts_attachments.attachment_id)").
-            where(search_tokens_condition(["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"], tokens, options[:all_words])),
+            where([c.join(" OR "), *t]),
             options[:limit],
             attachments: true,
             **kw
@@ -174,7 +213,7 @@ module FullTextSearch
 
         if queries > 1
           sign = params[:order_type] == "desc" ? -1 : 1
-          r = r.sort_by {|score, _id| sign * score }
+          r = r.sort_by {|_score, _id| sign * _score }
           if options[:limit] && r.size > options[:limit]
             r = r[0, options[:limit]]
           end
@@ -192,6 +231,14 @@ module FullTextSearch
           end
         end
         token_clauses = "MATCH(#{columns.join(",")})"
+        pragma = all_words ? "*D+" : "*DOR"
+        sql = %Q!#{token_clauses} AGAINST (? IN BOOLEAN MODE)!
+        [sql, "#{pragma} #{tokens.join(" ")}"]
+      end
+
+      def search_tokens_condition_single(column, tokens, all_words)
+        column = column.include?(".") ? "fts_#{column}" : "#{fts_table_name}.#{column}"
+        token_clauses = "MATCH(#{column})"
         pragma = all_words ? "*D+" : "*DOR"
         sql = %Q!#{token_clauses} AGAINST (? IN BOOLEAN MODE)!
         [sql, "#{pragma} #{tokens.join(" ")}"]
