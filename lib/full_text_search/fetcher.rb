@@ -1,5 +1,6 @@
 module FullTextSearch
   module Fetcher
+    # Overwrite Redmine::Search::Fetcher#load_result_ids to set order type
     def load_result_ids
       ret = []
       # get all the results ranks and ids
