@@ -193,8 +193,8 @@ module FullTextSearch
           conditions = ["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"].map do |column|
             search_tokens_condition_single(column, tokens, options[:all_words])
           end
-          scores = conditions.map do |condition|
-            ActiveRecord::Base.send(:sanitize_sql_array, condition)
+          scores = conditions.map do |_condition|
+            ActiveRecord::Base.send(:sanitize_sql_array, _condition)
           end
           c, t = conditions.first.zip(*conditions[1..-1]).to_a
           r |= fetch_ranks_and_ids(
