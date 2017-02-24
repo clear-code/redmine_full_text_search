@@ -100,8 +100,10 @@ module FullTextSearch
             scores = columns.zip(conditions).map do |column, condition; s|
               s = ActiveRecord::Base.send(:sanitize_sql_array, condition)
               case column
-              when "title", "subject"
+              when "title", "summary", "subject"
                 "#{s} * 100"
+              when /description\z/
+                "#{s} * 10"
               else
                 s
               end
@@ -164,6 +166,8 @@ module FullTextSearch
               case column
               when "subject"
                 "#{m} * 100"
+              when /description\z/
+                "#{m} * 10"
               else
                 m
               end
