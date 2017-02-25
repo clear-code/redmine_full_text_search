@@ -1,0 +1,5 @@
+#search-results dt a::after {
+  content: " (" attr(data-rank) ")";
+  color: gray;
+  font-size: x-small;
+};
