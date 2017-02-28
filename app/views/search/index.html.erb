@@ -77,6 +77,8 @@ toggleFieldset($("#options-content"));
 <% end %>
 <% end %>
 
-<% content_for :header_tags do %>
-  <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
+<%- if Setting.plugin_full_text_search[:display_score] == "1" %>
+  <% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
+  <% end %>
 <% end %>

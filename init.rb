@@ -8,6 +8,7 @@ Redmine::Plugin.register :full_text_search do
   version '0.2.3'
   url 'https://github.com/okkez/redmine_full_text_search'
   author_url 'https://github.com/okkez/redmine_full_text_search'
+  settings default: { display_score: "0" }, partial: "settings/full_text_search"
 end
 
 Rails.configuration.to_prepare do
