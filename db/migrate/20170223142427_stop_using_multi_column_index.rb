@@ -2,6 +2,7 @@ class StopUsingMultiColumnIndex < ActiveRecord::Migration
   def up
     case
     when Redmine::Database.postgresql?
+      # Do nothing
     when Redmine::Database.mysql?
       remove_index(:fts_projects, [:name, :identifier, :description])
       remove_index(:fts_news, [:title, :summary, :description])
@@ -32,6 +33,7 @@ class StopUsingMultiColumnIndex < ActiveRecord::Migration
   def down
     case
     when Redmine::Database.postgresql?
+      # Do nothing
     when Redmine::Database.mysql?
       remove_index(:fts_projects, :name)
       remove_index(:fts_projects, :identifier)
