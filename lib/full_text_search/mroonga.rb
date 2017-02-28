@@ -40,7 +40,7 @@ module FullTextSearch
         if self == ::WikiPage && !attachments
           scope.
             joins("INNER JOIN fts_wiki_contents ON (wiki_contents.id = fts_wiki_contents.wiki_content_id)").
-            reorder("score DESC").distinct.limit(limit).map do |record|
+            reorder("score DESC", id: :desc).distinct.limit(limit).map do |record|
             if order_target == "score"
               [record.score, record.id]
             else
@@ -48,7 +48,7 @@ module FullTextSearch
             end
           end
         else
-          scope.reorder("score DESC").distinct.limit(limit).map do |record|
+          scope.reorder("score DESC", id: :desc).distinct.limit(limit).map do |record|
             if order_target == "score"
               [record.score, record.id]
             else
