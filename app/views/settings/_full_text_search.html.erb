@@ -1,4 +1,4 @@
 <p>
   <%= label_tag("settings[display_score]", l(:label_full_text_search_display_score)) %>
-  <%= check_box_tag("settings[display_score]", "1", Setting.plugin_full_text_search[:display_score] == "1") %>
+  <%= check_box_tag("settings[display_score]", "1", settings.present? && settings[:display_score] == "1") %>
 </p>
