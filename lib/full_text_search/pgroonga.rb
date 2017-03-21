@@ -19,10 +19,6 @@ module FullTextSearch
         [sql, *([tokens.join(all_words ? " " : " OR ")] * columns.size)]
       end
 
-      def search_token_match_statement(column, value='?')
-        "#{column} @@ #{value}"
-      end
-
       # Overwrite ActsAsSearchable
       def fetch_ranks_and_ids(scope, limit)
         target_column_name = "#{table_name}.#{order_column_name}"
