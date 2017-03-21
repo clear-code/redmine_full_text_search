@@ -60,6 +60,14 @@ module FullTextSearch
 
       def search_result_ranks_and_ids(tokens, user=::User.current, projects=nil, options={})
         tokens = [] << tokens unless tokens.is_a?(Array)
+        m = tokens.detect {|t| /\Aproject:(.+)/.match(t) }
+        if projects.blank? && m
+          conditions = ["name", "description", "identifier"].map do |column|
+            "MATCH (#{column}) AGAINST (:word IN BOOLEAN MODE)"
+          end
+          project_ids = FullTextSearch::Mroonga::FtsProject.where(conditions.join(" OR "), word: m[1]).pluck(:project_id)
+          projects = Project.where(id: project_ids).to_a
+        end
         projects = [] << projects if projects.is_a?(::Project)
         params = options[:params]
         target_column_name = "#{table_name}.#{order_column_name}"
