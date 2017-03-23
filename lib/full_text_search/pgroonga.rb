@@ -8,6 +8,7 @@ module FullTextSearch
       def search_result_ranks_and_ids(tokens, user=User.current, projects=nil, options={})
         @order_target = options[:params][:order_target] || "score"
         m = tokens.detect {|t| /\Aproject:(.+)/.match(t) }
+        tokens.reject! {|token| token.start_with?("project:") }
         if projects.blank? && m
           conditions = ["name", "description", "identifier"].map do |column|
             "#{column} @@ :word"

@@ -61,6 +61,7 @@ module FullTextSearch
       def search_result_ranks_and_ids(tokens, user=::User.current, projects=nil, options={})
         tokens = [] << tokens unless tokens.is_a?(Array)
         m = tokens.detect {|t| /\Aproject:(.+)/.match(t) }
+        tokens.reject! {|token| token.start_with?("project:") }
         if projects.blank? && m
           conditions = ["name", "description", "identifier"].map do |column|
             "MATCH (#{column}) AGAINST (:word IN BOOLEAN MODE)"
