@@ -226,20 +226,6 @@ module FullTextSearch
         r
       end
 
-      def search_tokens_condition(columns, tokens, all_words)
-        columns = columns.map do |column|
-          if column.include?(".")
-            "fts_#{column}"
-          else
-            "#{fts_table_name}.#{column}"
-          end
-        end
-        token_clauses = "MATCH(#{columns.join(",")})"
-        pragma = all_words ? "*D+" : "*DOR"
-        sql = %Q!#{token_clauses} AGAINST (? IN BOOLEAN MODE)!
-        [sql, "#{pragma} #{tokens.join(" ")}"]
-      end
-
       def search_tokens_condition_single(column, tokens, all_words)
         column = column.include?(".") ? "fts_#{column}" : "#{fts_table_name}.#{column}"
         token_clauses = "MATCH(#{column})"
