@@ -7,7 +7,15 @@ module FullTextSearch
     module ClassMethods
       def search_result_ranks_and_ids(tokens, user=User.current, projects=nil, options={})
         @order_target = options[:params][:order_target] || "score"
-        super
+        m = tokens.detect {|t| /\Aproject:(.+)/.match(t) }
+        tokens.reject! {|token| token.start_with?("project:") }
+        if projects.blank? && m
+          conditions = ["name", "description", "identifier"].map do |column|
+            "#{column} @@ :word"
+          end
+          projects = Project.where(conditions.join(" OR "), word: m[1]).to_a
+        end
+        super(tokens, user, projects, options)
       end
 
       # Overwrite ActsAsSearchable
