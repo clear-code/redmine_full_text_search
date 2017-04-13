@@ -223,6 +223,8 @@ module FullTextSearch
           end
         end
 
+        r = r.group_by {|_score, id| id }
+        r = r.map {|id, origs| [origs.sum {|s, _| s }, id] }
         r
       end
 

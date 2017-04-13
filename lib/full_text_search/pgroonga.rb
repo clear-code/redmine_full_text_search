@@ -7,7 +7,10 @@ module FullTextSearch
     module ClassMethods
       def search_result_ranks_and_ids(tokens, user=User.current, projects=nil, options={})
         @order_target = options[:params][:order_target] || "score"
-        super
+        r = super
+        r = r.group_by {|_score, id| id }
+        r = r.map {|id, origs| [origs.sum {|s, _| s }, id] }
+        r
       end
 
       # Overwrite ActsAsSearchable
