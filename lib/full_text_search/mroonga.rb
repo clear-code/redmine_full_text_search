@@ -62,6 +62,7 @@ module FullTextSearch
         tokens = [] << tokens unless tokens.is_a?(Array)
         projects = [] << projects if projects.is_a?(::Project)
         params = options[:params]
+        return super if params["enable_mroonga"] == "false"
         target_column_name = "#{table_name}.#{order_column_name}"
         kw = {
           order_type: params[:order_type] || "desc",
