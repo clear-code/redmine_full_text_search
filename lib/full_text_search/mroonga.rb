@@ -36,7 +36,7 @@ module FullTextSearch
 
     module ClassMethods
       # Overwrite ActsAsSearchable
-      def fetch_ranks_and_ids(scope, limit, attachments: false, order_target: "score", order_type: "desc")
+      def fetch_ranks_and_ids_mroonga(scope, limit, attachments: false, order_target: "score", order_type: "desc")
         if self == ::WikiPage && !attachments
           scope.
             joins("INNER JOIN fts_wiki_contents ON (wiki_contents.id = fts_wiki_contents.wiki_content_id)").
@@ -85,7 +85,7 @@ module FullTextSearch
             c1 = search_tokens_condition_mroonga(column1, tokens, options[:all_words])
             c2 = search_tokens_condition_mroonga(column2, tokens, options[:all_words])
             c, t = c1.zip(c2).to_a
-            r = fetch_ranks_and_ids(
+            r = fetch_ranks_and_ids_mroonga(
               search_scope(user, projects, options).
               select(:id, "#{s1} * 100 + #{s2} AS score, #{target_column_name} AS order_target").
               joins(fts_relation).
@@ -116,7 +116,7 @@ module FullTextSearch
               c, t = conditions.first.zip(*conditions[1..-1]).to_a
               p [2, c, t]
             end
-            r = fetch_ranks_and_ids(
+            r = fetch_ranks_and_ids_mroonga(
               search_scope(user, projects, options).
               select(:id, "#{scores.join(" + ")} AS score, #{target_column_name} AS order_target").
               joins(fts_relation).
@@ -142,7 +142,7 @@ module FullTextSearch
               condition = search_tokens_condition_mroonga("#{::CustomValue.table_name}.value", tokens, options[:all_words])
               score = ActiveRecord::Base.send(:sanitize_sql_array, condition)
 
-              r |= fetch_ranks_and_ids(
+              r |= fetch_ranks_and_ids_mroonga(
                 search_scope(user, projects, options).
                 select(:id, "#{score} AS score, #{target_column_name} AS order_target").
                 joins(fts_relation).
@@ -177,7 +177,7 @@ module FullTextSearch
             conditions << note_condition
             scores << note_score
             c, t = conditions.first.zip(*conditions[1..-1]).to_a
-            r |= fetch_ranks_and_ids(
+            r |= fetch_ranks_and_ids_mroonga(
               search_scope(user, projects, options).
               select(:id, "SUM(#{scores.join(" + ")}) AS score, #{target_column_name} AS order_target").
               joins(fts_relation).
@@ -201,7 +201,7 @@ module FullTextSearch
             ActiveRecord::Base.send(:sanitize_sql_array, _condition)
           end
           c, t = conditions.first.zip(*conditions[1..-1]).to_a
-          r |= fetch_ranks_and_ids(
+          r |= fetch_ranks_and_ids_mroonga(
             search_scope(user, projects, options).
             select(:id, "#{scores.join(" + ")} AS score, #{target_column_name} AS order_target").
             joins(fts_relation).
