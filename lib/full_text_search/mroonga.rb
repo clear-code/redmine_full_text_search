@@ -79,11 +79,11 @@ module FullTextSearch
             column1 = columns.first
             column2 = columns.last
             s1 = ActiveRecord::Base.send(:sanitize_sql_array,
-                                         search_tokens_condition_single(column1, tokens, options[:all_words]))
+                                         search_tokens_condition_mroonga(column1, tokens, options[:all_words]))
             s2 = ActiveRecord::Base.send(:sanitize_sql_array,
-                                         search_tokens_condition_single(column2, tokens, options[:all_words]))
-            c1 = search_tokens_condition_single(column1, tokens, options[:all_words])
-            c2 = search_tokens_condition_single(column2, tokens, options[:all_words])
+                                         search_tokens_condition_mroonga(column2, tokens, options[:all_words]))
+            c1 = search_tokens_condition_mroonga(column1, tokens, options[:all_words])
+            c2 = search_tokens_condition_mroonga(column2, tokens, options[:all_words])
             c, t = c1.zip(c2).to_a
             r = fetch_ranks_and_ids(
               search_scope(user, projects, options).
@@ -95,7 +95,7 @@ module FullTextSearch
             )
           else
             conditions = columns.map do |column|
-              search_tokens_condition_single(column, tokens, options[:all_words])
+              search_tokens_condition_mroonga(column, tokens, options[:all_words])
             end
             scores = columns.zip(conditions).map do |column, condition; s|
               s = ActiveRecord::Base.send(:sanitize_sql_array, condition)
@@ -139,7 +139,7 @@ module FullTextSearch
                 clauses << "(#{::CustomValue.table_name}.custom_field_id IN (#{fields.map(&:id).join(',')}) AND (#{visibility}))"
               end
               visibility = clauses.join(' OR ')
-              condition = search_tokens_condition_single("#{::CustomValue.table_name}.value", tokens, options[:all_words])
+              condition = search_tokens_condition_mroonga("#{::CustomValue.table_name}.value", tokens, options[:all_words])
               score = ActiveRecord::Base.send(:sanitize_sql_array, condition)
 
               r |= fetch_ranks_and_ids(
@@ -159,7 +159,7 @@ module FullTextSearch
 
           if !options[:titles_only] && searchable_options[:search_journals]
             conditions = columns.map do |column|
-              search_tokens_condition_single(column, tokens, options[:all_words])
+              search_tokens_condition_mroonga(column, tokens, options[:all_words])
             end
             scores = columns.zip(conditions).map do |column, _condition; m|
               m = ActiveRecord::Base.send(:sanitize_sql_array, _condition)
@@ -172,7 +172,7 @@ module FullTextSearch
                 m
               end
             end
-            note_condition = search_tokens_condition_single("#{::Journal.table_name}.notes", tokens, options[:all_words])
+            note_condition = search_tokens_condition_mroonga("#{::Journal.table_name}.notes", tokens, options[:all_words])
             note_score = ActiveRecord::Base.send(:sanitize_sql_array, note_condition)
             conditions << note_condition
             scores << note_score
@@ -195,7 +195,7 @@ module FullTextSearch
 
         if searchable_options[:search_attachments] && (options[:titles_only] ? options[:attachments] == 'only' : options[:attachments] != '0')
           conditions = ["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"].map do |column|
-            search_tokens_condition_single(column, tokens, options[:all_words])
+            search_tokens_condition_mroonga(column, tokens, options[:all_words])
           end
           scores = conditions.map do |_condition|
             ActiveRecord::Base.send(:sanitize_sql_array, _condition)
@@ -228,7 +228,7 @@ module FullTextSearch
         r
       end
 
-      def search_tokens_condition_single(column, tokens, all_words)
+      def search_tokens_condition_mroonga(column, tokens, all_words)
         column = column.include?(".") ? "fts_#{column}" : "#{fts_table_name}.#{column}"
         token_clauses = "MATCH(#{column})"
         pragma = all_words ? "*D+" : "*DOR"
