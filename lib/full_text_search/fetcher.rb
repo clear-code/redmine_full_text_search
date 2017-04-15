@@ -26,7 +26,8 @@ module FullTextSearch
       end
       # sort results, higher rank and id first
       # a.last # => [score, id]
-      if @options[:params][:order_type] == "desc"
+      params = @options.fetch(:params, { order_type: "desc" })
+      if params[:order_type] == "desc"
         ret.sort! {|a, b| b.last <=> a.last }
       else
         ret.sort! {|a, b| a.last <=> b.last }

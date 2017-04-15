@@ -61,7 +61,7 @@ module FullTextSearch
       def search_result_ranks_and_ids(tokens, user=::User.current, projects=nil, options={})
         tokens = [] << tokens unless tokens.is_a?(Array)
         projects = [] << projects if projects.is_a?(::Project)
-        params = options[:params]
+        params = options.fetch(:params, {})
         return super if params["enable_mroonga"] == "false"
         target_column_name = "#{table_name}.#{order_column_name}"
         kw = {
