@@ -31,6 +31,16 @@ $ ./bin/rake redmine:plugins:migrate RAILS_ENV=production
 
 And restart Redmine.
 
+**NOTE** for PGroonga:
+
+If you use normal user for Redmine. You must run following query as
+super user before run `./bin/rake redmine:plugins:migrate RAILS_ENV=production`:
+
+1. `CREATE EXTENSION IF NOT EXISTS pgroonga;`
+1. `GRANT USAGE ON pgroonga TO <user>;`
+
+See https://pgroonga.github.io/reference/grant-usage-on-schema-pgroonga.html
+
 # Contributing
 
 1. Fork it ( http://github.com/okkez/redmine_full_text_search/fork )
