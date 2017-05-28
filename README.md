@@ -26,7 +26,7 @@ $ git clone https://github.com/okkez/redmine_full_text_search.git full_text_sear
 
 ```text
 $ cd redmine
-$ ./bin/rake redmine:plugins:migrate RAILS_ENV=production
+$ ./bin/rake redmine:plugins RAILS_ENV=production
 ```
 
 And restart Redmine.
