@@ -1,5 +1,8 @@
 module FullTextSearch
   module PGroonga
+    def search(query, **kw)
+    end
+
     def self.prepended(base)
       base.extend(ClassMethods)
     end

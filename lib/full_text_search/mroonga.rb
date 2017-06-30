@@ -1,5 +1,8 @@
 module FullTextSearch
   module Mroonga
+    def search(query, **kw)
+    end
+
     def self.prepended(base)
       base.extend(ClassMethods)
       base.class_eval do
