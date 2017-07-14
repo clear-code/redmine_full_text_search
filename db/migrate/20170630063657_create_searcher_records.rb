@@ -70,7 +70,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
                   original_columns: %w[committed_on NULL comments])
         load_data(table: "messages",
                   columns: %w[subject content],
-                  original_columns: %w[created_on updated_on subject contet])
+                  original_columns: %w[created_on updated_on subject content])
         load_data(table: "journals",
                   columns: %w[notes],
                   original_columns: %w[created_on NULL notes])
