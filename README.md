@@ -37,7 +37,7 @@ If you use normal user for Redmine. You must run following query as
 super user before run `./bin/rake redmine:plugins:migrate RAILS_ENV=production`:
 
 1. `CREATE EXTENSION IF NOT EXISTS pgroonga;`
-1. `GRANT USAGE ON pgroonga TO <user>;`
+1. `GRANT USAGE ON SCHEMA pgroonga TO <user>;`
 
 See https://pgroonga.github.io/reference/grant-usage-on-schema-pgroonga.html
 
