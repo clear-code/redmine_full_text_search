@@ -28,6 +28,20 @@ services:
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
 
+  redmine-3.4-mariadb:
+    image: redmine:3.4
+    ports:
+      - "3013:3000"
+    environment:
+      REDMINE_DB_MYSQL: mariadb
+      REDMINE_DB_DATABASE: redmine-3.4
+    env_file:
+      - env
+    extra_hosts:
+      - "mariadb:172.17.0.1"
+    volumes:
+      - .:/usr/src/redmine/plugins/full_text_search:ro
+
   redmine-3.2-postgresql:
     image: redmine:3.2
     ports:
@@ -55,3 +69,19 @@ services:
       - "postgresql:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
+
+  redmine-3.4-postgresql:
+    image: redmine:3.4
+    ports:
+      - "3023:3000"
+    environment:
+      REDMINE_DB_POSTGRES: postgresql
+      REDMINE_DB_DATABASE: redmine-3.4
+    env_file:
+      - env
+    extra_hosts:
+      - "postgresql:172.17.0.1"
+    volumes:
+      - .:/usr/src/redmine/plugins/full_text_search:ro
+    command:
+      - /usr/bin/cat /etc/hosts
