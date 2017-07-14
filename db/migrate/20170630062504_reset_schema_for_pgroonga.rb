@@ -4,13 +4,13 @@ class ResetSchemaForPgroonga < ActiveRecord::Migration
     opclass = "pgroonga.varchar_full_text_search_ops"
     reversible do |d|
       d.up do
-        remove_index(:projects, [:id, :name, :identifier, :description])
-        remove_index(:news, [:id, :title, :summary, :description])
-        remove_index(:issues, [:id, :subject, :description])
-        remove_index(:documents, [:id, :title, :description])
-        remove_index(:messages, [:id, :subject, :content])
-        remove_index(:wiki_pages, [:id, :title])
-        remove_index(:attachments, [:id, :filename, :description])
+        remove_index(:projects, name: "index_projects_pgroonga")
+        remove_index(:news, name: "index_news_pgroonga")
+        remove_index(:issues, name: "index_issues_pgroonga")
+        remove_index(:documents, name: "index_documents_pgroonga")
+        remove_index(:messages, name: "index_messages_pgroonga")
+        remove_index(:wiki_pages, name: "index_wiki_pages_pgroonga")
+        remove_index(:attachments, name: "index_attachments_pgroonga")
       end
       d.down do
         [
