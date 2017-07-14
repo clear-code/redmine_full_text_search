@@ -91,15 +91,15 @@ class CreateSearcherRecords < ActiveRecord::Migration
         drop_table :searcher_records
       end
     end
+  end
 
-    private
+  private
 
-    def load_data(table:, columns:, original_columns:)
-      sql = <<-SQL
-        INSERT INTO searcher_records(original_id, original_type, original_created_on, original_updated_on, #{columns.join(", ")})
-        SELECT id, '#{table.classify}', #{original_columns.join(", ")} FROM #{table};
-      SQL
-      execute(sql)
-    end
+  def load_data(table:, columns:, original_columns:)
+    sql = <<-SQL
+      INSERT INTO searcher_records(original_id, original_type, original_created_on, original_updated_on, #{columns.join(", ")})
+      SELECT id, '#{table.classify}', #{original_columns.join(", ")} FROM #{table};
+    SQL
+    execute(sql)
   end
 end
