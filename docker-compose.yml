@@ -83,5 +83,3 @@ services:
       - "postgresql:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
-    command:
-      - /usr/bin/cat /etc/hosts
