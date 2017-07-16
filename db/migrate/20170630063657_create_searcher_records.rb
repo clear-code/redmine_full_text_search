@@ -54,37 +54,37 @@ class CreateSearcherRecords < ActiveRecord::Migration
         end
         # Load data
         load_data(table: "projects",
-                  columns: %w[name identifier description],
+                  columns:                                %w[name identifier description],
                   original_columns: %w[created_on updated_on name identifier description])
         load_data(table: "news",
-                  columns: %w[title summary description],
+                  columns:                          %w[title summary description],
                   original_columns: %w[created_on NULL title summary description])
         load_data(table: "issues",
-                  columns: %w[subject description],
+                  columns:                                %w[subject description],
                   original_columns: %w[created_on updated_on subject description])
         load_data(table: "documents",
-                  columns: %w[title description],
+                  columns:                          %w[title description],
                   original_columns: %w[created_on NULL title description])
         load_data(table: "changesets",
-                  columns: %w[comments],
+                  columns:                            %w[comments],
                   original_columns: %w[committed_on NULL comments])
         load_data(table: "messages",
-                  columns: %w[subject content],
+                  columns:                                %w[subject content],
                   original_columns: %w[created_on updated_on subject content])
         load_data(table: "journals",
-                  columns: %w[notes],
+                  columns:                          %w[notes],
                   original_columns: %w[created_on NULL notes])
         load_data(table: "wiki_pages",
-                  columns: %w[title],
+                  columns:                          %w[title],
                   original_columns: %w[created_on NULL title])
         load_data(table: "wiki_contents",
-                  columns: %w[text],
+                  columns:                          %w[text],
                   original_columns: %w[NULL updated_on text])
         load_data(table: "custom_values",
-                  columns: %w[value],
+                  columns:                    %w[value],
                   original_columns: %w[NULL NULL value])
         load_data(table: "attachments",
-                  columns: %w[filename description],
+                  columns:                          %w[filename description],
                   original_columns: %w[created_on NULL filename description])
       end
       d.down do
