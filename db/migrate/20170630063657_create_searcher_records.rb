@@ -54,7 +54,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
         end
         # Load data
         load_data(table: "projects",
-                  columns: %w[name description identifier],
+                  columns: %w[name identifier description],
                   original_columns: %w[created_on updated_on name identifier description])
         load_data(table: "news",
                   columns: %w[title summary description],
