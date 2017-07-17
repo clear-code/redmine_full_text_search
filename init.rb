@@ -1,5 +1,5 @@
 require_dependency "full_text_search/hooks/search_index_options_content_bottom_hook"
-require "full_text_search/fetcher"
+require "full_text_search/searcher"
 
 Redmine::Plugin.register :full_text_search do
   name 'Full Text Search plugin'
@@ -15,9 +15,7 @@ Rails.configuration.to_prepare do
   case
   when Redmine::Database.postgresql?
     require "full_text_search/pgroonga"
-    %w[projects news issues documents changesets messages wiki_pages].each do |name|
-      name.classify.constantize.prepend(FullTextSearch::PGroonga)
-    end
+    FullTextSearch::SearcherRecord.prepend(FullTextSearch::PGroonga)
   when Redmine::Database.mysql?
     require "full_text_search/mroonga"
     %w[projects news issues documents changesets messages wiki_pages].each do |name|
