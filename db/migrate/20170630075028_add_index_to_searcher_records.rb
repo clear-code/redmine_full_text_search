@@ -18,7 +18,8 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
             "notes",
             "text",
             "value",
-            "filename #{opclass}"
+            "filename #{opclass}",
+            "original_type #{opclass}"
           ]
           sql = "CREATE INDEX index_searcher_records_pgroonga ON searcher_records USING pgroonga (#{columns.join(',')})"
           execute(sql)
@@ -40,6 +41,7 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
           text
           value
           filename
+          original_type
         ]
         d.up do
           columns.each do |column|
