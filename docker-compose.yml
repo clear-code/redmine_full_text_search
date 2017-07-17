@@ -13,6 +13,7 @@ services:
       - "mariadb:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
+      - ./Gemfile.local:/usr/src/redmine/Gemfile.local
 
   redmine-3.3-mariadb:
     image: redmine:3.3
@@ -27,6 +28,7 @@ services:
       - "mariadb:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
+      - ./Gemfile.local:/usr/src/redmine/Gemfile.local
 
   redmine-3.4-mariadb:
     image: redmine:3.4
@@ -41,6 +43,7 @@ services:
       - "mariadb:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
+      - ./Gemfile.local:/usr/src/redmine/Gemfile.local
 
   redmine-3.2-postgresql:
     image: redmine:3.2
@@ -55,6 +58,7 @@ services:
       - "postgresql:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
+      - ./Gemfile.local:/usr/src/redmine/Gemfile.local
 
   redmine-3.3-postgresql:
     image: redmine:3.3
@@ -69,6 +73,7 @@ services:
       - "postgresql:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
+      - ./Gemfile.local:/usr/src/redmine/Gemfile.local
 
   redmine-3.4-postgresql:
     image: redmine:3.4
@@ -83,3 +88,4 @@ services:
       - "postgresql:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
+      - ./Gemfile.local:/usr/src/redmine/Gemfile.local

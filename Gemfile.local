@@ -1,0 +1,1 @@
+gem "groonga-client"
