@@ -2,55 +2,109 @@ class CreateSearcherRecords < ActiveRecord::Migration
   def change
     reversible do |d|
       d.up do
-        create_table :searcher_records do |t|
-          # common
-          t.integer :original_id, null: false
-          t.string :original_type, null: false
-          t.timestamp :original_created_on
-          t.timestamp :original_updated_on
+        case
+        when Redmine::Database.postgresql?
+          create_table :searcher_records do |t|
+            # common
+            t.integer :original_id, null: false
+            t.string :original_type, null: false
+            t.timestamp :original_created_on
+            t.timestamp :original_updated_on
 
-          # projects
-          t.string :name
-          t.text :description
-          t.string :identifier
+            # projects
+            t.string :name
+            t.text :description
+            t.string :identifier
 
-          # news
-          t.string :title
-          t.string :summary
-          # t.text :description
+            # news
+            t.string :title
+            t.string :summary
+            # t.text :description
 
-          # issues
-          t.string :subject
-          # t.text :description
+            # issues
+            t.string :subject
+            # t.text :description
 
-          # documents
-          # t.string :title
-          # t.text :description
+            # documents
+            # t.string :title
+            # t.text :description
 
-          # changesets
-          t.text :comments
+            # changesets
+            t.text :comments
 
-          # messages
-          # t.string :subject
-          t.text :content
+            # messages
+            # t.string :subject
+            t.text :content
 
-          # journals
-          t.text :notes
+            # journals
+            t.text :notes
 
-          # wiki_pages
-          # t.string :title
+            # wiki_pages
+            # t.string :title
 
-          # wiki_contents
-          t.text :text
+            # wiki_contents
+            t.text :text
 
-          # custom_value
-          t.text :value
+            # custom_value
+            t.text :value
 
-          # attachments
-          t.string :filename
-          # t.text :description
+            # attachments
+            t.string :filename
+            # t.text :description
 
-          t.index([:original_id, :original_type], unique: true)
+            t.index([:original_id, :original_type], unique: true)
+          end
+        when Redmine::Database.mysql?
+          create_table :searcher_records, options: "ENGINE=Mroonga" do |t|
+            # common
+            t.integer :original_id, null: false
+            t.string :original_type, null: false
+            t.timestamp :original_created_on
+            t.timestamp :original_updated_on
+
+            # projects
+            t.string :name
+            t.text :description, limit: 16.megabytes
+            t.string :identifier
+
+            # news
+            t.string :title
+            t.string :summary
+            # t.text :description
+
+            # issues
+            t.string :subject
+            # t.text :description
+
+            # documents
+            # t.string :title
+            # t.text :description
+
+            # changesets
+            t.text :comments, limit: 16.megabytes
+
+            # messages
+            # t.string :subject
+            t.text :content
+
+            # journals
+            t.text :notes, limit: 16.megabytes
+
+            # wiki_pages
+            # t.string :title
+
+            # wiki_contents
+            t.text :text, limit: 16.megabytes
+
+            # custom_value
+            t.text :value, limit: 16.megabytes
+
+            # attachments
+            t.string :filename
+            # t.text :description
+
+            t.index([:original_id, :original_type], unique: true)
+          end
         end
         # Load data
         load_data(table: "projects",
@@ -97,9 +151,9 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
   def load_data(table:, columns:, original_columns:)
     sql = <<-SQL
-      INSERT INTO searcher_records(original_id, original_type, original_created_on, original_updated_on, #{columns.join(", ")})
-      SELECT id, '#{table.classify}', #{original_columns.join(", ")} FROM #{table};
-    SQL
-    execute(sql)
-  end
-end
+    INSERT INTO searcher_records(original_id, original_type, original_created_on, original_updated_on, #{columns.join(", ")})
+                                 SELECT id, '#{table.classify}', #{original_columns.join(", ")} FROM #{table};
+                                        SQL
+                                 execute(sql)
+                                 end
+                                 end
