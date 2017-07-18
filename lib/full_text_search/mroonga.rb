@@ -5,7 +5,7 @@ module FullTextSearch
     end
 
     module ClassMethods
-      def search(query, **kw)
+      def search(query, offset: nil, limit: 10, all_words: true, order_target: "score", order_type: "desc")
         unless all_words
           query = query.split(" ").join(" OR ")
         end
