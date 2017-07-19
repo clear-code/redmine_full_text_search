@@ -46,6 +46,7 @@ module FullTextSearch
       @records ||= @response.records.map do |record|
         FullTextSearch::SearcherRecord.from_record(record)
       end
+      # TODO: filter visible records
     end
 
     def raw_records
