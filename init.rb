@@ -18,13 +18,7 @@ Rails.configuration.to_prepare do
     FullTextSearch::SearcherRecord.prepend(FullTextSearch::PGroonga)
   when Redmine::Database.mysql?
     require "full_text_search/mroonga"
-    %w[projects news issues documents changesets messages wiki_pages].each do |name|
-      name.classify.constantize.prepend(FullTextSearch::Mroonga)
-      name.classify.constantize.include(FullTextSearch::Mroonga)
-    end
-    %w[attachments custom_values journals wiki_contents].each do |name|
-      name.classify.constantize.include(FullTextSearch::Mroonga)
-    end
+    FullTextSearch::SearcherRecord.prepend(FullTextSearch::Mroonga)
   else
     # Do nothing
   end
