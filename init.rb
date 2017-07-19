@@ -24,5 +24,4 @@ Rails.configuration.to_prepare do
   end
   SearchHelper.prepend(FullTextSearch::Hooks::SearchHelper)
   SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
-  Redmine::Search::Fetcher.prepend(FullTextSearch::Fetcher)
 end
