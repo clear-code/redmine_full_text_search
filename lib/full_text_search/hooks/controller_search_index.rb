@@ -53,8 +53,21 @@ module FullTextSearch
         @scope = @object_types.select {|t| params[t]}
         @scope = @object_types if @scope.empty?
 
-        searcher = FullTextSearch::Searcher.new
+        options = {
+          all_words: @all_words,
+          titles_only: @titles_only,
+          attachments: @search_attachments,
+          open_issues: @open_issues,
+          cache: params[:page].present?,
+          params: params
+        }
+        searcher = FullTextSearch::Searcher.new(@question, User.current, @scope, projects_to_search, options)
         @search_result = searcher.search
+
+        respond_to do |format|
+          format.html { render layout: false if request.xhr? }
+          format.api { render layout: false }
+        end
       end
     end
   end
