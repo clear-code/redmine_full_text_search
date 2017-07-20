@@ -17,17 +17,21 @@ module FullTextSearch
           searcher_record.update_attributes!(name: record.name,
                                              description: record.description,
                                              identifier: record.identifier,
+                                             status: record.status,
                                              created_on: record.created_on,
                                              updated_on: record.updated_on)
         when News
           searcher_record.update_attributes!(title: record.title,
                                              summary: record.summary,
                                              description: record.description,
+                                             project_id: record.project_id,
                                              created_on: record.created_on)
         when Issue
           searcher_record.update_attributes!(subject: record.subject,
                                              description: record.subject,
                                              created_on: record.created_on,
+                                             author_id: record.author_id,
+                                             is_private: record.is_private,
                                              updated_on: record.updated_on)
         when Document
           searcher_record.update_attributes!(title: record.title,
@@ -43,6 +47,8 @@ module FullTextSearch
                                              updated_on: record.updated_on)
         when Journal
           searcher_record.update_attributes!(notes: record.notes,
+                                             author_id: record.user_id,
+                                             is_private: record.private_notes,
                                              created_on: record.created_on)
         when WikiPage
           searcher_record.update_attributes!(title: record.title,
