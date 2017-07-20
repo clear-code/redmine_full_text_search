@@ -27,7 +27,8 @@ module FullTextSearch
                                              project_id: record.project_id,
                                              created_on: record.created_on)
         when Issue
-          searcher_record.update_attributes!(subject: record.subject,
+          searcher_record.update_attributes!(tracker_id: record.tracker_id,
+                                             subject: record.subject,
                                              description: record.subject,
                                              created_on: record.created_on,
                                              author_id: record.author_id,

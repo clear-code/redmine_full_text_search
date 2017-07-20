@@ -81,6 +81,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             # t.text :description
 
             # issues
+            t.integer :tracker_id
             t.string :subject
             # t.text :description
             t.integer :author_id
@@ -126,8 +127,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
                   columns:                          %w[title summary description],
                   original_columns: %w[created_on NULL title summary description])
         load_data(table: "issues",
-                  columns:                                %w[subject description author_id is_private],
-                  original_columns: %w[created_on updated_on subject description author_id is_private])
+                  columns:                                %w[tracker_id subject description author_id is_private],
+                  original_columns: %w[created_on updated_on tracker_id subject description author_id is_private])
         load_data(table: "documents",
                   columns:                          %w[title description],
                   original_columns: %w[created_on NULL title description])
