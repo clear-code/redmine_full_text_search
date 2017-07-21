@@ -70,6 +70,11 @@ module FullTextSearch
           # do nothing
         end
       end
+
+      def self.after_destroy(record)
+        FullTextSearch::SearcherRecord.where(original_id: record.original_id,
+                                             original_type: record.original_type).destroy_all
+      end
     end
   end
 end
