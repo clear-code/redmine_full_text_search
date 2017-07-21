@@ -7,7 +7,7 @@ module FullTextSearch
     end
 
     class Callbacks
-      # 全文検索用テーブルにデータをコピーする。検索と結果表示に使うカラムだけ。
+      # Copy data to searcher_records only for full text search.
       def self.after_save(record)
         searcher_record =
           FullTextSearch::SearcherRecord.find_or_create_by!(original_id: record.id,
