@@ -27,7 +27,8 @@ module FullTextSearch
                                              project_id: record.project_id,
                                              created_on: record.created_on)
         when Issue
-          searcher_record.update_attributes!(tracker_id: record.tracker_id,
+          searcher_record.update_attributes!(project_id: record.tracker.project_id,
+                                             tracker_id: record.tracker_id,
                                              subject: record.subject,
                                              description: record.subject,
                                              created_on: record.created_on,
@@ -47,7 +48,9 @@ module FullTextSearch
                                              created_on: record.created_on,
                                              updated_on: record.updated_on)
         when Journal
-          searcher_record.update_attributes!(notes: record.notes,
+          # journal belongs to an issue for now.
+          searcher_record.update_attributes!(project_id: record.issue.project_id,
+                                             notes: record.notes,
                                              author_id: record.user_id,
                                              is_private: record.private_notes,
                                              created_on: record.created_on)
