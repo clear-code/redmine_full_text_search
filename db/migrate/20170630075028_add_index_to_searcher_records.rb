@@ -7,6 +7,7 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
         d.up do
           columns = [
             "id",
+            "project_id",
             "original_id",
             "original_type",
             "name #{opclass}",
@@ -33,6 +34,7 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
         end
       when Redmine::Database.mysql?
         columns = %i[
+          project_id
           original_id
           original_type
           name
