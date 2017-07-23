@@ -48,6 +48,10 @@ module FullTextSearch
       @original_record ||= original_type.constantize.find(original_id)
     end
 
+    def project
+      @project ||= Project.find(project_id)
+    end
+
     def _type
       case original_type
       when "Issue"
