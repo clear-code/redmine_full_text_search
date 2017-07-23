@@ -11,11 +11,11 @@ module FullTextSearch
     end
 
     def search
-      project_ids = case
-                    when projects.is_a?(Array)
-                      projects.map(&:id)
+      project_ids = case @projects
+                    when Array
+                      @projects.map(&:id)
                     when Project
-                      [projects.id]
+                      [@projects.id]
                     else
                       [] # all projects
                     end
