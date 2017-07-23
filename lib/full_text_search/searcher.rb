@@ -24,9 +24,9 @@ module FullTextSearch
       response = FullTextSearch::SearcherRecord.search(
         @query,
         project_ids: project_ids,
-        limit: limit,
-        offset: offset,
-        all_words: all_words,
+        limit: @options[:limit],
+        offset: @options[:offset],
+        all_words: @options[:all_words],
         order_target: @options[:params][:order_target],
         order_type: @options[:params][:order_type]
       )
