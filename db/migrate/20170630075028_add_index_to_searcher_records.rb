@@ -7,6 +7,8 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
         d.up do
           columns = [
             "id",
+            "original_id",
+            "original_type",
             "name #{opclass}",
             "identifier #{opclass}",
             "description",
@@ -17,9 +19,11 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
             "content",
             "notes",
             "text",
+            "version",
             "value",
+            "container_id",
+            "container_type",
             "filename #{opclass}",
-            "original_type #{opclass}"
           ]
           sql = "CREATE INDEX index_searcher_records_pgroonga ON searcher_records USING pgroonga (#{columns.join(',')})"
           execute(sql)
@@ -29,6 +33,8 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
         end
       when Redmine::Database.mysql?
         columns = %i[
+          original_id
+          original_type
           name
           identifier
           description
@@ -39,9 +45,11 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
           content
           notes
           text
+          version
           value
+          container_id
+          container_type
           filename
-          original_type
         ]
         d.up do
           columns.each do |column|
