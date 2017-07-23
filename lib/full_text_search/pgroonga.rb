@@ -41,6 +41,8 @@ module FullTextSearch
                      'match_columns', '#{target_columns.join(",")}',
                      'query', pgroonga.query_escape('#{query}'),
                      'filter', 'pgroonga_tuple_is_alive(ctid)#{project_condition}',
+                     'limit', '#{limit}',
+                     'offset', '#{offset}',
                      'sort_keys', '#{sort_keys}'
                    ]
                  )::json

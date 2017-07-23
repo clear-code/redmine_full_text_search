@@ -55,7 +55,7 @@ module FullTextSearch
         @scope = @object_types if @scope.empty?
 
         options = {
-          offset: @offset,
+          offset: (params["page"].to_i - 1) * @limit,
           limit: @limit,
           all_words: @all_words,
           titles_only: @titles_only,
@@ -66,7 +66,8 @@ module FullTextSearch
         }
         searcher = FullTextSearch::Searcher.new(@question, User.current, @scope, projects_to_search, options)
         @search_result = searcher.search
-        @result_pages = Redmine::Pagination::Paginator.new @search_result.count, @limit, params['page']
+        @result_pages = Redmine::Pagination::Paginator.new(@search_result.count, @limit, params["page"])
+        @offset ||= @result_pages.offset
 
         respond_to do |format|
           format.html { render layout: false if request.xhr? }
