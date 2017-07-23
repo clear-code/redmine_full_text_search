@@ -153,7 +153,7 @@ module FullTextSearch
         { controller: "issues", action: "show", id: original_id }
       when "Journal"
         journal = original_record
-        { controller: "issues", action: "show", id: journal.issue_id, anchor: "change-#{original_id}" }
+        { controller: "issues", action: "show", id: journal.issue.id, anchor: "change-#{original_id}" }
       when "News"
         { controller: "news", action: "show", id: original_id }
       when "Project"
