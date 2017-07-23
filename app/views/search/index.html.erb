@@ -37,12 +37,12 @@
 
 <% if @results %>
     <div id="search-results-counts">
-      <%= render_results_by_type(@result_count_by_type) unless @scope.size == 1 %>
+      <%= render_results_by_type(@search_result.count_by_type) unless @scope.size == 1 %>
     </div>
-    <h3><%= l(:label_result_plural) %> (<%= @result_count %>)</h3>
+    <h3><%= l(:label_result_plural) %> (<%= @search_result.count %>)</h3>
     <dl id="search-results">
-      <% @results.each do |e, rank| %>
-        <dt class="<%= e.event_type %>">
+      <% @search_result.each do |e| %>
+        <dt class="<%= e.event_type %> icon icon-<%= e.event_type %>">
           <%= content_tag('span', e.project, :class => 'project') unless @project == e.project %>
           <%= link_to(highlight_tokens(e.event_title.truncate(255), @tokens), e.event_url, :data => { :rank => rank }) %>
         </dt>
@@ -53,7 +53,7 @@
 <% end %>
 
 <% if @result_pages %>
-<span class="pagination"><%= pagination_links_full @result_pages, @result_count, :per_page_links => false %></span>
+<span class="pagination"><%= pagination_links_full @result_pages, @search_result.count, :per_page_links => false %></span>
 <% end %>
 
 <% html_title(l(:label_search)) -%>
