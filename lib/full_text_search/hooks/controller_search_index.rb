@@ -42,6 +42,7 @@ module FullTextSearch
             @project
           end
 
+        # :issues, :news, :documents, :changesets, :wiki_pages, :messages, :projects
         @object_types = Redmine::Search.available_search_types.dup
         if projects_to_search.is_a? Project
           # don't search projects
@@ -54,6 +55,8 @@ module FullTextSearch
         @scope = @object_types if @scope.empty?
 
         options = {
+          offset: @offset,
+          limit: @limit,
           all_words: @all_words,
           titles_only: @titles_only,
           attachments: @search_attachments,
