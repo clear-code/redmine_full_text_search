@@ -9,9 +9,18 @@ module FullTextSearch
     class Callbacks
       # Copy data to searcher_records only for full text search.
       def self.after_save(record)
-        searcher_record =
-          FullTextSearch::SearcherRecord.find_or_create_by!(original_id: record.id,
-                                                            original_type: record.class.name)
+        searcher_record = case record.class
+                          when WikiContent
+                            FullTextSearch::SearcherRecord.find_or_create_by!(
+                              original_id: record.page_id,
+                              original_type: "WikiPage"
+                            )
+                          else
+                            FullTextSearch::SearcherRecord.find_or_create_by!(
+                              original_id: record.id,
+                              original_type: record.class.name
+                            )
+                          end
         case record
         when Project
           searcher_record.update_attributes!(name: record.name,
