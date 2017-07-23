@@ -6,6 +6,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
         when Redmine::Database.postgresql?
           create_table :searcher_records do |t|
             # common
+            t.integer :project_id, null: false
             t.integer :original_id, null: false
             t.string :original_type, null: false
             t.timestamp :original_created_on
@@ -27,6 +28,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             # t.text :description
             t.integer :author_id
             t.boolean :is_private
+            t.integer :tracker_id
 
             # documents
             # t.string :title
@@ -49,19 +51,24 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # wiki_contents
             t.text :text
+            t.integer :version
+            # t.string :title # wiki_page.title
 
             # custom_value
             t.text :value
 
             # attachments
+            t.integer :container_id
+            t.string :container_type
             t.string :filename
             # t.text :description
 
-            t.index([:original_id, :original_type], unique: true)
+            t.index([:original_id, :original_type, :container_id, :container_type], name: "index_searcher_records_unique", unique: true)
           end
         when Redmine::Database.mysql?
           create_table :searcher_records, options: "ENGINE=Mroonga" do |t|
             # common
+            t.integer :project_id, null: false
             t.integer :original_id, null: false
             t.string :original_type, null: false
             t.timestamp :original_created_on
@@ -86,6 +93,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             # t.text :description
             t.integer :author_id
             t.boolean :is_private
+            t.integer :tracker_id
 
             # documents
             # t.string :title
@@ -108,15 +116,19 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # wiki_contents
             t.text :text, limit: 16.megabytes
+            t.integer :version
+            # t.string :title # wiki_page.title
 
             # custom_value
             t.text :value, limit: 16.megabytes
 
             # attachments
+            t.integer :container_id
+            t.string :container_type
             t.string :filename
             # t.text :description
 
-            t.index([:original_id, :original_type], unique: true)
+            t.index([:original_id, :original_type, :container_id, :container_type], name: "index_searcher_records_unique", unique: true)
           end
         end
         # Load data
@@ -145,8 +157,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
                   columns:                          %w[title],
                   original_columns: %w[created_on NULL title])
         load_data(table: "wiki_contents",
-                  columns:                          %w[text],
-                  original_columns: %w[NULL updated_on text])
+                  columns:                          %w[title text version],
+                  original_columns: %w[NULL updated_on p.title text version])
         load_data(table: "custom_values",
                   columns:                    %w[value],
                   original_columns: %w[NULL NULL value],
@@ -166,7 +178,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
   def load_projects(table:, columns:, original_columns:, conditions: "1=1")
     sql = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT id, '#{table.classify}',id, #{original_columns.join(", ")} FROM #{table} AS base
+    SELECT base.id, '#{table.classify}',id, #{transform(original_columns)} FROM #{table} AS base
     SQL
     execute(sql)
   end
@@ -174,21 +186,21 @@ class CreateSearcherRecords < ActiveRecord::Migration
   def load_data(table:, columns:, original_columns:, condition: "1=1")
     sql_base = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT id, '#{table.classify}', project_id, #{original_columns.join(", ")} FROM #{table} AS base
+    SELECT base.id, '#{table.classify}', project_id, #{transform(original_columns)} FROM #{table} AS base
     SQL
     sql_rest = case table
                when "changesets"
                  %Q[JOIN repositories AS r ON (base.repository_id = r.id)]
                when "messages"
-                 %Q[JOIN boards AS b ON (base.board_id = b.id) WHERE]
+                 %Q[JOIN boards AS b ON (base.board_id = b.id)]
                when "journals"
-                 %Q[JOIN issues i ON (base.journalized_id = i.id) WHERE]
+                 %Q[JOIN issues i ON (base.journalized_id = i.id)]
                when "wiki_pages"
                  %Q[JOIN wikis AS w ON (base.wiki_id = w.id)]
                when "wiki_contents"
                  <<-SQL
                  JOIN wiki_pages AS p ON (base.page_id = p.id)
-                 JONI wikis AS w ON (p.wiki_id = w.id)
+                 JOIN wikis AS w ON (p.wiki_id = w.id)
                  SQL
                when "custom_values"
                  <<-SQL
@@ -205,7 +217,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
   def load_attachments(table:, columns:, original_columns:, condition: "1=1")
     sql_base = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT id, '#{table.classify}', project_id, #{original_columns.join(", ")} FROM #{table} AS base
+    SELECT base.id, '#{table.classify}', project_id, #{transform(original_columns)} FROM #{table} AS base
     SQL
     %w(issues documents versions).each do |target|
       sql_rest = %Q[JOIN #{target} AS t ON (base.container_id = t.id)]
@@ -218,9 +230,19 @@ class CreateSearcherRecords < ActiveRecord::Migration
     execute("#{sql_base} #{sql_rest} WHERE #{condition};")
     sql = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT id, '#{table.classify}', t.id, #{original_columns.join(", ")} FROM #{table} AS base
+    SELECT base.id, '#{table.classify}', t.id, #{transform(original_columns)} FROM #{table} AS base
     JOIN projects AS t ON (base.container_id = t.id) WHERE #{condition};
     SQL
     execute(sql)
+  end
+
+  def transform(original_columns, prefix = "base")
+    original_columns.map do |c|
+      if c == "NULL" || c.include?(".")
+        c
+      else
+        "#{prefix}.#{c}"
+      end
+    end.join(", ")
   end
 end
