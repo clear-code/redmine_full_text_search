@@ -146,7 +146,7 @@ module FullTextSearch
         { controller: "attachments", action: "show", id: original_id, filename: filename }
       when "Changeset"
         changeset = original_record
-        { controller: "repositories", action: "revision", id: project_id, repository_id: changeset.repository_id, rev: changeset.identifier }
+        { controller: "repositories", action: "revision", id: project, repository_id: changeset.repository.identifier_param, rev: changeset.identifier }
       when "Document"
         { controller: "documents", action: "show", id: original_id }
       when "Issue"
@@ -159,9 +159,9 @@ module FullTextSearch
       when "Project"
         { controller: "projects", action: "show", id: original_id }
       when "WikiContent"
-        { controller: "wiki", action: "show", project_id: project_id, id: title, version: version }
+        { controller: "wiki", action: "show", project_id: project, id: title, version: version }
       when "WikiPage"
-        { controller: "wiki", action: "show", project_id: project_id, id: title }
+        { controller: "wiki", action: "show", project_id: project, id: title }
       else
         { controller: "welcome" }
       end
