@@ -35,7 +35,7 @@
 <p><%= submit_tag l(:button_submit) %></p>
 <% end %>
 
-<% if @results %>
+<% if @search_result %>
     <div id="search-results-counts">
       <%= render_results_by_type(@search_result.count_by_type) unless @scope.size == 1 %>
     </div>
