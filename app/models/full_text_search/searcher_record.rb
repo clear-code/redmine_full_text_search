@@ -3,7 +3,7 @@ module FullTextSearch
     attr_accessor :_score
 
     acts_as_event(type: :_type,
-                  datatime: :_datetime,
+                  datetime: :_datetime,
                   title: :_title,
                   description: :_description,
                   author: :_author,
