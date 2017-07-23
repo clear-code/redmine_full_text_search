@@ -44,7 +44,7 @@
       <% @search_result.each do |e| %>
         <dt class="<%= e.event_type %> icon icon-<%= e.event_type %>">
           <%= content_tag('span', e.project, :class => 'project') unless @project == e.project %>
-          <%= link_to(highlight_tokens(e.event_title.truncate(255), @tokens), e.event_url, :data => { :rank => rank }) %>
+          <%= link_to(highlight_tokens(e.event_title.truncate(255), @tokens), e.event_url, :data => { :rank => e.rank }) %>
         </dt>
         <dd><span class="description"><%= highlight_tokens(e.event_description, @tokens) %></span>
         <span class="author"><%= format_time(e.event_datetime) %></span></dd>
