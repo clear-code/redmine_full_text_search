@@ -48,11 +48,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # wiki_pages
             # t.string :title
-
-            # wiki_contents
-            t.text :text
-            t.integer :version
-            # t.string :title # wiki_page.title
+            t.text :text # wiki_contents.text w/ latest version
 
             # custom_value
             t.text :value
@@ -113,11 +109,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # wiki_pages
             # t.string :title
-
-            # wiki_contents
-            t.text :text, limit: 16.megabytes
-            t.integer :version
-            # t.string :title # wiki_page.title
+            t.text :text # wiki_contents.text w/ latest version
 
             # custom_value
             t.text :value, limit: 16.megabytes
@@ -154,11 +146,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
                   columns:                          %w[notes author_id is_private],
                   original_columns: %w[created_on NULL notes user_id private_notes])
         load_data(table: "wiki_pages",
-                  columns:                          %w[title],
-                  original_columns: %w[created_on NULL title])
-        load_data(table: "wiki_contents",
-                  columns:                          %w[title text version],
-                  original_columns: %w[NULL updated_on p.title text version])
+                  columns:                          %w[title text],
+                  original_columns: %w[created_on NULL title c.text])
         load_data(table: "custom_values",
                   columns:                    %w[value],
                   original_columns: %w[NULL NULL value],
@@ -196,11 +185,9 @@ class CreateSearcherRecords < ActiveRecord::Migration
                when "journals"
                  %Q[JOIN issues i ON (base.journalized_id = i.id)]
                when "wiki_pages"
-                 %Q[JOIN wikis AS w ON (base.wiki_id = w.id)]
-               when "wiki_contents"
                  <<-SQL
-                 JOIN wiki_pages AS p ON (base.page_id = p.id)
-                 JOIN wikis AS w ON (p.wiki_id = w.id)
+                 JOIN wikis AS w ON (base.wiki_id = w.id)
+                 JOIN wiki_contents as c ON (base.id = c.page_id)
                  SQL
                when "custom_values"
                  <<-SQL

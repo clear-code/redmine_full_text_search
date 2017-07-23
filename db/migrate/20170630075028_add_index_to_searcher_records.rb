@@ -20,7 +20,6 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
             "content",
             "notes",
             "text",
-            "version",
             "value",
             "container_id",
             "container_type",
@@ -47,7 +46,6 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
           content
           notes
           text
-          version
           value
           container_id
           container_type
