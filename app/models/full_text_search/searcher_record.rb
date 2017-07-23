@@ -58,8 +58,8 @@ module FullTextSearch
         issue = original_record
         "issue" + (issue.closed? ? "-closed" : "")
       when "Journal"
-        status_id = JournalDetail.where(journal_id: original_id, property: "attr", prop_key: "status_id").first.value
-        new_status = IssueStatus.find_by_id(status_id)
+        journal = original_record
+        new_status = journal.new_status
         if new_status
           if new_status.is_closed?
             "issue-closed"
