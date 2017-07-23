@@ -70,5 +70,11 @@ module FullTextSearch
     def raw_records
       @response.records
     end
+
+    def each
+      records.each do |record|
+        yield record
+      end
+    end
   end
 end
