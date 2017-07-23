@@ -11,15 +11,26 @@ module FullTextSearch
     end
 
     def search
+      project_ids = case
+                    when projects.is_a?(Array)
+                      projects.map(&:id)
+                    when Project
+                      [projects.id]
+                    else
+                      [] # all projects
+                    end
       # pgroonga.command: select v1 or v3 format JSON
       # mroonga.command: select v1 or v3 format JSON
       response = FullTextSearch::SearcherRecord.search(
         @query,
+        project_ids: project_ids,
         limit: limit,
         offset: offset,
-        all_words: all_words
+        all_words: all_words,
+        order_target: @options[:params][:order_target],
+        order_type: @options[:params][:order_type]
       )
-      SearchResult.new(response, @user, @scope, @projects, @options)
+      SearchResult.new(response, @options)
     end
   end
 
@@ -30,12 +41,9 @@ module FullTextSearch
     # @param response JSON returned from pgroonga or mroonga
     #
     # auto detect v1 or v3
-    def initialize(response, user, scope, projects, options = {})
+    def initialize(response, options = {})
       command = Groonga::Command.find("select").new("select", {})
       @response = Groonga::Client::Response.parse(command, response)
-      @user = user
-      @scope = scope
-      @projects = projects
       @options = options
     end
 
