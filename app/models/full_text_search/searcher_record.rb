@@ -17,21 +17,44 @@ module FullTextSearch
         new(h)
       end
 
-      def target_columns
-        %i[
-          name
-          identifier
-          description
-          title
-          summary
-          subject
-          comments
-          content
-          notes
-          text
-          value
-          filename
+      def target_columns(titles_only)
+        if titles_only
+          %i[name identifier title filename]
+        else
+          %i[
+            name
+            identifier
+            description
+            title
+            summary
+            subject
+            comments
+            content
+            notes
+            text
+            value
+            filename
+          ]
+        end
+      end
+
+      def target_models
+        [
+          Project,
+          News,
+          Issue,
+          Document,
+          Changeset,
+          Message,
+          Journal,
+          WikiPage,
+          CustomValue,
+          Attachment
         ]
+      end
+
+      def container_types
+        []
       end
     end
 
