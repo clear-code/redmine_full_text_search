@@ -47,6 +47,18 @@ module FullTextSearch
       @options = options
     end
 
+    # stolen from Redmine::Search
+    def tokens
+      return @tokens if @tokens
+      # extract tokens from the question
+      # eg. hello "bye bye" => ["hello", "bye bye"]
+      @tokens = @query.scan(%r{((\s|^)"[^"]+"(\s|$)|\S+)}).collect {|m| m.first.gsub(%r{(^\s*"\s*|\s*"\s*$)}, '')}
+      # tokens must be at least 2 characters long
+      @tokens = @tokens.uniq.select {|w| w.length > 1 }
+      # no mor  e than 5 tokens to search for
+      @tokens = @tokens.slice(5..-1)
+    end
+
     # @return Integer the number of records
     def count
       @response.total_count
