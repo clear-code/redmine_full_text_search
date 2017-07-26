@@ -16,11 +16,13 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
             "title #{opclass}",
             "summary #{opclass}",
             "subject #{opclass}",
+            "is_private",
             "comments",
             "content",
             "notes",
             "text",
             "value",
+            "custom_field_id",
             "container_id",
             "container_type",
             "filename #{opclass}",
@@ -42,11 +44,13 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
           title
           summary
           subject
+          is_private
           comments
           content
           notes
           text
           value
+          custom_field_id
           container_id
           container_type
           filename

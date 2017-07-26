@@ -52,6 +52,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # custom_value
             t.text :value
+            t.integer :custom_field_id
 
             # attachments
             t.integer :container_id
@@ -113,6 +114,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # custom_value
             t.text :value, limit: 16.megabytes
+            t.integer :custom_field_id
 
             # attachments
             t.integer :container_id
@@ -149,8 +151,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
                   columns:                          %w[title text],
                   original_columns: %w[created_on NULL title c.text])
         load_data(table: "custom_values",
-                  columns:                    %w[value],
-                  original_columns: %w[NULL NULL value],
+                  columns:                    %w[value custom_field_id],
+                  original_columns: %w[NULL NULL value custom_field_id],
                   condition: "searchable = true")
         load_attachments(table: "attachments",
                          columns:                          %w[filename description],
