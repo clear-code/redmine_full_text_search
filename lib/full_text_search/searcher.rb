@@ -23,14 +23,26 @@ module FullTextSearch
       # mroonga.command: select v1 or v3 format JSON
       response = FullTextSearch::SearcherRecord.search(
         @query,
+        user: @user,
+        scope: @scope,
         project_ids: project_ids,
+        attachments: @options[:attachments],
+        all_words: @options[:all_words],
+        titles_only: @options[:titles_only],
         limit: @options[:limit],
         offset: @options[:offset],
-        all_words: @options[:all_words],
         order_target: @options[:params][:order_target],
         order_type: @options[:params][:order_type]
       )
-      SearchResult.new(response, @options)
+      SearchResult.new(response, query: @query)
+    end
+
+    def visible_ids(scope, user, permission)
+      if scope.respond_to_(:visible)
+        scope.visible(user, permission).pluck(:id)
+      else
+        Project.allowed_to(user, permission).pluck(:id)
+      end
     end
   end
 
@@ -41,10 +53,13 @@ module FullTextSearch
     # @param response JSON returned from pgroonga or mroonga
     #
     # auto detect v1 or v3
-    def initialize(response, options = {})
+    def initialize(response, query:)
       command = Groonga::Command.find("select").new("select", {})
       @response = Groonga::Client::Response.parse(command, response)
-      @options = options
+      unless @response.success?
+        Rails.logger.error(@response.inspect)
+      end
+      @query = query
     end
 
     # stolen from Redmine::Search
