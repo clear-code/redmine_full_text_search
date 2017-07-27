@@ -91,7 +91,11 @@ module FullTextSearch
             conditions << %Q[(original_type == "#{s.classify}" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
           end
         end
-        %Q[pgroonga_tuple_is_alive(ctid) && (#{conditions.join(' || ')})]
+        if conditions.empty?
+          %Q[pgroonga_tuple_is_alive(ctid)]
+        else
+          %Q[pgroonga_tuple_is_alive(ctid) && (#{conditions.join(' || ')})]
+        end
       end
 
       # TODO Attachmentはコンテナごとに条件が必要。コンテナを見ることができたら検索可能にする
