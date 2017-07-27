@@ -77,7 +77,18 @@ module FullTextSearch
     end
 
     def count_by_type
-      @response.drilldowns.first.records.map(&:values).to_h
+      @response.drilldowns.first.records.inject(Hash.new{|h, k| h[k] = 0 }) do |memo, r|
+        key = case r.values[0]
+              when "Journal"
+                "issues"
+              when "WikiContent"
+                "wiki_pages"
+              else
+                r.values[0].tableize
+              end
+        memo[key] += r.values[1]
+        memo
+      end
     end
 
     def records_by_type
