@@ -83,9 +83,12 @@ module FullTextSearch
             conditions << %Q[(original_type == "Journal" && is_private == true && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
             target_ids = CustomField.visible(user).pluck(:id)
             conditions << %Q[(original_type == "CustomValue" && in_values(custom_field_id, #{target_ids.join(',')}))] if target_ids.present?
+          when "wiki_pages"
+            target_ids = Project.allowed_to(user, :view_wiki_pages).pluck(:id)
+            conditions << %Q[(in_values(original_type, "WikiPage", "WikiContent") && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
           else
             target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
-            %Q[(original_type == "#{s.classify}" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+            conditions << %Q[(original_type == "#{s.classify}" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
           end
         end
         %Q[pgroonga_tuple_is_alive(ctid) && (#{conditions.join(' || ')})]
