@@ -49,6 +49,7 @@ module FullTextSearch
   class SearchResult
     # [FullTextSearch::SearcherRecord]
     attr_reader :records
+    attr_reader :tokens
 
     # @param response JSON returned from pgroonga or mroonga
     #
@@ -60,18 +61,14 @@ module FullTextSearch
         Rails.logger.error(@response.inspect)
       end
       @query = query
-    end
-
-    # stolen from Redmine::Search
-    def tokens
-      return @tokens if @tokens
+      # stolen from Redmine::Search
       # extract tokens from the question
       # eg. hello "bye bye" => ["hello", "bye bye"]
       @tokens = @query.scan(%r{((\s|^)"[^"]+"(\s|$)|\S+)}).collect {|m| m.first.gsub(%r{(^\s*"\s*|\s*"\s*$)}, '')}
       # tokens must be at least 2 characters long
       @tokens = @tokens.uniq.select {|w| w.length > 1 }
-      # no mor  e than 5 tokens to search for
-      @tokens = @tokens.slice(5..-1)
+      # no more than 5 tokens to search for
+      @tokens.slice!(5..-1)
     end
 
     # @return Integer the number of records
