@@ -54,8 +54,9 @@ module FullTextSearch
         @scope = @object_types.select {|t| params[t]}
         @scope = @object_types if @scope.empty?
 
+        page = (params[:page].presence || 1).to_i
         options = {
-          offset: (params["page"].to_i - 1) * @limit,
+          offset: (page - 1) * @limit,
           limit: @limit,
           all_words: @all_words,
           titles_only: @titles_only,
