@@ -37,7 +37,7 @@ module FullTextSearch
                      'table', pgroonga.table_name('#{index_name}'),
                      'output_columns', '*,_score',
                      'drilldown', 'original_type',
-                     'match_columns', '#{target_columns(titles_only).join(",")}',
+                     'match_columns', '#{target_columns(titles_only).join("||")}',
                      'query', pgroonga.query_escape('#{query}'),
                      'filter', '#{filter_condition(user, project_ids, scope, attachments)}',
                      'limit', '#{limit}',
