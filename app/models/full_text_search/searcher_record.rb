@@ -1,6 +1,7 @@
 module FullTextSearch
   class SearcherRecord < ActiveRecord::Base
     attr_accessor :_score
+    attr_accessor :title_snippet, :description_snippet
 
     acts_as_event(type: :_type,
                   datetime: :_datetime,
@@ -118,6 +119,8 @@ module FullTextSearch
     end
 
     def _title
+      logger.info(title_snippet)
+      return title_snippet if title_snippet.present?
       case original_type
       when "Attachment"
         filename
@@ -142,17 +145,17 @@ module FullTextSearch
     end
 
     def _description
+      logger.info(description_snippet)
+      return description_snippet if description_snippet.present?
       case original_type
       when "Changeset"
-        long_comments
+        comments
       when "Journal"
         notes
       when "Message"
         content
       when "WikiPage"
         text
-      when "WikiContent"
-        comments
       else
         description
       end

@@ -55,6 +55,7 @@ module FullTextSearch
     #
     # auto detect v1 or v3
     def initialize(response, query:)
+      puts response
       command = Groonga::Command.find("select").new("select", {})
       @response = Groonga::Client::Response.parse(command, response)
       unless @response.success?
@@ -73,10 +74,15 @@ module FullTextSearch
 
     # @return Integer the number of records
     def count
-      @response.total_count
+      if @response.success?
+        @response.total_count
+      else
+        0
+      end
     end
 
     def count_by_type
+      return {} unless @response.success?
       @response.drilldowns.first.records.inject(Hash.new{|h, k| h[k] = 0 }) do |memo, r|
         key = case r.values[0]
               when "Journal"
@@ -92,12 +98,14 @@ module FullTextSearch
     end
 
     def records_by_type
-      @records_by_type ||= @records.group_by(&:original_type)
+      @records_by_type ||= records.group_by(&:original_type)
     end
 
     # @return [FullTextSearch::SearcherRecord]
     def records
+      return [] unless @response.success?
       @records ||= @response.records.map do |record|
+        p [record["description_snippet"], record["title_snippet"]]
         FullTextSearch::SearcherRecord.from_record(record)
       end
     end

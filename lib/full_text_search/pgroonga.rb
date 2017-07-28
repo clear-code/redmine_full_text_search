@@ -36,9 +36,10 @@ module FullTextSearch
                    ARRAY[
                      'table', pgroonga.table_name('#{index_name}'),
                      'output_columns', '*,_score',
+                     #{snippet_columns.chomp}
                      'drilldown', 'original_type',
                      'match_columns', '#{target_columns(titles_only).join("||")}',
-                     'query', pgroonga.query_escape('#{query}'),
+                     'query', '#{query}',
                      'filter', '#{filter_condition(user, project_ids, scope, attachments)}',
                      'limit', '#{limit}',
                      'offset', '#{offset}',
@@ -58,10 +59,22 @@ module FullTextSearch
         @pgroonga_table_name ||= ActiveRecord::Base.connection.select_value("select pgroonga.table_name('#{index_name}')")
       end
 
+      def snippet_columns
+        snippet_column("title", %w(subject title filename name)) +
+          snippet_column("description", %w(content text notes description summary value))
+      end
+
+      def snippet_column(name, columns)
+        <<-SQL
+        'columns[#{name}_snippet].stage', 'output',
+        'columns[#{name}_snippet].type', 'Text',
+        'columns[#{name}_snippet].value', 'snippet_html(#{columns.join("+")})',
+        SQL
+      end
+
       # scope # => [:issues, :news, :documents, :changesets, :wiki_pages, :messages, :projects]
       def filter_condition(user, project_ids, scope, attachments)
         conditions = []
-        attachments_conditions = attachments_conditions(attachments)
         scope.each do |s|
           case s
           when "projects"
@@ -91,6 +104,7 @@ module FullTextSearch
             conditions << %Q[(original_type == "#{s.classify}" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
           end
         end
+        conditions.concat(attachments_conditions(attachments))
         if conditions.empty?
           %Q[pgroonga_tuple_is_alive(ctid)]
         else
@@ -100,11 +114,11 @@ module FullTextSearch
 
       # TODO Attachmentはコンテナごとに条件が必要。コンテナを見ることができたら検索可能にする
       def attachments_conditions(attachments)
+        conditions = []
         if attachments == "only" || attachments != "0"
-          []
         else
-          []
         end
+        conditions
       end
     end
   end
