@@ -30,13 +30,13 @@ module FullTextSearch
                     when "date"
                       "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
+        # TODO use snippet_columns
         sql = <<-SQL
           select pgroonga.command(
                    'select',
                    ARRAY[
                      'table', pgroonga.table_name('#{index_name}'),
                      'output_columns', '*,_score',
-                     #{snippet_columns.chomp}
                      'drilldown', 'original_type',
                      'match_columns', '#{target_columns(titles_only).join("||")}',
                      'query', '#{query}',
