@@ -59,7 +59,8 @@ module FullTextSearch
       command = Groonga::Command.find("select").new("select", {})
       @response = Groonga::Client::Response.parse(command, response)
       unless @response.success?
-        Rails.logger.error(@response.inspect)
+        Rails.logger.error(@response.message)
+        raise @response.message
       end
       @query = query
       # stolen from Redmine::Search
