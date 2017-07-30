@@ -67,7 +67,8 @@ module FullTextSearch
       def snippet_column(name, columns)
         <<-SQL
         'columns[#{name}_snippet].stage', 'output',
-        'columns[#{name}_snippet].type', 'Text',
+        'columns[#{name}_snippet].type', 'ShortText',
+        'columns[#{name}_snippet].flags', 'COLUMN_VECTOR',
         'columns[#{name}_snippet].value', 'snippet_html(#{columns.join("+")})',
         SQL
       end
