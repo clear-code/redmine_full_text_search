@@ -55,7 +55,6 @@ module FullTextSearch
     #
     # auto detect v1 or v3
     def initialize(response, query:)
-      puts response
       command = Groonga::Command.find("select").new("select", {})
       @response = Groonga::Client::Response.parse(command, response)
       unless @response.success?
@@ -106,7 +105,7 @@ module FullTextSearch
     def records
       return [] unless @response.success?
       @records ||= @response.records.map do |record|
-        p [record["description_snippet"], record["title_snippet"]]
+        Rails.logger.debug(title: record["title_snippet"], description: record["description_snippet"])
         FullTextSearch::SearcherRecord.from_record(record)
       end
     end
