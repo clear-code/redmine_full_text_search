@@ -205,10 +205,10 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
   def load_attachments(table:, columns:, original_columns:, condition: "1=1")
     sql_base = <<-SQL
-    INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT base.id, '#{table.classify}', project_id, #{transform(original_columns)} FROM #{table} AS base
+    INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', project_id, container_id, container_type, #{transform(original_columns)} FROM #{table} AS base
     SQL
-    %w(issues documents versions).each do |target|
+    %w(issues journals documents news messages versions).each do |target|
       sql_rest = %Q[JOIN #{target} AS t ON (base.container_id = t.id)]
       execute("#{sql_base} #{sql_rest} WHERE #{condition};")
     end
@@ -217,12 +217,6 @@ class CreateSearcherRecords < ActiveRecord::Migration
     JOIN wikis AS w ON (p.wiki_id = w.id)
     SQL
     execute("#{sql_base} #{sql_rest} WHERE #{condition};")
-    sql = <<-SQL
-    INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT base.id, '#{table.classify}', t.id, #{transform(original_columns)} FROM #{table} AS base
-    JOIN projects AS t ON (base.container_id = t.id) WHERE #{condition};
-    SQL
-    execute(sql)
   end
 
   def transform(original_columns, prefix = "base")
