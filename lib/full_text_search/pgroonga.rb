@@ -112,7 +112,7 @@ module FullTextSearch
             conditions << %Q[(original_type == "#{s.classify}" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
           end
         end
-        conditions.concat(attachments_conditions(attachments))
+        conditions.concat(attachments_conditions(user, project_ids, scope, attachments))
         if conditions.empty?
           %Q[pgroonga_tuple_is_alive(ctid)]
         else
@@ -121,10 +121,31 @@ module FullTextSearch
       end
 
       # TODO Attachmentはコンテナごとに条件が必要。コンテナを見ることができたら検索可能にする
-      def attachments_conditions(attachments)
+      # container_type: Issue, Journal, File, Document, News, WikiPage, Version, Message
+      # NOTE: Version cannot have Attachment??
+      def attachments_conditions(user, project_ids, scope, attachments)
         conditions = []
-        if attachments == "only" || attachments != "0"
-        else
+        case attachments
+        when "0"
+          # do not search attachments
+        when "1", "only"
+          # search attachments
+          scope.each do |s|
+            case s
+            when "issues"
+              # TODO: Filter private issue/note?
+              target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              conditions << %Q[(original_type = "Attachment" && container_type = "Issue" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+              target_ids = Project.allowed_to(user, :view_notes).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              conditions << %Q[(original_type = "Attachment" && container_type = "Journal" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+            when "files", "documents", "news", "wiki_pages", "messages"
+              target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              conditions << %Q[(original_type = "Attachment" && container_type = "#{s.classify}") && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+            end
+          end
         end
         conditions
       end
