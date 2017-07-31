@@ -68,7 +68,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             # common
             t.integer :project_id, null: false
             t.integer :original_id, null: false
-            t.string :original_type, null: false
+            t.string :original_type, null: false, limit: 30
             t.timestamp :original_created_on
             t.timestamp :original_updated_on
 
@@ -112,7 +112,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # wiki_pages
             # t.string :title
-            t.text :text # wiki_contents.text w/ latest version
+            t.text :text, limit: 16.megabytes # wiki_contents.text w/ latest version
 
             # custom_value
             t.text :value, limit: 16.megabytes
@@ -120,8 +120,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # attachments
             t.integer :container_id
-            t.string :container_type
-            t.string :filename
+            t.string :container_type, limit: 30
+            t.string :filename, limit: 255
             # t.text :description
 
             t.index([:original_id, :original_type, :container_id, :container_type], name: "index_searcher_records_unique", unique: true)
