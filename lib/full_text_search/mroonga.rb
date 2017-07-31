@@ -15,7 +15,8 @@ module FullTextSearch
                  offset: nil,
                  limit: 10,
                  order_target: "score",
-                 order_type: "desc")
+                 order_type: "desc",
+                 query_escape: false)
         unless all_words
           query = query.split(" ").join(" OR ")
         end
@@ -30,6 +31,11 @@ module FullTextSearch
         # mroonga_command can accept multiple arguments since 7.0.5
         # TODO use snippet_html
         if mroonga_version >= "7.05"
+          query = if query_escape
+                    "mroonga_escape('#{query}')"
+                  else
+                    "'#{query}'"
+                  end
           sql = <<-SQL
           select mroonga_command(
                    'select',
@@ -37,7 +43,7 @@ module FullTextSearch
                    'output_columns', '*,_score',
                    'drilldown', 'original_type',
                    'match_columns', '#{target_columns(titles_only).join('||')}',
-                   'query', '#{query}',
+                   'query', #{query},
                    'filter', '#{filter_condition(user, project_ids, scope, attachments)}',
                    'limit', '#{limit}',
                    'offset', '#{offset}',
@@ -45,9 +51,10 @@ module FullTextSearch
                  )
           SQL
         else
+          # FIXME escape query if query_escape is true
           sql = [
-            "select mroonga_command(",
-            "'select --table searcher_records",
+            "select mroonga_command('",
+            "select --table searcher_records",
             "--output_columns *,_score",
             "--drilldown original_type",
             "--match_columns #{target_columns(titles_only).join('||')}",

@@ -19,7 +19,8 @@ module FullTextSearch
                  offset: nil,
                  limit: 10,
                  order_target: "score",
-                 order_type: "desc")
+                 order_type: "desc",
+                 query_escape: false)
         unless all_words
           query = query.split(" ").join(" OR ")
         end
@@ -31,21 +32,26 @@ module FullTextSearch
                       "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
         # TODO use snippet_columns
-        sql = <<-SQL
-          select pgroonga.command(
-                   'select',
-                   ARRAY[
-                     'table', pgroonga.table_name('#{index_name}'),
-                     'output_columns', '*,_score',
-                     'drilldown', 'original_type',
-                     'match_columns', '#{target_columns(titles_only).join("||")}',
-                     'query', '#{query}',
-                     'filter', '#{filter_condition(user, project_ids, scope, attachments)}',
-                     'limit', '#{limit}',
-                     'offset', '#{offset}',
-                     'sort_keys', '#{sort_keys}'
-                   ]
-                 )::json
+        query = if query_escape
+                  "pgroonga.query_escape('#{query}')"
+                else
+                  "'#{query}'"
+                end
+        sql = <<-SQL.strip_heredoc
+        select pgroonga.command(
+                 'select',
+                 ARRAY[
+                   'table', pgroonga.table_name('#{index_name}'),
+                   'output_columns', '*,_score',
+                   'drilldown', 'original_type',
+                   'match_columns', '#{target_columns(titles_only).join("||")}',
+                   'query', #{query},
+                   'filter', '#{filter_condition(user, project_ids, scope, attachments)}',
+                   'limit', '#{limit}',
+                   'offset', '#{offset}',
+                   'sort_keys', '#{sort_keys}'
+                 ]
+               )::json
         SQL
         logger.debug(sql)
         connection.select_value(sql)

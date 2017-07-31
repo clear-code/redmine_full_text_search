@@ -19,10 +19,7 @@ module FullTextSearch
                     else
                       [] # all projects
                     end
-      # pgroonga.command: select v1 or v3 format JSON
-      # mroonga.command: select v1 or v3 format JSON
-      response = FullTextSearch::SearcherRecord.search(
-        @query,
+      search_options = {
         user: @user,
         scope: @scope,
         project_ids: project_ids,
@@ -33,8 +30,19 @@ module FullTextSearch
         offset: @options[:offset],
         order_target: @options[:params][:order_target],
         order_type: @options[:params][:order_type]
-      )
-      SearchResult.new(response, query: @query)
+      }
+      begin
+        # pgroonga.command: select v1 or v3 format JSON
+        # mroonga.command: select v1 or v3 format JSON
+        response = FullTextSearch::SearcherRecord.search(@query, **search_options)
+        SearchResult.new(response, query: @query)
+      rescue => ex
+        Rails.logger.warn(ex.message)
+        # retry with query escape
+        search_options[:query_escape] = true
+        response = FullTextSearch::SearcherRecord.search(@query, **search_options)
+        SearchResult.new(response, query: @query)
+      end
     end
 
     def visible_ids(scope, user, permission)
@@ -57,10 +65,7 @@ module FullTextSearch
     def initialize(response, query:)
       command = Groonga::Command.find("select").new("select", {})
       @response = Groonga::Client::Response.parse(command, response)
-      unless @response.success?
-        Rails.logger.error(@response.message)
-        raise @response.message
-      end
+      raise Groonga::Client::Error, @response.message unless @response.success?
       @query = query
       # stolen from Redmine::Search
       # extract tokens from the question
