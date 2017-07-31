@@ -194,10 +194,12 @@ module FullTextSearch
     end
 
     def event_title_snippet
+      return nil unless title_snippet
       @event_title_snippet ||= title_snippet.join(" ").safe_html
     end
 
     def event_description_snippet
+      return nil unless description_snippet
       @event_description_snippet ||= description_snippet.join(" ").safe_html
     end
   end
