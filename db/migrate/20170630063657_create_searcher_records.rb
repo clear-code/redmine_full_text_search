@@ -28,6 +28,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             # t.text :description
             t.integer :author_id
             t.boolean :is_private
+            t.integer :status_id
             t.integer :tracker_id
 
             # documents
@@ -90,6 +91,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             # t.text :description
             t.integer :author_id
             t.boolean :is_private
+            t.integer :status_id
             t.integer :tracker_id
 
             # documents
