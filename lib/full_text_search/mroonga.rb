@@ -36,7 +36,7 @@ module FullTextSearch
                   else
                     "'#{query}'"
                   end
-          sql = <<-SQL
+          sql = <<-SQL.strip_heredoc
           select mroonga_command(
                    'select',
                    'table', 'searcher_records',
