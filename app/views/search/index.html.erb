@@ -82,3 +82,6 @@ toggleFieldset($("#options-content"));
     <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
   <% end %>
 <% end %>
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'keyword', :plugin => 'full_text_search' %>
+<% end %>
