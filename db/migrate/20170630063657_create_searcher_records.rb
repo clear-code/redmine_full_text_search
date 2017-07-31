@@ -208,15 +208,25 @@ class CreateSearcherRecords < ActiveRecord::Migration
   def load_attachments(table:, columns:, original_columns:, condition: "1=1")
     sql_base = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT base.id, '#{table.classify}', project_id, container_id, container_type, #{transform(original_columns)} FROM #{table} AS base
+    SELECT base.id, '#{table.classify}', t.project_id, container_id, container_type, #{transform(original_columns)} FROM #{table} AS base
     SQL
-    %w(issues journals documents news messages versions).each do |target|
-      sql_rest = %Q[JOIN #{target} AS t ON (base.container_id = t.id)]
+    %w(issues documents news versions).each do |target|
+      sql_rest = %Q[JOIN #{target} AS t ON (base.container_id = t.id AND base.container_type = '#{target.classify}')]
       execute("#{sql_base} #{sql_rest} WHERE #{condition};")
     end
     sql_rest = <<-SQL
-    JOIN wiki_pages AS p ON (base.container_id = p.id)
-    JOIN wikis AS w ON (p.wiki_id = w.id)
+    JOIN journals AS j ON (base.container_id = j.id AND base.container_type = 'Journal')
+    JOIN issues AS t ON (j.journalized_id = t.id AND j.journalized_type = 'Issue')
+    SQL
+    execute("#{sql_base} #{sql_rest} WHERE #{condition};")
+    sql_rest = <<-SQL
+    JOIN messages AS m ON (base.container_id = m.id AND base.container_type = 'Message')
+    JOIN boards AS t ON (m.board_id = t.id)
+    SQL
+    execute("#{sql_base} #{sql_rest} WHERE #{condition};")
+    sql_rest = <<-SQL
+    JOIN wiki_pages AS p ON (base.container_id = p.id AND base.container_type = 'WikiPage')
+    JOIN wikis AS t ON (p.wiki_id = t.id)
     SQL
     execute("#{sql_base} #{sql_rest} WHERE #{condition};")
   end
