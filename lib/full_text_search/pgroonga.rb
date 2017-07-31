@@ -76,40 +76,42 @@ module FullTextSearch
       # scope # => [:issues, :news, :documents, :changesets, :wiki_pages, :messages, :projects]
       def filter_condition(user, project_ids, scope, attachments)
         conditions = []
-        scope.each do |s|
-          case s
-          when "projects"
-            if project_ids.empty?
-              project_ids = if user.respond_to?(:visible_project_ids)
-                              user.visible_project_ids
-                            else
-                              Project.visible(user).pluck(:id)
-                            end
+        unless attachments == "only"
+          scope.each do |s|
+            case s
+            when "projects"
+              if project_ids.empty?
+                project_ids = if user.respond_to?(:visible_project_ids)
+                                user.visible_project_ids
+                              else
+                                Project.visible(user).pluck(:id)
+                              end
+              end
+              conditions << %Q[(original_type == "Project" && in_values(original_id, #{project_ids.join(',')}))] if project_ids.present?
+            when "issues"
+              # TODO: Support private issue
+              target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              conditions << %Q[(original_type == "Issue" && is_private == false && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+              # visible_project_ids[:issue_private] = Project.allowed_to(user, :view_private_issue)
+              target_ids = Project.allowed_to(user, :view_notes).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              conditions << %Q[(original_type == "Journal" && is_private == false && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+              target_ids = Project.allowed_to(user, :view_private_notes).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              conditions << %Q[(original_type == "Journal" && is_private == true && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+              target_ids = CustomField.visible(user).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              conditions << %Q[(original_type == "CustomValue" && in_values(custom_field_id, #{target_ids.join(',')}))] if target_ids.present?
+            when "wiki_pages"
+              target_ids = Project.allowed_to(user, :view_wiki_pages).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              conditions << %Q[(in_values(original_type, "WikiPage", "WikiContent") && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+            else
+              target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              conditions << %Q[(original_type == "#{s.classify}" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
             end
-            conditions << %Q[(original_type == "Project" && in_values(original_id, #{project_ids.join(',')}))] if project_ids.present?
-          when "issues"
-            # TODO: Support private issue
-            target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
-            target_ids &= project_ids if project_ids.present?
-            conditions << %Q[(original_type == "Issue" && is_private == false && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
-            # visible_project_ids[:issue_private] = Project.allowed_to(user, :view_private_issue)
-            target_ids = Project.allowed_to(user, :view_notes).pluck(:id)
-            target_ids &= project_ids if project_ids.present?
-            conditions << %Q[(original_type == "Journal" && is_private == false && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
-            target_ids = Project.allowed_to(user, :view_private_notes).pluck(:id)
-            target_ids &= project_ids if project_ids.present?
-            conditions << %Q[(original_type == "Journal" && is_private == true && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
-            target_ids = CustomField.visible(user).pluck(:id)
-            target_ids &= project_ids if project_ids.present?
-            conditions << %Q[(original_type == "CustomValue" && in_values(custom_field_id, #{target_ids.join(',')}))] if target_ids.present?
-          when "wiki_pages"
-            target_ids = Project.allowed_to(user, :view_wiki_pages).pluck(:id)
-            target_ids &= project_ids if project_ids.present?
-            conditions << %Q[(in_values(original_type, "WikiPage", "WikiContent") && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
-          else
-            target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
-            target_ids &= project_ids if project_ids.present?
-            conditions << %Q[(original_type == "#{s.classify}" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
           end
         end
         conditions.concat(attachments_conditions(user, project_ids, scope, attachments))
