@@ -136,14 +136,14 @@ module FullTextSearch
               # TODO: Filter private issue/note?
               target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
               target_ids &= project_ids if project_ids.present?
-              conditions << %Q[(original_type = "Attachment" && container_type = "Issue" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+              conditions << %Q[(original_type == "Attachment" && container_type == "Issue" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
               target_ids = Project.allowed_to(user, :view_notes).pluck(:id)
               target_ids &= project_ids if project_ids.present?
-              conditions << %Q[(original_type = "Attachment" && container_type = "Journal" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+              conditions << %Q[(original_type == "Attachment" && container_type == "Journal" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
             when "files", "documents", "news", "wiki_pages", "messages"
               target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
               target_ids &= project_ids if project_ids.present?
-              conditions << %Q[(original_type = "Attachment" && container_type = "#{s.classify}") && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
+              conditions << %Q[(original_type == "Attachment" && container_type == "#{s.classify}" && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
             end
           end
         end
