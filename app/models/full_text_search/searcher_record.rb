@@ -119,8 +119,6 @@ module FullTextSearch
     end
 
     def _title
-      logger.info(title_snippet)
-      return title_snippet if title_snippet.present?
       case original_type
       when "Attachment"
         filename
@@ -145,8 +143,6 @@ module FullTextSearch
     end
 
     def _description
-      logger.info(description_snippet)
-      return description_snippet if description_snippet.present?
       case original_type
       when "Changeset"
         comments
@@ -195,6 +191,14 @@ module FullTextSearch
 
     def event_group
       # Not in use /search
+    end
+
+    def event_title_snippet
+      @event_title_snippet ||= title_snippet.join(" ").safe_html
+    end
+
+    def event_description_snippet
+      @event_description_snippet ||= description_snippet.join(" ").safe_html
     end
   end
 end
