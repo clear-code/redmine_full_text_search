@@ -95,7 +95,7 @@ module FullTextSearch
         end
       when "Message"
         message = original_record
-        if message.parend_id.nil?
+        if message.parent_id.nil?
           "message"
         else
           "reply"
