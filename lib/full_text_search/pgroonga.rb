@@ -43,6 +43,7 @@ module FullTextSearch
                  ARRAY[
                    'table', pgroonga.table_name('#{index_name}'),
                    'output_columns', '*,_score',
+                   #{snippet_columns.chomp}
                    'drilldown', 'original_type',
                    'match_columns', '#{target_columns(titles_only).join("||")}',
                    'query', #{query},
@@ -71,7 +72,7 @@ module FullTextSearch
       end
 
       def snippet_column(name, columns)
-        <<-SQL
+        <<-SQL.strip_heredoc
         'columns[#{name}_snippet].stage', 'output',
         'columns[#{name}_snippet].type', 'ShortText',
         'columns[#{name}_snippet].flags', 'COLUMN_VECTOR',
