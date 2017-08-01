@@ -22,6 +22,9 @@ Rails.configuration.to_prepare do
   else
     # Do nothing
   end
+  [Project, News, Issue, Document, Changeset, Message, Journal, WikiPage, WikiContent, CustomValue, Attachment].each do |klass|
+    klass.include(FullTextSearch::Model)
+  end
   SearchHelper.prepend(FullTextSearch::Hooks::SearchHelper)
   SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
 end
