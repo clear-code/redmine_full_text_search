@@ -152,10 +152,9 @@ class CreateSearcherRecords < ActiveRecord::Migration
         load_data(table: "wiki_pages",
                   columns:                          %w[title text],
                   original_columns: %w[created_on NULL title c.text])
-        load_data(table: "custom_values",
-                  columns:                    %w[value custom_field_id],
-                  original_columns: %w[NULL NULL value custom_field_id],
-                  condition: "searchable = true")
+        load_custom_values(table: "custom_values",
+                           columns:                    %w[value custom_field_id],
+                           original_columns: %w[NULL NULL value custom_field_id])
         load_attachments(table: "attachments",
                          columns:                          %w[filename description],
                          original_columns: %w[created_on NULL filename description])
@@ -168,7 +167,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
   private
 
-  def load_projects(table:, columns:, original_columns:, conditions: "1=1")
+  def load_projects(table:, columns:, original_columns:)
     sql = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
     SELECT base.id, '#{table.classify}',id, #{transform(original_columns)} FROM #{table} AS base
@@ -176,7 +175,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
     execute(sql)
   end
 
-  def load_data(table:, columns:, original_columns:, condition: "1=1")
+  def load_data(table:, columns:, original_columns:)
     sql_base = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
     SELECT base.id, '#{table.classify}', project_id, #{transform(original_columns)} FROM #{table} AS base
@@ -193,42 +192,58 @@ class CreateSearcherRecords < ActiveRecord::Migration
                  JOIN wikis AS w ON (base.wiki_id = w.id)
                  JOIN wiki_contents as c ON (base.id = c.page_id)
                  SQL
-               when "custom_values"
-                 <<-SQL
-                 JOIN issues AS i ON (base.customized_id = i.id)
-                 JOIN custom_fields AS f ON (base.custom_field_id = f.id)
-                 SQL
                else
                  ""
                end
-    sql = "#{sql_base} #{sql_rest} WHERE #{condition};"
+    sql = "#{sql_base} #{sql_rest};"
     execute(sql)
   end
 
-  def load_attachments(table:, columns:, original_columns:, condition: "1=1")
+  def load_custom_values(table:, columns:, original_columns:)
+    sql_base = <<-SQL
+    INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', r.project_id, #{transform(original_columns)} FROM #{table} AS base
+    SQL
+    sql_rest = <<-SQL
+    JOIN issues AS i ON (base.customized_id = i.id)
+    JOIN custom_fields AS f ON (base.custom_field_id = f.id)
+    JOIN custom_fields_projects AS r ON (base.custom_field_id = r.custom_field_id)
+    SQL
+    sql = "#{sql_base} #{sql_rest} WHERE searchable = true;"
+    execute(sql)
+    sql_rest = <<-SQL
+    JOIN projects AS p ON (base.customized_id = p.id)
+    JOIN custom_fields AS f ON (base.custom_field_id = f.id)
+    JOIN custom_fields_projects AS r ON (base.custom_field_id = r.custom_field_id)
+    SQL
+    sql = "#{sql_base} #{sql_rest} WHERE searchable = true;"
+    execute(sql)
+  end
+
+  def load_attachments(table:, columns:, original_columns:)
     sql_base = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, original_created_on, original_updated_on, #{columns.join(", ")})
     SELECT base.id, '#{table.classify}', t.project_id, container_id, container_type, #{transform(original_columns)} FROM #{table} AS base
     SQL
     %w(issues documents news versions).each do |target|
       sql_rest = %Q[JOIN #{target} AS t ON (base.container_id = t.id AND base.container_type = '#{target.classify}')]
-      execute("#{sql_base} #{sql_rest} WHERE #{condition};")
+      execute("#{sql_base} #{sql_rest};")
     end
     sql_rest = <<-SQL
     JOIN journals AS j ON (base.container_id = j.id AND base.container_type = 'Journal')
     JOIN issues AS t ON (j.journalized_id = t.id AND j.journalized_type = 'Issue')
     SQL
-    execute("#{sql_base} #{sql_rest} WHERE #{condition};")
+    execute("#{sql_base} #{sql_rest};")
     sql_rest = <<-SQL
     JOIN messages AS m ON (base.container_id = m.id AND base.container_type = 'Message')
     JOIN boards AS t ON (m.board_id = t.id)
     SQL
-    execute("#{sql_base} #{sql_rest} WHERE #{condition};")
+    execute("#{sql_base} #{sql_rest};")
     sql_rest = <<-SQL
     JOIN wiki_pages AS p ON (base.container_id = p.id AND base.container_type = 'WikiPage')
     JOIN wikis AS t ON (p.wiki_id = t.id)
     SQL
-    execute("#{sql_base} #{sql_rest} WHERE #{condition};")
+    execute("#{sql_base} #{sql_rest};")
   end
 
   def transform(original_columns, prefix = "base")
