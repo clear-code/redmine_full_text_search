@@ -180,8 +180,6 @@ module FullTextSearch
         { controller: "news", action: "show", id: original_id }
       when "Project"
         { controller: "projects", action: "show", id: original_id }
-      when "WikiContent"
-        { controller: "wiki", action: "show", project_id: project, id: title, version: version }
       when "WikiPage"
         { controller: "wiki", action: "show", project_id: project, id: title }
       else
