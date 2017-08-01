@@ -61,7 +61,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             t.string :filename
             # t.text :description
 
-            t.index([:original_id, :original_type, :container_id, :container_type], name: "index_searcher_records_unique", unique: true)
+            t.index([:original_id, :original_type], name: "index_searcher_records_unique", unique: true)
           end
         when Redmine::Database.mysql?
           create_table :searcher_records, options: "ENGINE=Mroonga" do |t|
@@ -124,7 +124,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             t.string :filename, limit: 255
             # t.text :description
 
-            t.index([:original_id, :original_type, :container_id, :container_type], name: "index_searcher_records_unique", unique: true)
+            t.index([:original_id, :original_type], name: "index_searcher_records_unique", unique: true)
           end
         end
         # Load data
