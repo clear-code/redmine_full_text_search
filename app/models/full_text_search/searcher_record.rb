@@ -205,7 +205,7 @@ module FullTextSearch
       @event_description_snippet ||= if description_snippet.select(&:present?).present?
                                        description_snippet.join(" &hellip; ").html_safe
                                      else
-                                       event_description
+                                       event_description.truncate(255)
                                      end
     end
   end
