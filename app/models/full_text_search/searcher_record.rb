@@ -20,7 +20,7 @@ module FullTextSearch
 
       def target_columns(titles_only)
         if titles_only
-          %i[name identifier title filename]
+          %i[name identifier title subject filename]
         else
           %i[
             name
