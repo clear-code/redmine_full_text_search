@@ -108,7 +108,8 @@ module FullTextSearch
           searcher_record.original_updated_on = record.updated_on
           searcher_record.save!
         when CustomValue
-          # CustomValue belongs to issue for now.
+          return unless record.custom_field.searchable
+          # searchable CustomValue belongs to issue or project
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.customized.project_id
