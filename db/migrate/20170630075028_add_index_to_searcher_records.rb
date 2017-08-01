@@ -10,6 +10,8 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
             "project_id",
             "original_id",
             "original_type",
+            "original_created_on",
+            "original_updated_on",
             "name #{opclass}",
             "identifier #{opclass}",
             "description",
