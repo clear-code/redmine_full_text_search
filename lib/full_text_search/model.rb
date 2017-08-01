@@ -23,58 +23,82 @@ module FullTextSearch
                           end
         case record
         when Project
-          searcher_record.update_attributes!(name: record.name,
+          searcher_record.update_attributes!(project_id: record.id,
+                                             name: record.name,
                                              description: record.description,
                                              identifier: record.identifier,
                                              status: record.status,
                                              created_on: record.created_on,
                                              updated_on: record.updated_on)
         when News
-          searcher_record.update_attributes!(title: record.title,
+          searcher_record.update_attributes!(project_id: record.project_id,
+                                             title: record.title,
                                              summary: record.summary,
                                              description: record.description,
-                                             project_id: record.project_id,
                                              created_on: record.created_on)
         when Issue
-          searcher_record.update_attributes!(project_id: record.tracker.project_id,
+          searcher_record.update_attributes!(project_id: record.project_id,
                                              tracker_id: record.tracker_id,
                                              subject: record.subject,
                                              description: record.subject,
                                              created_on: record.created_on,
                                              author_id: record.author_id,
                                              is_private: record.is_private,
+                                             status_id: record.status_id,
                                              updated_on: record.updated_on)
         when Document
-          searcher_record.update_attributes!(title: record.title,
+          searcher_record.update_attributes!(project_id: record.project_id,
+                                             title: record.title,
                                              description: record.description,
                                              created_on: record.created_on)
         when Changeset
-          searcher_record.update_attributes!(comments: record.comments,
+          searcher_record.update_attributes!(project_id: record.repository.project_id,
+                                             comments: record.comments,
                                              created_on: record.committed_on)
         when Message
-          searcher_record.update_attributes!(subject: record.subject,
+          searcher_record.update_attributes!(project_id: record.board.project_id,
+                                             subject: record.subject,
                                              content: record.content,
                                              created_on: record.created_on,
                                              updated_on: record.updated_on)
         when Journal
           # journal belongs to an issue for now.
-          searcher_record.update_attributes!(project_id: record.issue.project_id,
+          searcher_record.update_attributes!(project_id: record.journalized.project_id,
                                              notes: record.notes,
                                              author_id: record.user_id,
                                              is_private: record.private_notes,
                                              created_on: record.created_on)
         when WikiPage
-          searcher_record.update_attributes!(title: record.title,
-                                             created_on: record.created_on)
+          searcher_record.update_attributes!(project_id: record.wiki.project_id,
+                                             title: record.title,
+                                             text: record.text,
+                                             created_on: record.created_on,
+                                             updated_on: record.updated_on)
         when WikiContent
-          searcher_record.update_attributes!(text: record.text,
+          searcher_record.update_attributes!(project_id: record.page.wiki.project_id,
+                                             text: recotd.text,
                                              updated_on: record.updated_on)
         when CustomValue
-          searcher_record.update_attributes!(value: record.value)
+          # CustomValue belongs to issue for now.
+          searcher_record.update_attributes!(project_id: record.customized.project_id,
+                                             value: record.value)
         when Attachment
-          searcher_record.update_attributes!(filename: record.filename,
-                                             description: record.description,
-                                             created_on: record.created_on)
+          case record.container_type
+          when "Project"
+            searcher_record.update_attributes!(project_id: record.container.id,
+                                               container_id: record.container_id,
+                                               container_type: record.container_type,
+                                               filename: record.filename,
+                                               description: record.description,
+                                               created_on: record.created_on)
+          else
+            searcher_record.update_attributes!(project_id: record.container.project_id,
+                                               container_id: record.container_id,
+                                               container_type: record.container_type,
+                                               filename: record.filename,
+                                               description: record.description,
+                                               created_on: record.created_on)
+          end
         else
           # do nothing
         end
