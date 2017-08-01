@@ -1,6 +1,6 @@
 class RegisterFunctionsVector < ActiveRecord::Migration
   def change
-    reversibele do |d|
+    reversible do |d|
       d.up do
         command = "plugin_register functions/vector"
         case
