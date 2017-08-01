@@ -194,13 +194,19 @@ module FullTextSearch
     end
 
     def event_title_snippet
-      return nil unless title_snippet
-      @event_title_snippet ||= title_snippet.join(" ").safe_html
+      @vent_title_snippet ||= if title_snippet.select(&:present?).present?
+                                title_snippet.join(" &hellip; ").html_safe
+                              else
+                                event_title
+                              end
     end
 
     def event_description_snippet
-      return nil unless description_snippet
-      @event_description_snippet ||= description_snippet.join(" ").safe_html
+      @event_description_snippet ||= if description_snippet.select(&:present?).present?
+                                       description_snippet.join(" &hellip; ").html_safe
+                                     else
+                                       event_description
+                                     end
     end
   end
 end
