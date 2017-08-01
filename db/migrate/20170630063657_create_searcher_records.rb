@@ -194,10 +194,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
                  JOIN wiki_contents as c ON (base.id = c.page_id)
                  SQL
                when "custom_values"
-                 <<-SQL
-                 JOIN custom_fields AS f ON (base.custom_field_id = f.id)
-                 JOIN custom_fields_projects AS p ON (f.id = p.custom_field_id)
-                 SQL
+                 %Q[JOIN issues AD i ON (base.customized_id = i.id)]
                else
                  ""
                end
