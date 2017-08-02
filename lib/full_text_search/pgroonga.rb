@@ -31,7 +31,6 @@ module FullTextSearch
                     when "date"
                       "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
-        # TODO use snippet_columns
         query = if query_escape
                   "pgroonga.query_escape('#{query}')"
                 else
