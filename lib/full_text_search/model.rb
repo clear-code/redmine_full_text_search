@@ -116,6 +116,8 @@ module FullTextSearch
           searcher_record.value = record.value
           searcher_record.save!
         when Attachment
+          # container is not specified when initial upload
+          return if record.container_type.nil?
           searcher_record.original_id = record.id
           searcher_record.original_type = "Attachment"
           searcher_record.container_id = record.container_id
