@@ -204,7 +204,7 @@ module FullTextSearch
         issue = journal.issue
         "#{issue.tracker.name} ##{issue.id}#{issue.status}: "
       when "Message"
-        "#{board_name}: "
+        "#{original_record.board.name}: "
       when "Project"
         "#{l(:label_project)}: "
       when "WikiPage"
