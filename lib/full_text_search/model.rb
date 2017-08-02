@@ -112,8 +112,14 @@ module FullTextSearch
           # searchable CustomValue belongs to issue or project
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
-          searcher_record.project_id = record.customized.project_id
           searcher_record.value = record.value
+          searcher_record.custom_field_id = record.custom_field_id
+          case record.customized_type
+          when "Project"
+            searcher_record.project_id = record.customized.id
+          else
+            searcher_record.project_id = record.customized.project_id
+          end
           searcher_record.save!
         when Attachment
           # container is not specified when initial upload
