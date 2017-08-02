@@ -123,7 +123,7 @@ module FullTextSearch
       when "Attachment"
         "#{title_prefix}#{filename}"
       when "Document"
-        "#{title_prefix}#{o.title}"
+        "#{title_prefix}#{title}"
       when "Issue"
         "#{title_prefix} #{subject}"
       when "Journal"
