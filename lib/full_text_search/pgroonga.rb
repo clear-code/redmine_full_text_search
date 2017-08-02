@@ -94,6 +94,8 @@ module FullTextSearch
                               end
               end
               conditions << %Q[(original_type == "Project" && in_values(original_id, #{project_ids.join(',')}))] if project_ids.present?
+              target_ids = CustomField.visible(user).pluck(:id)
+              conditions << %Q[(original_type == "CustomValue" && in_values(custom_field_id, #{target_ids.join(',')}))] if target_ids.present?
             when "issues"
               # TODO: Support private issue
               target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
