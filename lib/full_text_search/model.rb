@@ -128,6 +128,11 @@ module FullTextSearch
           case record.container_type
           when "Project"
             searcher_record.project_id = record.container.id
+          when "Message"
+            searcher_record.project_id = record.container.board.project_id
+          when "WikiPage"
+            wiki_page = record.container
+            searcher_record.project_id = wiki_page.wiki.project_id
           else
             searcher_record.project_id = record.container.project_id
           end
