@@ -121,22 +121,21 @@ module FullTextSearch
     def _title
       case original_type
       when "Attachment"
-        filename
+        "#{title_prefix}#{filename}"
       when "Document"
-        "#{l(:label_document)}: #{o.title}"
+        "#{title_prefix}#{o.title}"
       when "Issue"
-        issue = original_record
-        "#{issue.tracker.name} ##{original_id} #{issue.status}: #{subject}"
+        "#{title_prefix} #{subject}"
       when "Journal"
         journal = original_record
         issue = journal.issue
-        "#{issue.tracker.name} ##{issue.id}#{issue.status}: #{issue.subject}"
+        "#{title_prefix}#{issue.subject}"
       when "Message"
-        "#{board_name}: #{subject}"
+        "#{title_prefix}#{subject}"
       when "Project"
-        "#{l(:label_project)}: #{name}"
+        "#{title_prefix}#{name}"
       when "WikiPage"
-        "#{l(:label_wiki)}: #{title}"
+        "#{title_prefix}#{title}"
       else
         title
       end
@@ -191,9 +190,33 @@ module FullTextSearch
       # Not in use /search
     end
 
+    def title_prefix
+      case original_type
+      when "Attachment"
+        ""
+      when "Document"
+        "#{l(:label_document)}: "
+      when "Issue"
+        issue = original_record
+        "#{issue.tracker.name} ##{original_id} #{issue.status}: "
+      when "Journal"
+        journal = original_record
+        issue = journal.issue
+        "#{issue.tracker.name} ##{issue.id}#{issue.status}: "
+      when "Message"
+        "#{board_name}: "
+      when "Project"
+        "#{l(:label_project)}: "
+      when "WikiPage"
+        "#{l(:label_wiki)}: "
+      else
+        ""
+      end
+    end
+
     def event_title_snippet
       @vent_title_snippet ||= if title_snippet.select(&:present?).present?
-                                title_snippet.join(" &hellip; ").html_safe
+                                "#{title_prefix}#{title_snippet.join(' &hellip; ')}".html_safe
                               else
                                 event_title
                               end
