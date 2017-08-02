@@ -107,7 +107,6 @@ module FullTextSearch
               target_ids &= project_ids if project_ids.present?
               conditions << %Q[(original_type == "Journal" && is_private == true && in_values(project_id, #{target_ids.join(',')}))] if target_ids.present?
               target_ids = CustomField.visible(user).pluck(:id)
-              target_ids &= project_ids if project_ids.present?
               conditions << %Q[(original_type == "CustomValue" && in_values(custom_field_id, #{target_ids.join(',')}))] if target_ids.present?
             when "wiki_pages"
               target_ids = Project.allowed_to(user, :view_wiki_pages).pluck(:id)
