@@ -102,6 +102,8 @@ module FullTextSearch
         end
       when "WikiContent"
         "wiki-page"
+      when "CustomValue"
+        original_record.customized.event_type
       else
         original_type.underscore.dasherize
       end
@@ -136,6 +138,8 @@ module FullTextSearch
         "#{title_prefix}#{name}"
       when "WikiPage"
         "#{title_prefix}#{title}"
+      when "CustomValue"
+        original_record.customized.event_title
       else
         title
       end
@@ -151,6 +155,8 @@ module FullTextSearch
         content
       when "WikiPage"
         text
+      when "CustomValue"
+        original_record.customized.event_description
       else
         description
       end
@@ -181,6 +187,8 @@ module FullTextSearch
         { controller: "projects", action: "show", id: original_id }
       when "WikiPage"
         { controller: "wiki", action: "show", project_id: project, id: title }
+      when "CustomValue"
+        original_record.customized.event_url
       else
         { controller: "welcome" }
       end
