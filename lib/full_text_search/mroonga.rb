@@ -100,7 +100,7 @@ module FullTextSearch
             "--columns[#{name}_snippet].stage output",
             "--columns[#{name}_snippet].type ShortText",
             "--columns[#{name}_snippet].flags COLUMN_VECTOR",
-            "--columns[#{name}_snippet].flags 'snippet_html(#{columns.join("+")}) || vector_new()'"
+            "--columns[#{name}_snippet].value \\'snippet_html(#{columns.join("+")}) || vector_new()\\'"
           ]
         end
       end
