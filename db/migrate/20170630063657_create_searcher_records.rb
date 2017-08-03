@@ -203,8 +203,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
   def load_custom_values(table:, columns:, original_columns:)
     sql_base = <<-SQL
-    INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT base.id, '#{table.classify}', r.project_id, #{transform(original_columns)} FROM #{table} AS base
+    INSERT INTO searcher_records(original_id, original_type, project_id, status_id, is_private, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', r.project_id, status_id, is_private, #{transform(original_columns)} FROM #{table} AS base
     SQL
     sql_rest = <<-SQL
     JOIN issues AS i ON (base.customized_id = i.id)
@@ -213,6 +213,11 @@ class CreateSearcherRecords < ActiveRecord::Migration
     SQL
     sql = "#{sql_base} #{sql_rest} WHERE searchable = true;"
     execute(sql)
+
+    sql_base = <<-SQL
+    INSERT INTO searcher_records(original_id, original_type, project_id, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', r.project_id, #{transform(original_columns)} FROM #{table} AS base
+    SQL
     sql_rest = <<-SQL
     JOIN projects AS p ON (base.customized_id = p.id)
     JOIN custom_fields AS f ON (base.custom_field_id = f.id)
@@ -224,23 +229,39 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
   def load_attachments(table:, columns:, original_columns:)
     sql_base = <<-SQL
-    INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT base.id, '#{table.classify}', t.project_id, container_id, container_type, #{transform(original_columns)} FROM #{table} AS base
+    INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, status_id, is_private, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', t.project_id, container_id, container_type, status_id, is_private, #{transform(original_columns)} FROM #{table} AS base
     SQL
-    %w(issues documents news versions).each do |target|
-      sql_rest = %Q[JOIN #{target} AS t ON (base.container_id = t.id AND base.container_type = '#{target.classify}')]
-      execute("#{sql_base} #{sql_rest};")
-    end
+    sql_rest = <<-SQL
+    JOIN issues AS t ON(base.container_id = t.id AND base.container_type = 'Issue')
+    SQL
+    execute("#{sql_base} #{sql_rest};")
+
+    sql_base = <<-SQL
+    INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, status_id, is_private, private_notes, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', t.project_id, container_id, container_type, status_id, is_private, private_notes, #{transform(original_columns)} FROM #{table} AS base
+    SQL
     sql_rest = <<-SQL
     JOIN journals AS j ON (base.container_id = j.id AND base.container_type = 'Journal')
     JOIN issues AS t ON (j.journalized_id = t.id AND j.journalized_type = 'Issue')
     SQL
     execute("#{sql_base} #{sql_rest};")
+
+    sql_base = <<-SQL
+    INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', t.project_id, container_id, container_type, #{transform(original_columns)} FROM #{table} AS base
+    SQL
+    %w(documents news versions).each do |target|
+      sql_rest = %Q[JOIN #{target} AS t ON (base.container_id = t.id AND base.container_type = '#{target.classify}')]
+      execute("#{sql_base} #{sql_rest};")
+    end
+
     sql_rest = <<-SQL
     JOIN messages AS m ON (base.container_id = m.id AND base.container_type = 'Message')
     JOIN boards AS t ON (m.board_id = t.id)
     SQL
     execute("#{sql_base} #{sql_rest};")
+
     sql_rest = <<-SQL
     JOIN wiki_pages AS p ON (base.container_id = p.id AND base.container_type = 'WikiPage')
     JOIN wikis AS t ON (p.wiki_id = t.id)
