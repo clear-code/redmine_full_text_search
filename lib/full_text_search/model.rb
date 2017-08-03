@@ -88,7 +88,8 @@ module FullTextSearch
           searcher_record.project_id = record.journalized.project_id
           searcher_record.notes = record.notes
           searcher_record.author_id = record.user_id
-          searcher_record.is_private = record.private_notes
+          searcher_record.private_notes = record.private_notes
+          searcher_record.status_id = record.journalized.status_id
           searcher_record.original_created_on = record.created_on
           searcher_record.save!
         when WikiPage
