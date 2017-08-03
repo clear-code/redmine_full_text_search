@@ -29,12 +29,11 @@ module FullTextSearch
                     end
         # mroonga_command cannot contain new line
         # mroonga_command can accept multiple arguments since 7.0.5
-        # TODO use snippet_html
         if mroonga_version >= "7.05"
           query = if query_escape
                     "mroonga_escape('#{query}')"
                   else
-                    "'#{query}'"
+                    "\"#{query}\""
                   end
           sql = <<-SQL.strip_heredoc
           select mroonga_command(
@@ -52,7 +51,11 @@ module FullTextSearch
                  )
           SQL
         else
-          # FIXME escape query if query_escape is true
+          query = if query_escape
+                    '"' + connection.select_value("select mroonga_escape('#{query}')") + '"'
+                  else
+                    "\"#{query}\""
+                  end
           sql = [
             "select mroonga_command('",
             "select --table searcher_records",
@@ -60,7 +63,7 @@ module FullTextSearch
             snippet_columns,
             "--drilldown original_type",
             "--match_columns #{target_columns(titles_only).join('||')}",
-            "--query \"#{query}\"",
+            "--query #{query}",
             "--filter \\'#{filter_condition(user, project_ids, scope, attachments)}\\'",
             "--limit #{limit}",
             "--offset #{offset}",
