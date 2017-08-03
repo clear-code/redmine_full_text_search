@@ -45,7 +45,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
             # journals
             t.text :notes
             # t.integer :user_id # => author_id
-            # t.boolean :private_notes # => is_private
+            t.boolean :private_notes
+            # t.integer :status_id
 
             # wiki_pages
             # t.string :title
@@ -108,7 +109,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
             # journals
             t.text :notes, limit: 16.megabytes
             # t.integer :user_id # => author_id
-            # t.boolean :private_notes # => is_private
+            t.boolean :private_notes
+            # t.integer :status_id
 
             # wiki_pages
             # t.string :title
@@ -147,8 +149,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
                   columns:                                %w[subject content],
                   original_columns: %w[created_on updated_on subject content])
         load_data(table: "journals",
-                  columns:                          %w[notes author_id is_private],
-                  original_columns: %w[created_on NULL notes user_id private_notes])
+                  columns:                          %w[notes author_id is_private private_notes status_id],
+                  original_columns: %w[created_on NULL notes user_id i.is_private private_notes i.status_id])
         load_data(table: "wiki_pages",
                   columns:                          %w[title text],
                   original_columns: %w[created_on NULL title c.text])
