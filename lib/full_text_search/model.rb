@@ -118,7 +118,12 @@ module FullTextSearch
           case record.customized_type
           when "Project"
             searcher_record.project_id = record.customized.id
+          when "Issue"
+            searcher_record.project_id = record.customized.project_id
+            searcher_record.status_id = record.customized.status_id
+            searcher_record.is_private = record.customized.is_private
           else
+            # Not in use for now...
             searcher_record.project_id = record.customized.project_id
           end
           searcher_record.save!
@@ -140,6 +145,15 @@ module FullTextSearch
           when "WikiPage"
             wiki_page = record.container
             searcher_record.project_id = wiki_page.wiki.project_id
+          when "Issue"
+            searcher_record.project_id = record.container.project_id
+            searcher_record.status_id = record.container.status_is
+            searcher_record.is_private = record.container.is_private
+          when "Journal"
+            searcher_record.project_id = record.container.project_id
+            searcher_record.status_id = record.container.issue.status_id
+            searcher_record.is_private = record.container.issue.is_private
+            searcher_record.private_notes = record.container.private_notes
           else
             searcher_record.project_id = record.container.project_id
           end
