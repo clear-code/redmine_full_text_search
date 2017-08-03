@@ -70,7 +70,6 @@ module FullTextSearch
             ")"
           ].flatten.join(" ")
         end
-        logger.debug(sql)
         r = connection.select_value(sql)
         # NOTE: Hack to use Groonga::Client::Response.parse
         # Raise Mysql2::Error if error occurred
