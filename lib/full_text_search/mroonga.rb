@@ -41,6 +41,7 @@ module FullTextSearch
                    'select',
                    'table', 'searcher_records',
                    'output_columns', '*,_score',
+                   #{snippet_columns.chomp}
                    'drilldown', 'original_type',
                    'match_columns', '#{target_columns(titles_only).join('||')}',
                    'query', #{query},
@@ -56,6 +57,7 @@ module FullTextSearch
             "select mroonga_command('",
             "select --table searcher_records",
             "--output_columns *,_score",
+            snippet_columns,
             "--drilldown original_type",
             "--match_columns #{target_columns(titles_only).join('||')}",
             "--query \"#{query}\"",
@@ -65,7 +67,7 @@ module FullTextSearch
             "--sort_keys \\'#{sort_keys}\\'",
             "'",
             ")"
-          ].join(" ")
+          ].flatten.join(" ")
         end
         logger.debug(sql)
         r = connection.select_value(sql)
@@ -74,6 +76,29 @@ module FullTextSearch
         body = JSON.parse(r)
         header = [0, 0, 0]
         [header, body].to_json
+      end
+
+      def snippet_columns
+        snippet_column("title", %w(subject title filename name)) +
+          snippet_column("description", %w(content text notes description summary value))
+      end
+
+      def snippet_column(name, columns)
+        if mroonga_version >= "7.05"
+          <<-SQL.strip_heredoc
+          'columns[#{name}_snippet].stage', 'output',
+          'columns[#{name}_snippet].type', 'ShortText',
+          'columns[#{name}_snippet].flags', 'COLUMN_VECTOR',
+          'columns[#{name}_snippet].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
+          SQL
+        else
+          [
+            "--columns[#{name}_snippet].stage output",
+            "--columns[#{name}_snippet].type ShortText",
+            "--columns[#{name}_snippet].flags COLUMN_VECTOR",
+            "--columns[#{name}_snippet].flags 'snippet_html(#{columns.join("+")}) || vector_new()'"
+          ]
+        end
       end
 
       # scope # => [:issues, :news, :documents, :changesets, :wiki_pages, :messages, :projects]
