@@ -149,11 +149,6 @@ module FullTextSearch
             searcher_record.project_id = record.container.project_id
             searcher_record.status_id = record.container.status_is
             searcher_record.is_private = record.container.is_private
-          when "Journal"
-            searcher_record.project_id = record.container.project_id
-            searcher_record.status_id = record.container.issue.status_id
-            searcher_record.is_private = record.container.issue.is_private
-            searcher_record.private_notes = record.container.private_notes
           else
             searcher_record.project_id = record.container.project_id
           end
