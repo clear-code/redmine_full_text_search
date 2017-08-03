@@ -26,6 +26,7 @@ module FullTextSearch
         attachments: @options[:attachments],
         all_words: @options[:all_words],
         titles_only: @options[:titles_only],
+        open_issues: @options[:open_issues],
         limit: @options[:limit],
         offset: @options[:offset],
         order_target: @options[:params][:order_target],
