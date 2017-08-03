@@ -227,23 +227,23 @@ class CreateSearcherRecords < ActiveRecord::Migration
     execute(sql)
   end
 
+  # container_type: Document, Issue, Message, News, Project, Version, WikiPage
   def load_attachments(table:, columns:, original_columns:)
+    sql_base = <<-SQL
+    INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', t.id, container_id, container_type, #{transform(original_columns)} FROM #{table} AS base
+    SQL
+    sql_rest = <<-SQL
+    JOIN projects AS t ON (base.container_id = t.id AND base.container_type = 'Project')
+    SQL
+    execute("#{sql_base} #{sql_rest};")
+
     sql_base = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, status_id, is_private, original_created_on, original_updated_on, #{columns.join(", ")})
     SELECT base.id, '#{table.classify}', t.project_id, container_id, container_type, status_id, is_private, #{transform(original_columns)} FROM #{table} AS base
     SQL
     sql_rest = <<-SQL
-    JOIN issues AS t ON(base.container_id = t.id AND base.container_type = 'Issue')
-    SQL
-    execute("#{sql_base} #{sql_rest};")
-
-    sql_base = <<-SQL
-    INSERT INTO searcher_records(original_id, original_type, project_id, container_id, container_type, status_id, is_private, private_notes, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT base.id, '#{table.classify}', t.project_id, container_id, container_type, status_id, is_private, private_notes, #{transform(original_columns)} FROM #{table} AS base
-    SQL
-    sql_rest = <<-SQL
-    JOIN journals AS j ON (base.container_id = j.id AND base.container_type = 'Journal')
-    JOIN issues AS t ON (j.journalized_id = t.id AND j.journalized_type = 'Issue')
+    JOIN issues AS t ON (base.container_id = t.id AND base.container_type = 'Issue')
     SQL
     execute("#{sql_base} #{sql_rest};")
 
