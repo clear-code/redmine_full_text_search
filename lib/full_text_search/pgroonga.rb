@@ -21,9 +21,6 @@ module FullTextSearch
                  order_target: "score",
                  order_type: "desc",
                  query_escape: false)
-        unless all_words
-          query = query.split(" ").join(" OR ")
-        end
         sort_direction = order_type == "desc" ? "-" : ""
         sort_keys = case order_target
                     when "score"
