@@ -57,6 +57,134 @@ module FullTextSearch
       def container_types
         []
       end
+
+      def snippet_columns
+        snippet_column("title", %w(subject title filename name)) +
+          snippet_column("description", %w(content text notes description summary value))
+      end
+
+      # scope # => [:issues, :news, :documents, :changesets, :wiki_pages, :messages, :projects]
+      def _filter_condition(user, project_ids, scope, attachments, open_issues)
+        conditions = []
+        unless attachments == "only"
+          scope.each do |s|
+            case s
+            when "projects"
+              if project_ids.empty?
+                project_ids = if user.respond_to?(:visible_project_ids)
+                                user.visible_project_ids
+                              else
+                                Project.visible(user).pluck(:id)
+                              end
+              end
+              if project_ids.present?
+                conditions << build_condition('original_type == "Project"',
+                                              "in_values(original_id, #{project_ids.join(',')})")
+              end
+              target_ids = CustomField.visible(user).pluck(:id)
+              if target_ids.present?
+                conditions << build_condition('original_type == "CustomValue"',
+                                              "in_values(custom_field_id, #{target_ids.join(',')})")
+              end
+            when "issues"
+              # TODO: Support private issue
+              target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              if target_ids.present?
+                conditions << build_condition('original_type == "Issue"',
+                                              "is_private == false",
+                                              "in_values(project_id, #{target_ids.join(',')})",
+                                              open_issues_condition(open_issues))
+              end
+              # visible_project_ids[:issue_private] = Project.allowed_to(user, :view_private_issue)
+              target_ids = Project.allowed_to(user, :view_notes).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              if target_ids.present?
+                conditions << build_condition('original_type == "Journal"',
+                                              "private_notes == false",
+                                              "in_values(project_id, #{target_ids.join(',')})",
+                                              open_issues_condition(open_issues))
+              end
+              target_ids = Project.allowed_to(user, :view_private_notes).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              if target_ids.present?
+                conditions << build_condition('original_type == "Journal"',
+                                              "private_notes == true",
+                                              "in_values(project_id, #{target_ids.join(',')})",
+                                              open_issues_condition(open_issues))
+              end
+              target_ids = CustomField.visible(user).pluck(:id)
+              if target_ids.present?
+                conditions << build_condition('original_type == "CustomValue"',
+                                              "is_private == false",
+                                              "in_values(custom_field_id, #{target_ids.join(',')})",
+                                              open_issues_condition(open_issues))
+              end
+            when "wiki_pages"
+              target_ids = Project.allowed_to(user, :view_wiki_pages).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              if target_ids.present?
+                conditions << build_condition('in_values(original_type, "WikiPage", "WikiContent")',
+                                              "in_values(project_id, #{target_ids.join(',')})")
+              end
+            else
+              target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              if target_ids.present?
+                conditions << build_condition(%Q[original_type == "#{s.classify}"],
+                                              "in_values(project_id, #{target_ids.join(',')})")
+              end
+            end
+          end
+        end
+        conditions.concat(attachments_conditions(user, project_ids, scope, attachments, open_issues))
+      end
+
+      # TODO Attachmentはコンテナごとに条件が必要。コンテナを見ることができたら検索可能にする
+      # container_type: Issue, Journal, File, Document, News, WikiPage, Version, Message
+      def attachments_conditions(user, project_ids, scope, attachments, open_issues)
+        conditions = []
+        case attachments
+        when "0"
+          # do not search attachments
+        when "1", "only"
+          # search attachments
+          scope.each do |s|
+            case s
+            when "issues"
+              # TODO: Support private issue?
+              target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              if target_ids.present?
+                conditions << build_condition('original_type == "Attachment"',
+                                              'container_type == "Issue"',
+                                              "is_private == false",
+                                              "in_values(project_id, #{target_ids.join(',')})",
+                                              open_issues_condition(open_issues))
+              end
+            when "projects", "documents", "news", "wiki_pages", "messages", "versions"
+              target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              if target_ids.present?
+                conditions << build_condition('original_type == "Attachment"',
+                                              %Q[container_type == "#{s.classify}"],
+                                              "in_values(project_id, #{target_ids.join(',')})")
+              end
+            end
+          end
+        end
+        conditions
+      end
+
+      def build_condition(*args)
+        "(#{args.compact.join(' && ')})"
+      end
+
+      def open_issues_condition(open_issues)
+        return nil unless open_issues
+        @status_ids ||= IssueStatus.where(is_closed: false).pluck(:id)
+        "in_values(status_id, #{@status_ids.join(',')})"
+      end
     end
 
     def score
@@ -112,7 +240,7 @@ module FullTextSearch
     def _datetime
       case original_type
       when "Changeset"
-        commited_on
+        original_created_on
       when "WikiContent"
         original_updated_on
       else # Attachment
