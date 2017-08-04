@@ -5,48 +5,79 @@ module FullTextSearch
     end
 
     module ClassMethods
-      def search_result_ranks_and_ids(tokens, user=User.current, projects=nil, options={})
-        params = options.fetch(:params, {})
-        @order_target = params[:order_target] || "score"
-        r = super
-        r = r.group_by {|_score, id| id }
-        r = r.map {|id, origs| [origs.sum {|s, _| s }, id] }
-        r
-      end
-
-      # Overwrite ActsAsSearchable
-      def search_tokens_condition(columns, tokens, all_words)
-        token_clauses = columns.map do |column|
-          "#{column} @@ ?"
-        end
-        sql = token_clauses.join(' OR ')
-        [sql, *([tokens.join(all_words ? " " : " OR ")] * columns.size)]
-      end
-
-      # Overwrite ActsAsSearchable
-      def fetch_ranks_and_ids(scope, limit)
-        target_column_name = "#{table_name}.#{order_column_name}"
-        scope.select("pgroonga.score(#{self.table_name}) AS score, #{target_column_name} AS order_target", :id)
-          .reorder("score DESC", id: :desc)
-          .distinct
-          .limit(limit)
-          .map do |record|
-          if @order_target == "score"
-            [record.score, record.id]
-          else
-            [record.order_target.to_i, record.id]
-          end
-        end
-      end
-
       #
-      # searchable_options[:date_column] is not enough
-      # Because almost all models does not use `acts_as_searchable :date_column` option,
-      # and searchable_options[:data] default value is `:created_on`
       #
-      def order_column_name
-        timestamp_columns = ["created_on", "updated_on", "commited_on"]
-        column_names.select {|column_name| timestamp_columns.include?(column_name) }.sort.last || "id"
+      # @params order_target "score" or "date"
+      # @params order_type   "desc" or "asc"
+      def search(query,
+                 user: User.current,
+                 project_ids: [],
+                 scope: [],
+                 attachments: "0",
+                 all_words: true,
+                 titles_only: false,
+                 open_issues: false,
+                 offset: nil,
+                 limit: 10,
+                 order_target: "score",
+                 order_type: "desc",
+                 query_escape: false)
+        sort_direction = order_type == "desc" ? "-" : ""
+        sort_keys = case order_target
+                    when "score"
+                      "#{sort_direction}_score"
+                    when "date"
+                      "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
+                    end
+        query = if query_escape
+                  "pgroonga.query_escape('#{query}')"
+                else
+                  "'#{query}'"
+                end
+        sql = <<-SQL.strip_heredoc
+        select pgroonga.command(
+                 'select',
+                 ARRAY[
+                   'table', pgroonga.table_name('#{index_name}'),
+                   'output_columns', '*,_score',
+                   #{snippet_columns.chomp}
+                   'drilldown', 'original_type',
+                   'match_columns', '#{target_columns(titles_only).join("||")}',
+                   'query', #{query},
+                   'filter', '#{filter_condition(user, project_ids, scope, attachments, open_issues)}',
+                   'limit', '#{limit}',
+                   'offset', '#{offset}',
+                   'sort_keys', '#{sort_keys}'
+                 ]
+               )::json
+        SQL
+        connection.select_value(sql)
+      end
+
+      def index_name
+        "index_searcher_records_pgroonga"
+      end
+
+      def pgroonga_table_name
+        @pgroonga_table_name ||= ActiveRecord::Base.connection.select_value("select pgroonga.table_name('#{index_name}')")
+      end
+
+      def filter_condition(user, project_ids, scope, attachments, open_issues)
+        conditions = _filter_condition(user, project_ids, scope, attachments, open_issues)
+        if conditions.empty?
+          %Q[pgroonga_tuple_is_alive(ctid)]
+        else
+          %Q[pgroonga_tuple_is_alive(ctid) && (#{conditions.join(' || ')})]
+        end
+      end
+
+      def snippet_column(name, columns)
+        <<-SQL.strip_heredoc
+        'columns[#{name}_snippet].stage', 'output',
+        'columns[#{name}_snippet].type', 'ShortText',
+        'columns[#{name}_snippet].flags', 'COLUMN_VECTOR',
+        'columns[#{name}_snippet].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
+        SQL
       end
     end
   end

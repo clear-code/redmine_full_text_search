@@ -2,257 +2,114 @@ module FullTextSearch
   module Mroonga
     def self.prepended(base)
       base.extend(ClassMethods)
-      base.class_eval do
-        has_one("fts_#{table_name.singularize}".to_sym,
-                dependent: :destroy,
-                class_name: "FullTextSearch::Mroonga::Fts#{base.name}")
-      end
-    end
-
-    def self.included(base)
-      base.class_eval do
-        after_save Callbacks
-      end
-    end
-
-    class Callbacks
-      def self.after_save(record)
-        fts_class = "FullTextSearch::Mroonga::Fts#{record.class.name}".constantize
-        columns = fts_class.columns.map(&:name)
-        id_column = columns.detect do |column|
-          column.end_with?("_id")
-        end
-        fts_record = fts_class.find_or_initialize_by(id_column => record.id)
-        columns.each do |column|
-          if column.end_with?("_id")
-            fts_record[column] = record.id
-          else
-            fts_record[column] = record[column]
-          end
-        end
-        fts_record.save!
-      end
     end
 
     module ClassMethods
-      # Overwrite ActsAsSearchable
-      def fetch_ranks_and_ids_mroonga(scope, limit, attachments: false, order_target: "score", order_type: "desc")
-        if self == ::WikiPage && !attachments
-          scope.
-            joins("INNER JOIN fts_wiki_contents ON (wiki_contents.id = fts_wiki_contents.wiki_content_id)").
-            reorder("score DESC", id: :desc).distinct.limit(limit).map do |record|
-            if order_target == "score"
-              [record.score, record.id]
-            else
-              [record.order_target.to_i, record.id]
-            end
-          end
+      def search(query,
+                 user: User.current,
+                 project_ids: [],
+                 scope: [],
+                 attachments: "0",
+                 all_words: true,
+                 titles_only: false,
+                 open_issues: false,
+                 offset: nil,
+                 limit: 10,
+                 order_target: "score",
+                 order_type: "desc",
+                 query_escape: false)
+        sort_direction = order_type == "desc" ? "-" : ""
+        sort_keys = case order_target
+                    when "score"
+                      "#{sort_direction}_score"
+                    when "date"
+                      "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
+                    end
+        # mroonga_command cannot contain new line
+        # mroonga_command can accept multiple arguments since 7.0.5
+        if mroonga_version >= "7.05"
+          query = if query_escape
+                    "mroonga_escape('#{query}')"
+                  else
+                    "\'#{query}\'"
+                  end
+          sql = <<-SQL.strip_heredoc
+          select mroonga_command(
+                   'select',
+                   'table', 'searcher_records',
+                   'output_columns', '*,_score',
+                   #{snippet_columns.chomp}
+                   'drilldown', 'original_type',
+                   'match_columns', '#{target_columns(titles_only).join('||')}',
+                   'query', #{query},
+                   'filter', '#{filter_condition(user, project_ids, scope, attachments, open_issues)}',
+                   'limit', '#{limit}',
+                   'offset', '#{offset}',
+                   'sort_keys', '#{sort_keys}'
+                 )
+          SQL
         else
-          scope.reorder("score DESC", id: :desc).distinct.limit(limit).map do |record|
-            if order_target == "score"
-              [record.score, record.id]
-            else
-              [record.order_target.to_i, record.id]
-            end
-          end
+          query = if query_escape
+                    "\\'" + connection.select_value("select mroonga_escape('#{query}')") + "\\'"
+                  else
+                    "\\'#{query}\\'"
+                  end
+          sql = [
+            "select mroonga_command('",
+            "select --table searcher_records",
+            "--output_columns *,_score",
+            snippet_columns,
+            "--drilldown original_type",
+            "--match_columns #{target_columns(titles_only).join('||')}",
+            "--query #{query}",
+            "--filter \\'#{filter_condition(user, project_ids, scope, attachments, open_issues)}\\'",
+            "--limit #{limit}",
+            "--offset #{offset}",
+            "--sort_keys \\'#{sort_keys}\\'",
+            "'",
+            ")"
+          ].flatten.join(" ")
+        end
+        r = connection.select_value(sql)
+        # NOTE: Hack to use Groonga::Client::Response.parse
+        # Raise Mysql2::Error if error occurred
+        body = JSON.parse(r)
+        header = [0, 0, 0]
+        [header, body].to_json
+      end
+
+      def filter_condition(user, project_ids, scope, attachments, open_issues)
+        conditions = _filter_condition(user, project_ids, scope, attachments, open_issues)
+        if conditions.empty?
+          "1==1"
+        else
+          %Q[(#{conditions.join(' || ')})]
         end
       end
 
-      def search_result_ranks_and_ids(tokens, user=::User.current, projects=nil, options={})
-        tokens = [] << tokens unless tokens.is_a?(Array)
-        projects = [] << projects if projects.is_a?(::Project)
-        params = options.fetch(:params, {})
-        return super if params["enable_mroonga"] == "false"
-        target_column_name = "#{table_name}.#{order_column_name}"
-        kw = {
-          order_type: params[:order_type] || "desc",
-          order_target: params[:order_target] || "score",
-        }
-
-        columns = searchable_options[:columns]
-        columns = columns[0..0] if options[:titles_only]
-
-        r = []
-        queries = 0
-
-        unless options[:attachments] == 'only'
-          if self == ::WikiPage
-            column1 = columns.first
-            column2 = columns.last
-            s1 = ActiveRecord::Base.send(:sanitize_sql_array,
-                                         search_tokens_condition_mroonga(column1, tokens, options[:all_words]))
-            s2 = ActiveRecord::Base.send(:sanitize_sql_array,
-                                         search_tokens_condition_mroonga(column2, tokens, options[:all_words]))
-            c1 = search_tokens_condition_mroonga(column1, tokens, options[:all_words])
-            c2 = search_tokens_condition_mroonga(column2, tokens, options[:all_words])
-            c, t = c1.zip(c2).to_a
-            r = fetch_ranks_and_ids_mroonga(
-              search_scope(user, projects, options).
-              select(:id, "#{s1} * 100 + #{s2} AS score, #{target_column_name} AS order_target").
-              joins(fts_relation).
-              where([c.join(" OR "), *t]),
-              options[:limit],
-              **kw
-            )
-          else
-            conditions = columns.map do |column|
-              search_tokens_condition_mroonga(column, tokens, options[:all_words])
-            end
-            scores = columns.zip(conditions).map do |column, condition; s|
-              s = ActiveRecord::Base.send(:sanitize_sql_array, condition)
-              case column
-              when "title", "summary", "subject"
-                "#{s} * 100"
-              when /description\z/
-                "#{s} * 10"
-              else
-                s
-              end
-            end
-            if columns.size == 1
-              ct = conditions.flatten
-              c = [ct.first]
-              t = [ct.last]
-            else
-              c, t = conditions.first.zip(*conditions[1..-1]).to_a
-              p [2, c, t]
-            end
-            r = fetch_ranks_and_ids_mroonga(
-              search_scope(user, projects, options).
-              select(:id, "#{scores.join(" + ")} AS score, #{target_column_name} AS order_target").
-              joins(fts_relation).
-              where([c.join(" OR "), *t]),
-              options[:limit],
-              **kw
-            )
-          end
-          queries += 1
-
-          if !options[:titles_only] && searchable_options[:search_custom_fields]
-            searchable_custom_fields = ::CustomField.where(:type => "#{self.name}CustomField", :searchable => true).to_a
-
-            if searchable_custom_fields.any?
-              fields_by_visibility = searchable_custom_fields.group_by {|field|
-                field.visibility_by_project_condition(searchable_options[:project_key], user, "#{CustomValue.table_name}.custom_field_id")
-              }
-              clauses = []
-              fields_by_visibility.each do |visibility, fields|
-                clauses << "(#{::CustomValue.table_name}.custom_field_id IN (#{fields.map(&:id).join(',')}) AND (#{visibility}))"
-              end
-              visibility = clauses.join(' OR ')
-              condition = search_tokens_condition_mroonga("#{::CustomValue.table_name}.value", tokens, options[:all_words])
-              score = ActiveRecord::Base.send(:sanitize_sql_array, condition)
-
-              r |= fetch_ranks_and_ids_mroonga(
-                search_scope(user, projects, options).
-                select(:id, "#{score} AS score, #{target_column_name} AS order_target").
-                joins(fts_relation).
-                joins(:custom_values).
-                joins("INNER JOIN fts_custom_values ON (custom_values.id = fts_custom_values.custom_value_id)").
-                where(visibility).
-                where(condition),
-                options[:limit],
-                **kw
-              )
-              queries += 1
-            end
-          end
-
-          if !options[:titles_only] && searchable_options[:search_journals]
-            conditions = columns.map do |column|
-              search_tokens_condition_mroonga(column, tokens, options[:all_words])
-            end
-            scores = columns.zip(conditions).map do |column, _condition; m|
-              m = ActiveRecord::Base.send(:sanitize_sql_array, _condition)
-              case column
-              when "subject"
-                "#{m} * 100"
-              when /description\z/
-                "#{m} * 10"
-              else
-                m
-              end
-            end
-            note_condition = search_tokens_condition_mroonga("#{::Journal.table_name}.notes", tokens, options[:all_words])
-            note_score = ActiveRecord::Base.send(:sanitize_sql_array, note_condition)
-            conditions << note_condition
-            scores << note_score
-            c, t = conditions.first.zip(*conditions[1..-1]).to_a
-            r |= fetch_ranks_and_ids_mroonga(
-              search_scope(user, projects, options).
-              select(:id, "SUM(#{scores.join(" + ")}) AS score, #{target_column_name} AS order_target").
-              joins(fts_relation).
-              joins(:journals).
-              joins("INNER JOIN fts_journals ON (journals.id = fts_journals.journal_id)").
-              where("#{::Journal.table_name}.private_notes = ? OR (#{::Project.allowed_to_condition(user, :view_private_notes)})", false).
-              where([c.join(" OR "), *t]).
-              group(:id),
-              options[:limit],
-              **kw
-            )
-            queries += 1
-          end
+      def snippet_column(name, columns)
+        if mroonga_version >= "7.05"
+          <<-SQL.strip_heredoc
+          'columns[#{name}_snippet].stage', 'output',
+          'columns[#{name}_snippet].type', 'ShortText',
+          'columns[#{name}_snippet].flags', 'COLUMN_VECTOR',
+          'columns[#{name}_snippet].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
+          SQL
+        else
+          [
+            "--columns[#{name}_snippet].stage output",
+            "--columns[#{name}_snippet].type ShortText",
+            "--columns[#{name}_snippet].flags COLUMN_VECTOR",
+            "--columns[#{name}_snippet].value \\'snippet_html(#{columns.join("+")}) || vector_new()\\'"
+          ]
         end
-
-        if searchable_options[:search_attachments] && (options[:titles_only] ? options[:attachments] == 'only' : options[:attachments] != '0')
-          conditions = ["#{::Attachment.table_name}.filename", "#{::Attachment.table_name}.description"].map do |column|
-            search_tokens_condition_mroonga(column, tokens, options[:all_words])
-          end
-          scores = conditions.map do |_condition|
-            ActiveRecord::Base.send(:sanitize_sql_array, _condition)
-          end
-          c, t = conditions.first.zip(*conditions[1..-1]).to_a
-          r |= fetch_ranks_and_ids_mroonga(
-            search_scope(user, projects, options).
-            select(:id, "#{scores.join(" + ")} AS score, #{target_column_name} AS order_target").
-            joins(fts_relation).
-            joins(:attachments).
-            joins("INNER JOIN fts_attachments ON (attachments.id = fts_attachments.attachment_id)").
-            where([c.join(" OR "), *t]),
-            options[:limit],
-            attachments: true,
-            **kw
-          )
-          queries += 1
-        end
-
-        if queries > 1
-          sign = params[:order_type] == "desc" ? -1 : 1
-          r = r.sort_by {|_score, _id| sign * _score }
-          if options[:limit] && r.size > options[:limit]
-            r = r[0, options[:limit]]
-          end
-        end
-
-        r = r.group_by {|_score, id| id }
-        r = r.map {|id, origs| [origs.sum {|s, _| s }, id] }
-        r
       end
 
-      def search_tokens_condition_mroonga(column, tokens, all_words)
-        column = column.include?(".") ? "fts_#{column}" : "#{fts_table_name}.#{column}"
-        token_clauses = "MATCH(#{column})"
-        pragma = all_words ? "*D+" : "*DOR"
-        sql = %Q!#{token_clauses} AGAINST (? IN BOOLEAN MODE)!
-        [sql, "#{pragma} #{tokens.join(" ")}"]
-      end
-
-      def fts_table_name
-        "fts_#{table_name}"
-      end
-
-      def fts_relation
-        "fts_#{table_name.singularize}".to_sym
-      end
-
-      #
-      # searchable_options[:date_column] is not enough
-      # Because almost all models does not use `acts_as_searchable :data_column` option,
-      # and searchable_options[:data] default value is `:created_on`
-      #
-      def order_column_name
-        timestamp_columns = ["created_on", "updated_on", "commited_on"]
-        column_names.select{|column_name| timestamp_columns.include?(column_name) }.sort.last || "id"
+      def mroonga_version
+        return @mroonga_version if @mroonga_version
+        result = connection.execute("show variables like 'mroonga_version'")
+        @mroonga_version = result.to_a[0][1]
+        @mroonga_version
       end
     end
   end

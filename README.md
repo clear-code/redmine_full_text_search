@@ -6,6 +6,7 @@ This plugin provides full text search to Redmine.
 
 * PostgreSQL with Pgroonga
 * MySQL(MariaDB) with Mroonga
+  * We strongly recommend Mroonga 7.05 or later
 
 ## How to use
 
