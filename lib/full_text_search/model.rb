@@ -147,7 +147,7 @@ module FullTextSearch
             searcher_record.project_id = wiki_page.wiki.project_id
           when "Issue"
             searcher_record.project_id = record.container.project_id
-            searcher_record.status_id = record.container.status_is
+            searcher_record.status_id = record.container.status_id
             searcher_record.is_private = record.container.is_private
           else
             searcher_record.project_id = record.container.project_id
