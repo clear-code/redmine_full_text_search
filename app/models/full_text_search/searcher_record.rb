@@ -20,21 +20,21 @@ module FullTextSearch
 
       def target_columns(titles_only)
         if titles_only
-          %i[name identifier title subject filename]
+          %w[name identifier title subject filename]
         else
-          %i[
-            name
-            identifier
+          %w[
+            name*100
+            identifier*100
+            title*100
+            subject*100
+            filename*100
             description
-            title
             summary
-            subject
             comments
             content
             notes
             text
             value
-            filename
           ]
         end
       end
