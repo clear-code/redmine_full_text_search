@@ -162,7 +162,15 @@ module FullTextSearch
                                               "in_values(project_id, #{target_ids.join(',')})",
                                               open_issues_condition(open_issues))
               end
-            when "projects", "documents", "news", "wiki_pages", "messages", "versions"
+            when "projects", "versions"
+              target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
+              target_ids &= project_ids if project_ids.present?
+              if target_ids.present?
+                conditions << build_condition('original_type == "Attachment"',
+                                              'in_values(container_type, "Project", "Version")',
+                                              "in_values(project_id, #{target_ids.join(',')})")
+              end
+            when "documents", "news", "wiki_pages", "messages"
               target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
