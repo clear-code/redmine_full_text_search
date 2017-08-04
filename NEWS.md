@@ -12,6 +12,7 @@ You can upgrade this plugin by following sequence:
 1. Stop your Redmine
 1. Back up your database
 1. Install new version of this plugin under plugins directory
-1. Run `bin/rails redmine:plugins:migrate RAILS_ENV=production`
+1. Run `bundle install`
+1. Run `bin/rake redmine:plugins:migrate RAILS_ENV=production`
 1. Restart your Redmine
 
