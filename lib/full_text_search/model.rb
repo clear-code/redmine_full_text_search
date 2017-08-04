@@ -3,6 +3,7 @@ module FullTextSearch
     def self.included(base)
       base.class_eval do
         after_save Callbacks
+        after_destroy Callbacks
       end
     end
 
@@ -159,8 +160,8 @@ module FullTextSearch
       end
 
       def self.after_destroy(record)
-        FullTextSearch::SearcherRecord.where(original_id: record.original_id,
-                                             original_type: record.original_type).destroy_all
+        FullTextSearch::SearcherRecord.where(original_id: record.id,
+                                             original_type: record.class.name).destroy_all
       end
     end
   end
