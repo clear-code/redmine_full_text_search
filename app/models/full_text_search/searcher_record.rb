@@ -59,8 +59,8 @@ module FullTextSearch
       end
 
       def snippet_columns
-        snippet_column("title", %w(subject title filename name)) +
-          snippet_column("description", %w(content text notes description summary value))
+        snippet_column("title", %w(subject title filename name short_comments)) +
+          snippet_column("description", %w(content text notes description summary value long_comments))
       end
 
       # scope # => [:issues, :news, :documents, :changesets, :wiki_pages, :messages, :projects]
@@ -274,6 +274,8 @@ module FullTextSearch
         "#{title_prefix}#{name}"
       when "WikiPage"
         "#{title_prefix}#{title}"
+      when "Changeset"
+        "#{title_prefix}#{short_comments}"
       when "CustomValue"
         original_record.customized.event_title
       else
@@ -283,14 +285,14 @@ module FullTextSearch
 
     def _description
       case original_type
-      when "Changeset"
-        comments
       when "Journal"
         notes
       when "Message"
         content
       when "WikiPage"
         text
+      when "Changeset"
+        long_comments.presence || comments
       when "CustomValue"
         original_record.customized.event_description
       else
@@ -338,6 +340,11 @@ module FullTextSearch
       case original_type
       when "Attachment"
         ""
+      when "Changeset"
+        c = original_record
+        repo = (c.repository && c.repository.identifier.present?) ? " (#{c.repository.identifier})" : ''
+        delimiter = short_comments.blank? ? '' : ': '
+        "#{l(:label_revision)} #{c.format_identifier}#{repo}#{delimiter}"
       when "Document"
         "#{l(:label_document)}: "
       when "Issue"
