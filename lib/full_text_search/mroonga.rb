@@ -52,7 +52,7 @@ module FullTextSearch
           query = if query_escape
                     '"' + connection.select_value("select mroonga_escape('#{query}')") + '"'
                   else
-                    "\"#{query}\""
+                    "\'#{query}\'"
                   end
           sql = [
             "select mroonga_command('",
