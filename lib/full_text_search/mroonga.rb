@@ -31,7 +31,7 @@ module FullTextSearch
           query = if query_escape
                     "mroonga_escape('#{query}')"
                   else
-                    "\"#{query}\""
+                    "\'#{query}\'"
                   end
           sql = <<-SQL.strip_heredoc
           select mroonga_command(
@@ -50,9 +50,9 @@ module FullTextSearch
           SQL
         else
           query = if query_escape
-                    '"' + connection.select_value("select mroonga_escape('#{query}')") + '"'
+                    "\\'" + connection.select_value("select mroonga_escape('#{query}')") + "\\'"
                   else
-                    "\'#{query}\'"
+                    "\\'#{query}\\'"
                   end
           sql = [
             "select mroonga_command('",
