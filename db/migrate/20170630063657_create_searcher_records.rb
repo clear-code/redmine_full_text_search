@@ -37,6 +37,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # changesets
             t.text :comments
+            t.text :short_comments
+            t.text :long_comments
 
             # messages
             # t.string :subject
@@ -101,6 +103,8 @@ class CreateSearcherRecords < ActiveRecord::Migration
 
             # changesets
             t.text :comments, limit: 16.megabytes
+            t.text :short_comments, limit: 16.megabytes
+            t.text :long_comments, limit: 16.megabytes
 
             # messages
             # t.string :subject

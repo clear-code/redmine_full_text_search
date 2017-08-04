@@ -21,6 +21,8 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
             "is_private",
             "status_id",
             "comments",
+            "short_comments",
+            "long_comments",
             "content",
             "notes",
             "private_notes",
