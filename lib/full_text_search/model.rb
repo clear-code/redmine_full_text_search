@@ -29,6 +29,7 @@ module FullTextSearch
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.id
+          searcher_record.project_name = record.name
           searcher_record.name = record.name
           searcher_record.description = record.description
           searcher_record.identifier = record.identifier
@@ -40,6 +41,7 @@ module FullTextSearch
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.project_id
+          searcher_record.project_name = record.project.name
           searcher_record.title = record.title
           searcher_record.summary = record.summary
           searcher_record.description = record.description
@@ -49,6 +51,7 @@ module FullTextSearch
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.project_id
+          searcher_record.project_name = record.project.name
           searcher_record.tracker_id = record.tracker_id
           searcher_record.subject = record.subject
           searcher_record.description = record.description
@@ -62,6 +65,7 @@ module FullTextSearch
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.project_id
+          searcher_record.project_name = record.project.name
           searcher_record.title = record.title
           searcher_record.description = record.description
           searcher_record.original_created_on = record.created_on
@@ -71,6 +75,7 @@ module FullTextSearch
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.repository.project_id
+          searcher_record.project_name = record.repository.project.name
           searcher_record.comments = record.comments
           searcher_record.short_comments = short_comments
           searcher_record.long_comments = long_comments
@@ -80,6 +85,7 @@ module FullTextSearch
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.board.project_id
+          searcher_record.project_name = record.board.project.name
           searcher_record.subject = record.subject
           searcher_record.content = record.content
           searcher_record.original_created_on = record.created_on
@@ -90,6 +96,7 @@ module FullTextSearch
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.journalized.project_id
+          searcher_record.project_name = record.journalized.project.name
           searcher_record.notes = record.notes
           searcher_record.author_id = record.user_id
           searcher_record.private_notes = record.private_notes
@@ -100,6 +107,7 @@ module FullTextSearch
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.wiki.project_id
+          searcher_record.project_name = record.wiki.project.name
           searcher_record.title = record.title
           searcher_record.text = record.text
           searcher_record.original_created_on = record.created_on
@@ -109,6 +117,7 @@ module FullTextSearch
           searcher_record.original_id = record.page_id
           searcher_record.original_type = "WikiPage"
           searcher_record.project_id = record.page.wiki.project_id
+          searcher_record.project_name = record.page.wiki.project.name
           searcher_record.text = record.text
           searcher_record.original_updated_on = record.updated_on
           searcher_record.save!
@@ -122,13 +131,16 @@ module FullTextSearch
           case record.customized_type
           when "Project"
             searcher_record.project_id = record.customized.id
+            searcher_record.project_name = record.customized.name
           when "Issue"
             searcher_record.project_id = record.customized.project_id
+            searcher_record.project_name = record.customized.project.name
             searcher_record.status_id = record.customized.status_id
             searcher_record.is_private = record.customized.is_private
           else
             # Not in use for now...
             searcher_record.project_id = record.customized.project_id
+            searcher_record.project_name = record.customized.project.name
           end
           searcher_record.save!
         when Attachment
@@ -144,17 +156,22 @@ module FullTextSearch
           case record.container_type
           when "Project"
             searcher_record.project_id = record.container.id
+            searcher_record.project_name = record.container.name
           when "Message"
             searcher_record.project_id = record.container.board.project_id
+            searcher_record.project_name = record.container.board.project.name
           when "WikiPage"
             wiki_page = record.container
             searcher_record.project_id = wiki_page.wiki.project_id
+            searcher_record.project_name = wiki_page.wiki.project.name
           when "Issue"
             searcher_record.project_id = record.container.project_id
+            searcher_record.project_name = record.container.project.name
             searcher_record.status_id = record.container.status_id
             searcher_record.is_private = record.container.is_private
           else
             searcher_record.project_id = record.container.project_id
+            searcher_record.project_name = record.container.project.name
           end
           searcher_record.save!
         else
