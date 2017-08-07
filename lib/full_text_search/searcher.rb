@@ -102,7 +102,7 @@ module FullTextSearch
     def records
       return [] unless @response.success?
       @records ||= @response.records.map do |record|
-        Rails.logger.debug(title: record["title_snippet"], description: record["description_snippet"])
+        Rails.logger.debug(title: record["title_digest"], description: record["description_digest"])
         FullTextSearch::SearcherRecord.from_record(record)
       end
     end

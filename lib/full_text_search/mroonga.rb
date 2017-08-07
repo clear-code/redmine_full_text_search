@@ -38,7 +38,7 @@ module FullTextSearch
                    'select',
                    'table', 'searcher_records',
                    'output_columns', '*,_score',
-                   #{snippet_columns.chomp}
+                   #{digest_columns.chomp}
                    'drilldown', 'original_type',
                    'match_columns', '#{target_columns(titles_only).join('||')}',
                    'query', #{query},
@@ -58,7 +58,7 @@ module FullTextSearch
             "select mroonga_command('",
             "select --table searcher_records",
             "--output_columns *,_score",
-            snippet_columns,
+            digest_columns,
             "--drilldown original_type",
             "--match_columns #{target_columns(titles_only).join('||')}",
             "--query #{query}",
@@ -87,13 +87,31 @@ module FullTextSearch
         end
       end
 
-      def snippet_column(name, columns)
+      def title_digest(name, columns)
         if mroonga_version >= "7.05"
           <<-SQL.strip_heredoc
-          'columns[#{name}_snippet].stage', 'output',
-          'columns[#{name}_snippet].type', 'ShortText',
-          'columns[#{name}_snippet].flags', 'COLUMN_VECTOR',
-          'columns[#{name}_snippet].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
+          'columns[#{name}].stage', 'output',
+          'columns[#{name}].type', 'ShortText',
+          'columns[#{name}].flags', 'COLUMN_SCALAR',
+          'columns[#{name}].value', 'highlight_html(#{columns.join("+")})',
+          SQL
+        else
+          [
+            "--columns[#{name}].stage output",
+            "--columns[#{name}].type ShortText",
+            "--columns[#{name}].flags COLUMN_SCALAR",
+            "--columns[#{name}].value \\'highlight_html(#{columns.join("+")})\\'"
+          ]
+        end
+      end
+
+      def description_digest(name, columns)
+        if mroonga_version >= "7.05"
+          <<-SQL.strip_heredoc
+          'columns[#{name}].stage', 'output',
+          'columns[#{name}].type', 'ShortText',
+          'columns[#{name}].flags', 'COLUMN_VECTOR',
+          'columns[#{name}].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
           SQL
         else
           [

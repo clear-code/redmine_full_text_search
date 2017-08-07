@@ -42,9 +42,9 @@
       <% @search_result.each do |e| %>
         <dt class="<%= e.event_type %> icon icon-<%= e.event_type %>">
           <%= content_tag('span', e.project, :class => 'project') unless @project == e.project %>
-          <%= link_to(e.event_title_snippet, e.event_url, :data => { :rank => e.rank }) %>
+          <%= link_to(e.event_title_digest, e.event_url, :data => { :rank => e.rank }) %>
         </dt>
-        <dd><span class="description"><%= e.event_description_snippet %></span>
+        <dd><span class="description"><%= e.event_description_digest %></span>
         <span class="author"><%= format_time(e.event_datetime) %></span></dd>
       <% end %>
     </dl>

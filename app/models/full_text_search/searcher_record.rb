@@ -1,7 +1,7 @@
 module FullTextSearch
   class SearcherRecord < ActiveRecord::Base
     attr_accessor :_score
-    attr_accessor :title_snippet, :description_snippet
+    attr_accessor :title_digest, :description_digest
 
     acts_as_event(type: :_type,
                   datetime: :_datetime,
@@ -58,9 +58,9 @@ module FullTextSearch
         []
       end
 
-      def snippet_columns
-        snippet_column("title", %w(subject title filename name short_comments)) +
-          snippet_column("description", %w(content text notes description summary value long_comments))
+      def digest_columns
+        title_digest("title_digest", %w(subject title filename name short_comments)) +
+          description_digest("description_digest", %w(content text notes description summary value long_comments))
       end
 
       # scope # => [:issues, :news, :documents, :changesets, :wiki_pages, :messages, :projects]
@@ -365,17 +365,17 @@ module FullTextSearch
       end
     end
 
-    def event_title_snippet
-      @vent_title_snippet ||= if title_snippet.select(&:present?).present?
-                                "#{title_prefix}#{title_snippet.join(' &hellip; ')}".html_safe
+    def event_title_digest
+      @vent_title_digest ||= if title_digest.present?
+                                "#{title_prefix}#{title_digest}".html_safe
                               else
                                 event_title
                               end
     end
 
-    def event_description_snippet
-      @event_description_snippet ||= if description_snippet.select(&:present?).present?
-                                       description_snippet.join(" &hellip; ").html_safe
+    def event_description_digest
+      @event_description_digest ||= if description_digest.select(&:present?).present?
+                                       description_digest.join(" &hellip; ").html_safe
                                      else
                                        event_description.truncate(255)
                                      end

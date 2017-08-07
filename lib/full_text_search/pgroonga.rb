@@ -40,7 +40,7 @@ module FullTextSearch
                  ARRAY[
                    'table', pgroonga.table_name('#{index_name}'),
                    'output_columns', '*,_score',
-                   #{snippet_columns.chomp}
+                   #{digest_columns.chomp}
                    'drilldown', 'original_type',
                    'match_columns', '#{target_columns(titles_only).join("||")}',
                    'query', #{query},
@@ -71,12 +71,21 @@ module FullTextSearch
         end
       end
 
-      def snippet_column(name, columns)
+      def title_digest(name, columns)
         <<-SQL.strip_heredoc
-        'columns[#{name}_snippet].stage', 'output',
-        'columns[#{name}_snippet].type', 'ShortText',
-        'columns[#{name}_snippet].flags', 'COLUMN_VECTOR',
-        'columns[#{name}_snippet].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
+        'columns[#{name}].stage', 'output',
+        'columns[#{name}].type', 'ShortText',
+        'columns[#{name}].flags', 'COLUMN_SCALAR',
+        'columns[#{name}].value', 'highlight_html(#{columns.join("+")})',
+        SQL
+      end
+
+      def description_digest(name, columns)
+        <<-SQL.strip_heredoc
+        'columns[#{name}].stage', 'output',
+        'columns[#{name}].type', 'ShortText',
+        'columns[#{name}].flags', 'COLUMN_VECTOR',
+        'columns[#{name}].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
         SQL
       end
     end
