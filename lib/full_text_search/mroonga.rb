@@ -78,6 +78,53 @@ module FullTextSearch
         [header, body].to_json
       end
 
+      def similar_issues(id:, limit: 5)
+        issue = Issue.find(id)
+        desc = issue.description
+        sql = <<-SQL.strip_heredoc
+        select mroonga_command(
+                 'select',
+                 'table', 'searcher_records',
+                 'output_columns', 'issue_id, _score',
+                 'filter', '(description *S "#{desc}" || notes *S "#{desc}") && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != #{id})',
+                 'drilldown', 'issue_id',
+                 'limit', '#{limit}',
+                 'sort_keys', '-_score'
+               )
+        SQL
+        r = connection.select_value(sql)
+        # NOTE: Hack to use Groonga::Client::Response.parse
+        # Raise Mysql2::Error if error occurred
+        body = JSON.parse(r)
+        header = [0, 0, 0]
+        response = [header, body].to_json
+        command = Groonga::Command.find("select").new("select", {})
+        Groonga::Client::Response.parse(command, response)
+      end
+
+      def similar_issues2(id:, limit: 5)
+        issue = Issue.find(id)
+        desc = issue.description
+        sql = <<-SQL.strip_heredoc
+        select mroonga_command(
+                 'select',
+                 'table', 'issue_contents',
+                 'output_columns', 'issue_id, _score',
+                 'filter', '(contents *S "#{desc}") && issue_id != #{id}',
+                 'limit', '#{limit}',
+                 'sort_keys', '-_score'
+               )
+        SQL
+        r = connection.select_value(sql)
+        # NOTE: Hack to use Groonga::Client::Response.parse
+        # Raise Mysql2::Error if error occurred
+        body = JSON.parse(r)
+        header = [0, 0, 0]
+        response = [header, body].to_json
+        command = Groonga::Command.find("select").new("select", {})
+        Groonga::Client::Response.parse(command, response)
+      end
+
       def filter_condition(user, project_ids, scope, attachments, open_issues)
         conditions = _filter_condition(user, project_ids, scope, attachments, open_issues)
         if conditions.empty?

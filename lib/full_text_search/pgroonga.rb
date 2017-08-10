@@ -54,7 +54,55 @@ module FullTextSearch
         connection.select_value(sql)
       end
 
+      def similar_issues(id:, limit: 5)
+        issue = Issue.find(id)
+        desc = issue.description
+        # TODO
+        sql = <<-SQL.strip_heredoc
+        select pgroonga.command(
+                 'select',
+                 ARRAY[
+                   'table', pgroonga.table_name('#{index_name}'),
+                   'output_columns', 'issue_id, _score',
+                   'filter', '(description *S "#{desc}" || notes *S "#{desc}") && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != #{id})',
+                   'drilldown', 'issue_id',
+                   'limit', '#{limit}',
+                   'sort_keys', '-_score'
+                 ]
+               )::json
+        SQL
+        response = connection.select_value(sql)
+        command = Groonga::Command.find("select").new("select", {})
+        puts response
+        Groonga::Client::Response.parse(command, response)
+      end
+
+      def similar_issues2(id:, limit: 5)
+        issue = Issue.find(id)
+        desc = issue.description
+        sql = <<-SQL.strip_heredoc
+        select pgroonga.command(
+                 'select',
+                 ARRAY[
+                   'table', pgroonga.table_name('#{similar_issues_index_name}'),
+                   'output_columns', 'issue_id, _score',
+                   'filter', '(contents *S "#{desc}") && issue_id != #{id}',
+                   'limit', '#{limit}',
+                   'sort_keys', '-_score'
+                 ]
+               )::json
+        SQL
+        response = connection.select_value(sql)
+        command = Groonga::Command.find("select").new("select", {})
+        puts response
+        Groonga::Client::Response.parse(command, response)
+      end
+
       def index_name
+        "index_searcher_records_pgroonga"
+      end
+
+      def similar_issues_index_name
         "index_searcher_records_pgroonga"
       end
 

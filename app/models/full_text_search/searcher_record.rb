@@ -200,10 +200,6 @@ module FullTextSearch
     end
     alias rank score
 
-    def similar_search(limit: 10)
-      # TODO
-    end
-
     def original_record
       @original_record ||= original_type.constantize.find(original_id)
     end
