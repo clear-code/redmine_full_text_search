@@ -1,4 +1,5 @@
 require_dependency "full_text_search/hooks/search_index_options_content_bottom_hook"
+require_dependency "full_text_search/hooks/issues_show_description_bottom_hook"
 require "full_text_search/searcher"
 
 Redmine::Plugin.register :full_text_search do

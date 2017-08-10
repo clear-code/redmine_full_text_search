@@ -1,0 +1,21 @@
+<hr>
+<div class="similar-issues">
+  <p><strong>類似チケット1</strong>(searcher_records)</p>
+  <%-
+    similar_issues = FullTextSearch::SearcherRecord.similar_issues(id: issue.id)
+   %>
+  <%- similar_issues.each do |s| %>
+    <p><%= link_to(s.subject, issue_path(s)) %></p>
+  <%- end %>
+</div>
+
+<hr>
+<div class="similar-issues">
+  <p><strong>類似チケット2</strong>(issue_contents)</p>
+  <%-
+    similar_issues2 = FullTextSearch::SearcherRecord.similar_issues2(id: issue.id)
+   %>
+  <%- similar_issues2.each do |s| %>
+    <p><%= link_to(s.subject, issue_path(s)) %></p>
+  <%- end %>
+</div>
