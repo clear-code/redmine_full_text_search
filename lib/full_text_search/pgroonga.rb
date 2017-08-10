@@ -73,8 +73,11 @@ module FullTextSearch
         SQL
         response = connection.select_value(sql)
         command = Groonga::Command.find("select").new("select", {})
-        puts response
-        Groonga::Client::Response.parse(command, response)
+        r = Groonga::Client::Response.parse(command, response)
+        issue_ids = r.records.map do |row|
+          row["issue_id"]
+        end
+        Issue.where(id: issue_ids).all
       end
 
       def similar_issues2(id:, limit: 5)
@@ -94,8 +97,11 @@ module FullTextSearch
         SQL
         response = connection.select_value(sql)
         command = Groonga::Command.find("select").new("select", {})
-        puts response
-        Groonga::Client::Response.parse(command, response)
+        r = Groonga::Client::Response.parse(command, response)
+        issue_ids = r.records.map do |row|
+          row["issue_id"]
+        end
+        Issue.where(id: issue_ids).all
       end
 
       def index_name

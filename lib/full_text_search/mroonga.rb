@@ -99,7 +99,11 @@ module FullTextSearch
         header = [0, 0, 0]
         response = [header, body].to_json
         command = Groonga::Command.find("select").new("select", {})
-        Groonga::Client::Response.parse(command, response)
+        r = Groonga::Client::Response.parse(command, response)
+        issue_ids = r.records.map do |row|
+          row["issue_id"]
+        end
+        Issue.where(id: issue_ids).all
       end
 
       def similar_issues2(id:, limit: 5)
@@ -122,7 +126,12 @@ module FullTextSearch
         header = [0, 0, 0]
         response = [header, body].to_json
         command = Groonga::Command.find("select").new("select", {})
-        Groonga::Client::Response.parse(command, response)
+        r = Groonga::Client::Response.parse(command, response)
+        issue_ids = r.records.map do |row|
+          row["issue_id"]
+        end
+        p issue_ids
+        Issue.where(id: issue_ids).all
       end
 
       def filter_condition(user, project_ids, scope, attachments, open_issues)
