@@ -7,6 +7,7 @@ class AddIndexToIssueContents < ActiveRecord::Migration
         d.up do
           columns = [
             "id",
+            "issue_id",
             "subject #{opclass}",
             "contents"
           ]
