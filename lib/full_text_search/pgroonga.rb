@@ -64,7 +64,7 @@ module FullTextSearch
                  ARRAY[
                    'table', pgroonga.table_name('#{index_name}'),
                    'output_columns', 'issue_id, _score',
-                   'filter', '(description *S "#{desc}" || notes *S "#{desc}") && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != #{id})',
+                   'filter', '(description *S ' || pgroonga.escape('#{desc}') || ' notes *S ' || pgroonga.escape('#{desc}') || ') && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != #{id})',
                    'drilldown', 'issue_id',
                    'limit', '#{limit}',
                    'sort_keys', '-_score'
@@ -74,10 +74,15 @@ module FullTextSearch
         response = connection.select_value(sql)
         command = Groonga::Command.find("select").new("select", {})
         r = Groonga::Client::Response.parse(command, response)
-        issue_ids = r.records.map do |row|
-          row["issue_id"]
+        if r.success?
+          issue_ids = r.records.map do |row|
+            row["issue_id"]
+          end
+          Issue.where(id: issue_ids).all
+        else
+          logger.warn(r.message)
+          []
         end
-        Issue.where(id: issue_ids).all
       end
 
       def similar_issues2(id:, limit: 5)
@@ -89,7 +94,7 @@ module FullTextSearch
                  ARRAY[
                    'table', pgroonga.table_name('#{similar_issues_index_name}'),
                    'output_columns', 'issue_id, _score',
-                   'filter', '(contents *S "#{desc}") && issue_id != #{id}',
+                   'filter', '(contents *S ' || pgroonga.escape('#{desc}') || ') && issue_id != #{id}',
                    'limit', '#{limit}',
                    'sort_keys', '-_score'
                  ]
@@ -98,10 +103,15 @@ module FullTextSearch
         response = connection.select_value(sql)
         command = Groonga::Command.find("select").new("select", {})
         r = Groonga::Client::Response.parse(command, response)
-        issue_ids = r.records.map do |row|
-          row["issue_id"]
+        if r.success?
+          issue_ids = r.records.map do |row|
+            row["issue_id"]
+          end
+          Issue.where(id: issue_ids).all
+        else
+          logger.warn(r.message)
+          []
         end
-        Issue.where(id: issue_ids).all
       end
 
       def index_name
@@ -109,7 +119,7 @@ module FullTextSearch
       end
 
       def similar_issues_index_name
-        "index_searcher_records_pgroonga"
+        "index_issue_contents_pgroonga"
       end
 
       def pgroonga_table_name
