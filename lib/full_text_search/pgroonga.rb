@@ -64,7 +64,7 @@ module FullTextSearch
                  ARRAY[
                    'table', pgroonga.table_name('#{index_name}'),
                    'output_columns', 'issue_id, _score',
-                   'filter', '(description *S ' || pgroonga.escape('#{desc}') || ' notes *S ' || pgroonga.escape('#{desc}') || ') && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != #{id})',
+                   'filter', '(description *S ' || pgroonga.escape('#{desc}') || ' || notes *S ' || pgroonga.escape('#{desc}') || ') && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != #{id})',
                    'drilldown', 'issue_id',
                    'limit', '#{limit}',
                    'sort_keys', '-_score'
