@@ -104,6 +104,9 @@ module FullTextSearch
           row["issue_id"]
         end
         Issue.where(id: issue_ids).all
+      rescue => ex
+        logger.warn(ex.class => ex.message)
+        []
       end
 
       def similar_issues2(id:, limit: 5)
@@ -130,8 +133,10 @@ module FullTextSearch
         issue_ids = r.records.map do |row|
           row["issue_id"]
         end
-        p issue_ids
         Issue.where(id: issue_ids).all
+      rescue => ex
+        logger.warn(ex.class => ex.message)
+        []
       end
 
       def filter_condition(user, project_ids, scope, attachments, open_issues)
