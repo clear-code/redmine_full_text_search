@@ -64,14 +64,14 @@ module FullTextSearch
                  ARRAY[
                    'table', pgroonga.table_name('#{index_name}'),
                    'output_columns', 'issue_id, _score',
-                   'filter', '(description *S ' || pgroonga.escape('#{desc}') || ' || notes *S ' || pgroonga.escape('#{desc}') || ') && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != #{id})',
+                   'filter', '(description *S ' || pgroonga.escape(:desc) || ' || notes *S ' || pgroonga.escape(:desc) || ') && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != :id)',
                    'drilldown', 'issue_id',
-                   'limit', '#{limit}',
+                   'limit', ':limit',
                    'sort_keys', '-_score'
                  ]
                )::json
         SQL
-        response = connection.select_value(sql)
+        response = connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, desc: desc, id: id, limit: limit]))
         command = Groonga::Command.find("select").new("select", {})
         r = Groonga::Client::Response.parse(command, response)
         if r.success?
@@ -80,8 +80,12 @@ module FullTextSearch
           end
           Issue.where(id: issue_ids).all
         else
-          logger.warn(r.message)
-          []
+          if Rails.env.production?
+            logger.warn(r.message)
+            []
+          else
+            raise r.message
+          end
         end
       end
 
@@ -94,13 +98,13 @@ module FullTextSearch
                  ARRAY[
                    'table', pgroonga.table_name('#{similar_issues_index_name}'),
                    'output_columns', 'issue_id, _score',
-                   'filter', '(contents *S ' || pgroonga.escape('#{desc}') || ') && issue_id != #{id}',
-                   'limit', '#{limit}',
+                   'filter', '(contents *S ' || pgroonga.escape(:desc) || ') && issue_id != :id',
+                   'limit', ':limit',
                    'sort_keys', '-_score'
                  ]
                )::json
         SQL
-        response = connection.select_value(sql)
+        response = connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, desc: desc, id: id, limit: limit]))
         command = Groonga::Command.find("select").new("select", {})
         r = Groonga::Client::Response.parse(command, response)
         if r.success?
@@ -109,8 +113,12 @@ module FullTextSearch
           end
           Issue.where(id: issue_ids).all
         else
-          logger.warn(r.message)
-          []
+          if Rails.env.production?
+            logger.warn(r.message)
+            []
+          else
+            raise r.message
+          end
         end
       end
 

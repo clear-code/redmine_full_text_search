@@ -86,13 +86,13 @@ module FullTextSearch
                  'select',
                  'table', 'searcher_records',
                  'output_columns', 'issue_id, _score',
-                 'filter', '(description *S "#{desc}" || notes *S "#{desc}") && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != #{id})',
+                 'filter', CONCAT('(description *S "', mroonga_escape(:desc), '" || notes *S "', mroonga_escape(:desc), '") && in_values(original_type, "Issue", "Journal") && (original_type == "Issue" && original_id != :id)'),
                  'drilldown', 'issue_id',
-                 'limit', '#{limit}',
+                 'limit', ':limit',
                  'sort_keys', '-_score'
                )
         SQL
-        r = connection.select_value(sql)
+        r = connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, desc: desc, id: id, limit: limit]))
         # NOTE: Hack to use Groonga::Client::Response.parse
         # Raise Mysql2::Error if error occurred
         body = JSON.parse(r)
@@ -105,8 +105,12 @@ module FullTextSearch
         end
         Issue.where(id: issue_ids).all
       rescue => ex
-        logger.warn(ex.class => ex.message)
-        []
+        if Rails.env.production?
+          logger.warn(ex.class => ex.message)
+          []
+        else
+          raise
+        end
       end
 
       def similar_issues2(id:, limit: 5)
@@ -117,12 +121,12 @@ module FullTextSearch
                  'select',
                  'table', 'issue_contents',
                  'output_columns', 'issue_id, _score',
-                 'filter', '(contents *S "#{desc}") && issue_id != #{id}',
-                 'limit', '#{limit}',
+                 'filter', CONCAT('(contents *S "', mroonga_escape(:desc), '") && issue_id != :id'),
+                 'limit', ':limit',
                  'sort_keys', '-_score'
                )
         SQL
-        r = connection.select_value(sql)
+        r = connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, desc: desc, id: id, limit: limit]))
         # NOTE: Hack to use Groonga::Client::Response.parse
         # Raise Mysql2::Error if error occurred
         body = JSON.parse(r)
@@ -135,8 +139,12 @@ module FullTextSearch
         end
         Issue.where(id: issue_ids).all
       rescue => ex
-        logger.warn(ex.class => ex.message)
-        []
+        if Rails.env.production?
+          logger.warn(ex.class => ex.message)
+          []
+        else
+          raise
+        end
       end
 
       def filter_condition(user, project_ids, scope, attachments, open_issues)
