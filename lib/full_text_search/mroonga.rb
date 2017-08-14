@@ -21,7 +21,7 @@ module FullTextSearch
         sort_direction = order_type == "desc" ? "-" : ""
         sort_keys = case order_target
                     when "score"
-                      "#{sort_direction}_score"
+                      "#{sort_direction}_score,-original_updated_on,-original_created_on"
                     when "date"
                       "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
