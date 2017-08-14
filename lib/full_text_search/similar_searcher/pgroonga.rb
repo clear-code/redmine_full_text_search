@@ -27,6 +27,7 @@ module FullTextSearch
             issue_ids = r.records.map do |row|
               row["issue_id"]
             end
+            logger.debug(r.records)
             Issue.where(id: issue_ids).all
           else
             if Rails.env.production?
