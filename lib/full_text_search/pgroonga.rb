@@ -55,8 +55,9 @@ module FullTextSearch
       end
 
       def similar_issues(id:, limit: 5)
-        issue = Issue.find(id)
-        desc = issue.description
+        issue = Issue.eager_load(:journals).find(id)
+        desc = [issue.subject, issue.description] + issue.journals.sort_by(&:id).map(&:notes)
+        desc = desc.join("\n")
         # TODO
         sql = <<-SQL.strip_heredoc
         select pgroonga.command(
