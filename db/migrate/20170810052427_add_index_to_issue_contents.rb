@@ -11,7 +11,7 @@ class AddIndexToIssueContents < ActiveRecord::Migration
             "subject #{opclass}",
             "contents"
           ]
-          sql = "CREATE INDEX index_issue_contents_pgroonga ON issue_contents USING pgroonga (#{columns.join(',')})"
+          sql = "CREATE INDEX index_issue_contents_pgroonga ON issue_contents USING pgroonga (#{columns.join(',')}) WITH (tokenizer = 'TokenMecab')"
           execute(sql)
         end
         d.down do
@@ -19,7 +19,10 @@ class AddIndexToIssueContents < ActiveRecord::Migration
         end
       when Redmine::Database.mysql?
         d.up do
-          add_index(:issue_contents, :contents, type: "fulltext")
+          # Support comment option since AR5
+          # add_index(:issue_contents, :contents, type: "fulltext", comment: 'tokenizer "TokenMecab"')
+          sql = "CREATE FULLTEXT INDEX index_issue_contents_on_contents ON issue_contents(contents) COMMENT 'tokenizer \"TokenMecab\"'"
+          execute(sql)
         end
         d.down do
           remove_index(:issue_contents, :contents)
