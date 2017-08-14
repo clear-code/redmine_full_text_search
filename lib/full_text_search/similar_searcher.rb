@@ -6,8 +6,15 @@ module FullTextSearch
           after_save Callbacks
           after_destroy Callbacks
         end
+        case
+        when Redmine::Database.postgresql?
+          base.include(FullTextSearch::SimilarSearcher::PGroonga)
+        when Redmine::Database.mysql?
+          base.include(FullTextSearch::SimilarSearcher::Mroonga)
+        end
       end
 
+      # Add callbacks to Issue
       class Callbacks
         class << self
           def after_save(record)

@@ -27,6 +27,7 @@ Rails.configuration.to_prepare do
   [Project, News, Issue, Document, Changeset, Message, Journal, WikiPage, WikiContent, CustomValue, Attachment].each do |klass|
     klass.include(FullTextSearch::Model)
   end
+  Issue.include(FullTextSearch::SimilarSearcher::Model)
   SearchHelper.prepend(FullTextSearch::Hooks::SearchHelper)
   SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
   IssuesHelper.include(FullTextSearch::Hooks::SimilarIssuesHelper)
