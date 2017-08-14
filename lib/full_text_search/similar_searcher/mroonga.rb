@@ -3,6 +3,9 @@ module FullTextSearch
     module Mroonga
       def self.included(base)
         base.include(InstanceMethods)
+        base.class_eval do
+          attr_accessor :similarity_score
+        end
       end
 
       module InstanceMethods
@@ -26,11 +29,15 @@ module FullTextSearch
           response = [header, body].to_json
           command = Groonga::Command.find("select").new("select", {})
           r = Groonga::Client::Response.parse(command, response)
-          issue_ids = r.records.map do |row|
-            row["issue_id"]
-          end
+          issue_scores = r.records.map do |row|
+            [row["issue_id"], row["_score"]]
+          end.to_h
           logger.debug(r.records)
-          Issue.where(id: issue_ids).all
+          similar_issues = Issue.where(id: issue_scores.keys).all
+          similar_issues.each do |s|
+            s.similarity_score = issue_scores[s.id]
+          end
+          similar_issues.sort_by{|s| - s.similarity_score }
         rescue => ex
           if Rails.env.production?
             logger.warn(ex.class => ex.message)

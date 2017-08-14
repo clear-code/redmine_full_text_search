@@ -4,6 +4,11 @@
   <%= render_similar_issues(issue) %>
 </div>
 
+<% if (Setting.plugin_full_text_search.presence || {})["display_score"] == "1" %>
+  <% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
+  <% end %>
+<% end %>
 <% content_for :header_tags do %>
   <%= stylesheet_link_tag 'similar_issues', :plugin => 'full_text_search' %>
 <% end %>
