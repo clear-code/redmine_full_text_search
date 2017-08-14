@@ -8,8 +8,10 @@ module FullTextSearch
         end
         case
         when Redmine::Database.postgresql?
+          require "full_text_search/similar_searcher/pgroonga"
           base.include(FullTextSearch::SimilarSearcher::PGroonga)
         when Redmine::Database.mysql?
+          require "full_text_search/similar_searcher/mroonga"
           base.include(FullTextSearch::SimilarSearcher::Mroonga)
         end
       end
