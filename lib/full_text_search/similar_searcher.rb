@@ -22,16 +22,18 @@ module FullTextSearch
           def after_save(record)
             case record
             when Issue
-              issue_id = record.id
-              FullTextSearch::IssueContent
-                .where(issue_id: issue_id)
-                .update(subject: record.subject,
-                        contents: create_contents(issue_id))
+              r = FullTextSearch::IssueContent.find_or_initialize_by(issue_id: record.id)
+              r.project_id = record.project_id
+              r.subject = record.subject
+              r.contents = create_contents(record.id)
+              r.status_id = record.status_id
+              r.is_private = record.is_private
+              r.save
             when Journal
               issue_id = record.journalized_id
               FullTextSearch::IssueContent
                 .where(issue_id: issue_id)
-                .update(contents: create_contents(issue_id))
+                .update_all(contents: create_contents(issue_id))
             end
           end
 
@@ -43,13 +45,18 @@ module FullTextSearch
               issue_id = record.journalized_id
               FullTextSearch::IssueContent
                 .where(issue_id: issue_id)
-                .update(contents: create_contents(issue_id))
+                .update_all(contents: create_contents(issue_id, excludes: [record.id]))
             end
           end
 
-          def create_contents(issue_id)
+          def create_contents(issue_id, excludes: [])
             issue = Issue.eager_load(:journals).find(issue_id)
-            contents = [issue.subject, issue.description] + issue.journals.sort_by(&:id).map(&:notes)
+            contents = [issue.subject, issue.description]
+            notes = issue.journals
+              .reject {|j| j.notes.blank? || excludes.include?(j.id) }
+              .sort_by(&:id)
+              .map(&:notes)
+            contents.concat(notes)
             contents.join("\n")
           end
         end
