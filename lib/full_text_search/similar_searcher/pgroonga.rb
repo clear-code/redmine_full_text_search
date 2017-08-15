@@ -35,7 +35,7 @@ module FullTextSearch
             similar_issues.each do |s|
               s.similarity_score = issue_scores[s.id]
             end
-            similar_issues.sort_by{|s| - s.similarity_score }
+            similar_issues.sort_by {|s| - s.similarity_score }
           else
             if Rails.env.production?
               logger.warn(r.message)
