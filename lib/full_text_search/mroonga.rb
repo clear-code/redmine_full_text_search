@@ -83,7 +83,7 @@ module FullTextSearch
         if conditions.empty?
           "1==1"
         else
-          %Q[(#{conditions.join(' || ')})]
+          build_condition("||", conditions)
         end
       end
 

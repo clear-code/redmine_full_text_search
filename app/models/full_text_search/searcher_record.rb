@@ -1,5 +1,7 @@
 module FullTextSearch
   class SearcherRecord < ActiveRecord::Base
+    extend FullTextSearch::ConditionBuilder
+
     attr_accessor :_score
     attr_accessor :title_digest, :description_digest
 
@@ -78,12 +80,14 @@ module FullTextSearch
                               end
               end
               if project_ids.present?
-                conditions << build_condition('original_type == "Project"',
+                conditions << build_condition("&&",
+                                              'original_type == "Project"',
                                               "in_values(original_id, #{project_ids.join(',')})")
               end
               target_ids = CustomField.visible(user).pluck(:id)
               if target_ids.present?
-                conditions << build_condition('original_type == "CustomValue"',
+                conditions << build_condition("&&",
+                                              'original_type == "CustomValue"',
                                               "in_values(custom_field_id, #{target_ids.join(',')})")
               end
             when "issues"
@@ -91,7 +95,8 @@ module FullTextSearch
               target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
-                conditions << build_condition('original_type == "Issue"',
+                conditions << build_condition("&&",
+                                              'original_type == "Issue"',
                                               "is_private == false",
                                               "in_values(project_id, #{target_ids.join(',')})",
                                               open_issues_condition(open_issues))
@@ -100,7 +105,8 @@ module FullTextSearch
               target_ids = Project.allowed_to(user, :view_notes).pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
-                conditions << build_condition('original_type == "Journal"',
+                conditions << build_condition("&&",
+                                              'original_type == "Journal"',
                                               "private_notes == false",
                                               "in_values(project_id, #{target_ids.join(',')})",
                                               open_issues_condition(open_issues))
@@ -108,14 +114,16 @@ module FullTextSearch
               target_ids = Project.allowed_to(user, :view_private_notes).pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
-                conditions << build_condition('original_type == "Journal"',
+                conditions << build_condition("&&",
+                                              'original_type == "Journal"',
                                               "private_notes == true",
                                               "in_values(project_id, #{target_ids.join(',')})",
                                               open_issues_condition(open_issues))
               end
               target_ids = CustomField.visible(user).pluck(:id)
               if target_ids.present?
-                conditions << build_condition('original_type == "CustomValue"',
+                conditions << build_condition("&&",
+                                              'original_type == "CustomValue"',
                                               "is_private == false",
                                               "in_values(custom_field_id, #{target_ids.join(',')})",
                                               open_issues_condition(open_issues))
@@ -124,14 +132,16 @@ module FullTextSearch
               target_ids = Project.allowed_to(user, :view_wiki_pages).pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
-                conditions << build_condition('in_values(original_type, "WikiPage", "WikiContent")',
+                conditions << build_condition("&&",
+                                              'in_values(original_type, "WikiPage", "WikiContent")',
                                               "in_values(project_id, #{target_ids.join(',')})")
               end
             else
               target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
-                conditions << build_condition(%Q[original_type == "#{s.classify}"],
+                conditions << build_condition("&&",
+                                              %Q[original_type == "#{s.classify}"],
                                               "in_values(project_id, #{target_ids.join(',')})")
               end
             end
@@ -156,7 +166,8 @@ module FullTextSearch
               target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
-                conditions << build_condition('original_type == "Attachment"',
+                conditions << build_condition("&&",
+                                              'original_type == "Attachment"',
                                               'container_type == "Issue"',
                                               "is_private == false",
                                               "in_values(project_id, #{target_ids.join(',')})",
@@ -166,7 +177,8 @@ module FullTextSearch
               target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
-                conditions << build_condition('original_type == "Attachment"',
+                conditions << build_condition("&&",
+                                              'original_type == "Attachment"',
                                               'in_values(container_type, "Project", "Version")',
                                               "in_values(project_id, #{target_ids.join(',')})")
               end
@@ -174,7 +186,8 @@ module FullTextSearch
               target_ids = Project.allowed_to(user, :"view_#{s}").pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
-                conditions << build_condition('original_type == "Attachment"',
+                conditions << build_condition("&&",
+                                              'original_type == "Attachment"',
                                               %Q[container_type == "#{s.classify}"],
                                               "in_values(project_id, #{target_ids.join(',')})")
               end
@@ -182,10 +195,6 @@ module FullTextSearch
           end
         end
         conditions
-      end
-
-      def build_condition(*args)
-        "(#{args.compact.join(' && ')})"
       end
 
       def open_issues_condition(open_issues)

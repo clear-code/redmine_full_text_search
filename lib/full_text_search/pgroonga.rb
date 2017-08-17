@@ -67,7 +67,7 @@ module FullTextSearch
         if conditions.empty?
           %Q[pgroonga_tuple_is_alive(ctid)]
         else
-          %Q[pgroonga_tuple_is_alive(ctid) && (#{conditions.join(' || ')})]
+          %Q[pgroonga_tuple_is_alive(ctid) && #{build_condition('||', conditions)}]
         end
       end
 
