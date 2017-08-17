@@ -2,6 +2,7 @@ module FullTextSearch
   module SimilarSearcher
     module Model
       def self.included(base)
+        base.include(InstanceMethods)
         base.class_eval do
           after_save Callbacks
           after_destroy Callbacks
@@ -13,6 +14,24 @@ module FullTextSearch
         when Redmine::Database.mysql?
           require "full_text_search/similar_searcher/mroonga"
           base.include(FullTextSearch::SimilarSearcher::Mroonga)
+        end
+      end
+
+      module InstanceMethods
+        def filter_condition(user = User.current, project_ids = [])
+          conditions = []
+          target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
+          target_ids &= project_ids if project_ids.present?
+          if target_ids.present?
+            # TODO: support private issue
+            conditions << build_condition("is_private == false",
+                                          "in_values(project_id, #{target_ids.join(',')})")
+          end
+          if conditions.empty?
+            "1==1"
+          else
+            build_condition("||", conditions)
+          end
         end
       end
 

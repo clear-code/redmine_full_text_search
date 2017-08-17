@@ -3,13 +3,14 @@ module FullTextSearch
     module PGroonga
       def self.included(base)
         base.include(InstanceMethods)
+        base.include(FullTextSearch::ConditionBuilder)
         base.class_eval do
           attr_accessor :similarity_score
         end
       end
 
       module InstanceMethods
-        def similar_issues(user: User.current, limit: 5)
+        def similar_issues(user: User.current, project_ids: [], limit: 5)
           desc = [subject, description, journals.sort_by(&:id).map(&:notes)].flatten.join("\n")
           sql = <<-SQL.strip_heredoc
           select pgroonga.command(
@@ -17,7 +18,7 @@ module FullTextSearch
                    ARRAY[
                      'table', pgroonga.table_name('#{similar_issues_index_name}'),
                      'output_columns', 'issue_id, _score',
-                     'filter', '(contents *S ' || pgroonga.escape(:desc) || ') && issue_id != :id',
+                     'filter', '(contents *S ' || pgroonga.escape(:desc) || ') && issue_id != :id' || ' && #{filter_condition(user, project_ids)}',
                      'limit', ':limit',
                      'sort_keys', '-_score'
                    ]

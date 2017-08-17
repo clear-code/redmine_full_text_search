@@ -3,20 +3,21 @@ module FullTextSearch
     module Mroonga
       def self.included(base)
         base.include(InstanceMethods)
+        base.include(FullTextSearch::ConditionBuilder)
         base.class_eval do
           attr_accessor :similarity_score
         end
       end
 
       module InstanceMethods
-        def similar_issues(user: User.current, limit: 5)
+        def similar_issues(user: User.current, project_ids: [], limit: 5)
           desc = [subject, description, journals.sort_by(&:id).map(&:notes)].flatten.join("\n")
           sql = <<-SQL.strip_heredoc
           select mroonga_command(
                    'select',
                    'table', 'issue_contents',
                    'output_columns', 'issue_id, _score',
-                   'filter', CONCAT('(contents *S "', mroonga_escape(:desc), '") && issue_id != :id'),
+                   'filter', CONCAT('(contents *S "', mroonga_escape(:desc), '") && issue_id != :id', ' && #{filter_condition(user, project_ids)}'),
                    'limit', ':limit',
                    'sort_keys', '-_score'
                  )
