@@ -24,7 +24,10 @@ module FullTextSearch
                    ]
                  )::json
           SQL
-          response = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, desc: desc, id: id, limit: limit]))
+          response = nil
+          ActiveSupport::Notifications.instrument("groonga.similar.search", sql: sql) do
+            response = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, desc: desc, id: id, limit: limit]))
+          end
           command = Groonga::Command.find("select").new("select", {})
           r = Groonga::Client::Response.parse(command, response)
           if r.success?

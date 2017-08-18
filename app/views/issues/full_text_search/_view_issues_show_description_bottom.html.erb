@@ -1,10 +1,15 @@
+<% ActiveSupport::Notifications.subscribe("groonga.similar.search") do |*args| %>
+<% @groonga_similar_search_event = ActiveSupport::Notifications::Event.new(*args) %>
+<% end %>
+<% duration = "%.1f" % [@groonga_similar_search_event.try(:duration) || 0] %>
+
 <hr>
 <div class="similar-issues">
-  <p><strong>類似チケット</strong></p>
+  <p><strong>類似チケット</strong><span class="elapsed">(<%= duration %>ms)</span></p>
   <%= render_similar_issues(issue) %>
 </div>
 
-<% if (Setting.plugin_full_text_search.presence || {})["display_score"] == "1" %>
+<% if display_score? %>
   <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
   <% end %>

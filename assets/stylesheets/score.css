@@ -16,3 +16,8 @@
   float: right;
   padding-left: 1em;
 }
+
+.similar-issues .elapsed {
+  color: gray;
+  font-size: x-small;
+}

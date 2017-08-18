@@ -22,7 +22,10 @@ module FullTextSearch
                    'sort_keys', '-_score'
                  )
           SQL
-          r = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, desc: desc, id: id, limit: limit]))
+          r = nil
+          ActiveSupport::Notifications.instrument("groonga.similar.search", sql: sql) do
+            r = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, desc: desc, id: id, limit: limit]))
+          end
           # NOTE: Hack to use Groonga::Client::Response.parse
           # Raise Mysql2::Error if error occurred
           body = JSON.parse(r)
