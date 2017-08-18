@@ -1,6 +1,7 @@
 module FullTextSearch
   module Hooks
     module SearchHelper
+      include FullTextSearch::Hooks::SettingsHelper
       # Overwrite SearchHelper#render_results_by_type to add order_target and order_type
       def render_results_by_type(results_by_type)
         links = []
@@ -21,11 +22,6 @@ module FullTextSearch
         ('<ul>'.html_safe +
          links.map {|link| content_tag('li', link)}.join(' ').html_safe + 
          '</ul>'.html_safe) unless links.empty?
-      end
-
-      def display_score?
-        setting = Setting.plugin_full_text_search.presence || {}
-        setting["display_score"] == "1"
       end
     end
   end

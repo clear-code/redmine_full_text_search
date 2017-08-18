@@ -1,6 +1,8 @@
 module FullTextSearch
   module Hooks
     module SimilarIssuesHelper
+      include FullTextSearch::Hooks::SettingsHelper
+
       def render_similar_issues(issue)
         s = '<table class="list issues odd-even">'
         issue.similar_issues.each do |similar_issue|
