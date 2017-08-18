@@ -70,7 +70,10 @@ module FullTextSearch
             ")"
           ].flatten.join(" ")
         end
-        r = connection.select_value(sql)
+        r = nil
+        ActiveSupport::Notifications.instrument("groonga.search", sql: sql) do
+          r = connection.select_value(sql)
+        end
         # NOTE: Hack to use Groonga::Client::Response.parse
         # Raise Mysql2::Error if error occurred
         body = JSON.parse(r)

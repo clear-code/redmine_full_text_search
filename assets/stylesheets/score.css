@@ -9,3 +9,10 @@
   color: gray;
   font-size: x-small;
 }
+
+#search-elapsed {
+  color: gray;
+  font-size: x-small;
+  float: right;
+  padding-left: 1em;
+}

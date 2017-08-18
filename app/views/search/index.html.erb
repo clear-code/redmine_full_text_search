@@ -34,6 +34,11 @@
 <% end %>
 
 <% if @search_result %>
+    <% if display_score? %>
+      <div id="search-elapsed">
+        <p><%= "%.1f" % [@groonga_search_event.duration] %>ms</p>
+      </div>
+    <% end %>
     <div id="search-results-counts">
       <%= render_results_by_type(@search_result.count_by_type) unless @scope.size == 1 %>
     </div>
@@ -75,7 +80,7 @@ toggleFieldset($("#options-content"));
 <% end %>
 <% end %>
 
-<%- if (Setting.plugin_full_text_search.presence || {})["display_score"] == "1" %>
+<%- if display_score? %>
   <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
   <% end %>

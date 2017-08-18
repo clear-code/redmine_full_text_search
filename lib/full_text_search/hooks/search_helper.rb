@@ -22,6 +22,11 @@ module FullTextSearch
          links.map {|link| content_tag('li', link)}.join(' ').html_safe + 
          '</ul>'.html_safe) unless links.empty?
       end
+
+      def display_score?
+        setting = Setting.plugin_full_text_search.presence || {}
+        setting["display_score"] == "1"
+      end
     end
   end
 end
