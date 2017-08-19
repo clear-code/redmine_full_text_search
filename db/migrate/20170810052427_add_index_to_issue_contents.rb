@@ -7,9 +7,12 @@ class AddIndexToIssueContents < ActiveRecord::Migration
         d.up do
           columns = [
             "id",
+            "project_id",
             "issue_id",
             "subject #{opclass}",
-            "contents"
+            "contents",
+            "status_id",
+            "is_private"
           ]
           sql = "CREATE INDEX index_issue_contents_pgroonga ON issue_contents USING pgroonga (#{columns.join(',')}) WITH (tokenizer = 'TokenMecab')"
           execute(sql)
