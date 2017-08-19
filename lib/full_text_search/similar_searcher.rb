@@ -24,7 +24,8 @@ module FullTextSearch
           target_ids &= project_ids if project_ids.present?
           if target_ids.present?
             # TODO: support private issue
-            conditions << build_condition("is_private == false",
+            conditions << build_condition("&&",
+                                          "is_private == false",
                                           "in_values(project_id, #{target_ids.join(',')})")
           end
           if conditions.empty?
