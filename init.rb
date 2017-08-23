@@ -1,4 +1,6 @@
 require_dependency "full_text_search/hooks/search_index_options_content_bottom_hook"
+require_dependency "full_text_search/hooks/issues_show_description_bottom_hook"
+require_dependency "full_text_search/hooks/similar_issues_helper"
 require "full_text_search/searcher"
 
 Redmine::Plugin.register :full_text_search do
@@ -25,6 +27,9 @@ Rails.configuration.to_prepare do
   [Project, News, Issue, Document, Changeset, Message, Journal, WikiPage, WikiContent, CustomValue, Attachment].each do |klass|
     klass.include(FullTextSearch::Model)
   end
+  Issue.include(FullTextSearch::SimilarSearcher::Model)
+  Journal.include(FullTextSearch::SimilarSearcher::Model)
   SearchHelper.prepend(FullTextSearch::Hooks::SearchHelper)
   SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
+  IssuesHelper.include(FullTextSearch::Hooks::SimilarIssuesHelper)
 end

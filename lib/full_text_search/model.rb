@@ -53,6 +53,7 @@ module FullTextSearch
           searcher_record.project_id = record.project_id
           searcher_record.project_name = record.project.name
           searcher_record.tracker_id = record.tracker_id
+          searcher_record.issue_id = record.id
           searcher_record.subject = record.subject
           searcher_record.description = record.description
           searcher_record.author_id = record.author_id
@@ -97,6 +98,7 @@ module FullTextSearch
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.journalized.project_id
           searcher_record.project_name = record.journalized.project.name
+          searcher_record.issue_id = record.journalized_id
           searcher_record.notes = record.notes
           searcher_record.author_id = record.user_id
           searcher_record.private_notes = record.private_notes

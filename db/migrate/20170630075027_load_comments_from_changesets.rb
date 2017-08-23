@@ -2,7 +2,7 @@ class LoadCommentsFromChangesets < ActiveRecord::Migration
   def change
     reversible do |d|
       d.up do
-        n_records = Changeset.count
+        n_records = Changeset.count(:id)
         n_pages = n_records / 1000
         (0..n_pages).each do |offset|
           Changeset.limit(1000).offset(offset * 1000).each do |record|

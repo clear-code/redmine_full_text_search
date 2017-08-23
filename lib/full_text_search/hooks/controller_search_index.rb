@@ -65,6 +65,9 @@ module FullTextSearch
           cache: params[:page].present?,
           params: params
         }
+        ActiveSupport::Notifications.subscribe("groonga.search") do |*args|
+          @groonga_search_event = ActiveSupport::Notifications::Event.new(*args)
+        end
         searcher = FullTextSearch::Searcher.new(@question, User.current, @scope, projects_to_search, options)
         @search_result = searcher.search
         @result_pages = Redmine::Pagination::Paginator.new(@search_result.count, @limit, params["page"])

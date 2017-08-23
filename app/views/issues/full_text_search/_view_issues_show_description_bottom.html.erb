@@ -1,0 +1,27 @@
+<% if display_score? %>
+  <%
+  duration = nil
+  ActiveSupport::Notifications.subscribe("groonga.similar.search") do |*args|
+    groonga_similar_search_event = ActiveSupport::Notifications::Event.new(*args)
+    duration = "%.1f" % [groonga_similar_search_event.duration]
+  end
+  %>
+  <% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
+  <% end %>
+<% end %>
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'similar_issues', :plugin => 'full_text_search' %>
+<% end %>
+
+<hr>
+<div class="similar-issues">
+  <% similar_issues = render_similar_issues(issue) %>
+  <p>
+    <strong>類似チケット</strong>
+    <% if display_score? %>
+    <span class="elapsed">(<%= duration %>ms)</span>
+    <% end %>
+  </p>
+  <%= similar_issues %>
+</div>

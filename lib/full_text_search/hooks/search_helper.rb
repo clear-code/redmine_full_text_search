@@ -1,6 +1,7 @@
 module FullTextSearch
   module Hooks
     module SearchHelper
+      include FullTextSearch::Hooks::SettingsHelper
       # Overwrite SearchHelper#render_results_by_type to add order_target and order_type
       def render_results_by_type(results_by_type)
         links = []

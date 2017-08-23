@@ -2,4 +2,22 @@
   content: " (" attr(data-rank) ")";
   color: gray;
   font-size: x-small;
-};
+}
+
+.similar-issues td.subject::after {
+  content: " (" attr(data-rank) ")";
+  color: gray;
+  font-size: x-small;
+}
+
+#search-elapsed {
+  color: gray;
+  font-size: x-small;
+  float: right;
+  padding-left: 1em;
+}
+
+.similar-issues .elapsed {
+  color: gray;
+  font-size: x-small;
+}
