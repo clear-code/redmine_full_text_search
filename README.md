@@ -1,12 +1,17 @@
 # Full text search plugin
 
-This plugin provides full text search to Redmine.
+This plugin provides following features:
+
+* Full text search to Redmine.
+* Display similar issues on a issue page
 
 ## Supported databases
 
 * PostgreSQL with Pgroonga
 * MySQL(MariaDB) with Mroonga
   * We strongly recommend Mroonga 7.05 or later
+  * If you use Mroonga 7.04 or earlier, you cannot see similar issues
+  * We will drop old Mroonga support in future release
 
 ## How to use
 
