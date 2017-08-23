@@ -18,7 +18,7 @@
 <div class="similar-issues">
   <% similar_issues = render_similar_issues(issue) %>
   <p>
-    <strong>類似チケット</strong>
+    <strong><%= l(:label_similar_issues) %></strong>
     <% if display_score? %>
     <span class="elapsed">(<%= duration %>ms)</span>
     <% end %>
