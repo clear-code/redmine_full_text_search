@@ -1,5 +1,12 @@
 # Redmine FullTextSearch
 
+## 0.6.0 - 2017-08-23
+
+Add the feature to display similar issues on a issue page.
+This version is compatible with 0.5.0.
+
+This version supports Redmine 3.4.x.
+
 ## 0.5.0 - 2017-08-04
 
 Totally rewrite to use Groonga features such as drilldown and so on.
