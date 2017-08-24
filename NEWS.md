@@ -1,5 +1,9 @@
 # Redmine FullTextSearch
 
+## 0.6.1 - 2017-08-xx
+
+Fix migration errors. See #36
+
 ## 0.6.0 - 2017-08-23
 
 Add the feature to display similar issues on a issue page.
