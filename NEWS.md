@@ -1,6 +1,6 @@
 # Redmine FullTextSearch
 
-## 0.6.1 - 2017-08-xx
+## 0.6.1 - 2017-08-28
 
 Fix migration errors. See #36
 
