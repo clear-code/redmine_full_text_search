@@ -102,7 +102,8 @@ module FullTextSearch
                                               open_issues_condition(open_issues))
               end
               # visible_project_ids[:issue_private] = Project.allowed_to(user, :view_private_issue)
-              target_ids = Project.allowed_to(user, :view_notes).pluck(:id)
+              # We can see journals for visible issues
+              target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
               target_ids &= project_ids if project_ids.present?
               if target_ids.present?
                 conditions << build_condition("&&",
