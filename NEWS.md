@@ -1,5 +1,9 @@
 # Redmine FullTextSearch
 
+## 0.6.2 - 2017-08-28
+
+Fix a bug that non-admin user cannot search issues.
+
 ## 0.6.1 - 2017-08-28
 
 Fix migration errors. See #36
