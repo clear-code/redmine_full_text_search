@@ -82,7 +82,7 @@ class AddProjectNameToSearcherRecords < ActiveRecord::Migration
           sql = "CREATE INDEX index_searcher_records_pgroonga ON searcher_records USING pgroonga (#{columns.join(',')})"
           execute(sql)
         when Redmine::Database.mysql?
-          remove_index(:searcher_recoreds, :project_name)
+          remove_index(:searcher_records, :project_name)
         end
         remove_column(:searcher_records, :project_name)
       end
