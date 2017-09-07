@@ -51,6 +51,7 @@ class AddProjectNameToSearcherRecords < ActiveRecord::Migration
         case
         when Redmine::Database.postgresql?
           remove_index(:searcher_records, name: "index_searcher_records_pgroonga")
+          opclass = "pgroonga.varchar_full_text_search_ops"
           columns = [
             "id",
             "project_id",
