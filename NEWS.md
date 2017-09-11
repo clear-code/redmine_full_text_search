@@ -1,5 +1,10 @@
 # Redmine FullTextSearch
 
+## 0.6.3 - 2017-09-11
+
+Fix migration related errors. We can reset migration.
+Fix callback error for Changeset.
+
 ## 0.6.2 - 2017-08-28
 
 Fix a bug that non-admin user cannot search issues.
