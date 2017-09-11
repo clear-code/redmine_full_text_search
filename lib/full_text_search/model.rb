@@ -72,7 +72,7 @@ module FullTextSearch
           searcher_record.original_created_on = record.created_on
           searcher_record.save!
         when Changeset
-          short_comments, long_comments = comments.split(/(?:\r?\n)+/, 2).map(&:strip)
+          short_comments, long_comments = record.comments.split(/(?:\r?\n)+/, 2).map(&:strip)
           searcher_record.original_id = record.id
           searcher_record.original_type = record.class.name
           searcher_record.project_id = record.repository.project_id
