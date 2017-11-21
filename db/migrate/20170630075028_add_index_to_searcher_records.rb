@@ -18,6 +18,7 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
             "description",
             "title #{opclass}",
             "summary #{opclass}",
+            "issue_id",
             "subject #{opclass}",
             "is_private",
             "status_id",
@@ -64,6 +65,7 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
           end
           add_index(:searcher_records, "original_type", name: "index_searcher_records_on_original_type_perfect_matching")
           add_index(:searcher_records, "project_id")
+          add_index(:searcher_records, "issue_id")
         end
         d.down do
           columns.each do |column|
@@ -71,6 +73,7 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
           end
           remove_index(:searcher_records, name: "index_searcher_records_on_original_type_perfect_matching")
           remove_index(:searcher_records, "project_id")
+          remove_index(:searcher_records, "issue_id")
         end
       else
         # Do nothing

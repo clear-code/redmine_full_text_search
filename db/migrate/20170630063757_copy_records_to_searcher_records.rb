@@ -9,9 +9,9 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
         load_data(table: "news",
                   columns:                          %w[title summary description],
                   original_columns: %w[created_on NULL title summary description])
-        load_data(table: "issues",
-                  columns:                                %w[tracker_id subject description author_id status_id is_private],
-                  original_columns: %w[created_on updated_on tracker_id subject description author_id status_id is_private])
+        load_issues(table: "issues",
+                    columns:                                %w[tracker_id subject description author_id status_id is_private],
+                    original_columns: %w[created_on updated_on tracker_id subject description author_id status_id is_private])
         load_data(table: "documents",
                   columns:                          %w[title description],
                   original_columns: %w[created_on NULL title description])
@@ -21,9 +21,9 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
         load_data(table: "messages",
                   columns:                                %w[subject content],
                   original_columns: %w[created_on updated_on subject content])
-        load_data(table: "journals",
-                  columns:                          %w[notes author_id is_private private_notes status_id],
-                  original_columns: %w[created_on NULL notes user_id i.is_private private_notes i.status_id])
+        load_journals(table: "journals",
+                      columns:                          %w[notes author_id is_private private_notes status_id],
+                      original_columns: %w[created_on NULL notes user_id i.is_private private_notes i.status_id])
         load_data(table: "wiki_pages",
                   columns:                          %w[title text],
                   original_columns: %w[created_on NULL title c.text])
@@ -72,6 +72,27 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
                else
                  ""
                end
+    sql = "#{sql_base} #{sql_rest};"
+    execute(sql)
+  end
+
+  def load_issues(table:, columns:, original_columns:)
+    sql_base = <<-SQL
+    INSERT INTO searcher_records(original_id, original_type, project_id, project_name, issue_id, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', project_id, p.name, base.id, #{transform(original_columns)} FROM #{table} AS base
+    JOIN projects AS p ON (project_id = p.id)
+    SQL
+    sql = "#{sql_base} #{sql_rest};"
+    execute(sql)
+  end
+
+  def load_journals(table:, columns:, original_columns:)
+    sql_base = <<-SQL
+    INSERT INTO searcher_records(original_id, original_type, project_id, project_name, issue_id, original_created_on, original_updated_on, #{columns.join(", ")})
+    SELECT base.id, '#{table.classify}', project_id, p.name, base.journalized_id, #{transform(original_columns)} FROM #{table} AS base
+    JOIN projects AS p ON (project_id = p.id)
+    JOIN issues i ON (base.journalized_id = i.id)
+    SQL
     sql = "#{sql_base} #{sql_rest};"
     execute(sql)
   end

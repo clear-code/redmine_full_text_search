@@ -31,6 +31,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             t.boolean :is_private
             t.integer :status_id
             t.integer :tracker_id
+            t.integer :issue_id
 
             # documents
             # t.string :title
@@ -96,6 +97,7 @@ class CreateSearcherRecords < ActiveRecord::Migration
             t.boolean :is_private
             t.integer :status_id
             t.integer :tracker_id
+            t.integer :issue_id
 
             # documents
             # t.string :title
