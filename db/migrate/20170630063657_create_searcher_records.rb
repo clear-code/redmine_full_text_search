@@ -71,12 +71,11 @@ class CreateSearcherRecords < ActiveRecord::Migration
           create_table :searcher_records, options: "ENGINE=Mroonga" do |t|
             # common
             t.integer :project_id, null: false
+            t.string :project_name, null: false # for searching by project_name
             t.integer :original_id, null: false
             t.string :original_type, null: false, limit: 30
             t.timestamp :original_created_on
             t.timestamp :original_updated_on
-
-            t.integer :project_id, null: false
 
             # projects
             t.string :name
