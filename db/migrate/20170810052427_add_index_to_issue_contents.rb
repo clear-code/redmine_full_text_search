@@ -3,7 +3,7 @@ class AddIndexToIssueContents < ActiveRecord::Migration
     reversible do |d|
       case
       when Redmine::Database.postgresql?
-        opclass = "pgroonga.varchar_full_text_search_ops"
+        opclass = "pgroonga_varchar_full_text_search_ops_v2"
         d.up do
           columns = [
             "id",
