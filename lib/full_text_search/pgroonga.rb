@@ -30,15 +30,15 @@ module FullTextSearch
                       "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
         query = if query_escape
-                  "pgroonga.query_escape('#{query}')"
+                  "pgroonga_query_escape('#{query}')"
                 else
                   "'#{query}'"
                 end
         sql = <<-SQL.strip_heredoc
-        select pgroonga.command(
+        select pgroonga_command(
                  'select',
                  ARRAY[
-                   'table', pgroonga.table_name('#{index_name}'),
+                   'table', pgroonga_table_name('#{index_name}'),
                    'output_columns', '*,_score',
                    #{digest_columns.chomp}
                    'drilldown', 'original_type',
@@ -63,7 +63,7 @@ module FullTextSearch
       end
 
       def pgroonga_table_name
-        @pgroonga_table_name ||= ActiveRecord::Base.connection.select_value("select pgroonga.table_name('#{index_name}')")
+        @pgroonga_table_name ||= ActiveRecord::Base.connection.select_value("select pgroonga_table_name('#{index_name}')")
       end
 
       def filter_condition(user, project_ids, scope, attachments, open_issues)

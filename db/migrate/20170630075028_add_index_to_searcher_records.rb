@@ -3,11 +3,12 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
     reversible do |d|
       case
       when Redmine::Database.postgresql?
-        opclass = "pgroonga.varchar_full_text_search_ops"
+        opclass = "pgroonga_varchar_full_text_search_ops_v2"
         d.up do
           columns = [
             "id",
             "project_id",
+            "project_name #{opclass}",
             "original_id",
             "original_type",
             "original_created_on",
@@ -17,6 +18,7 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
             "description",
             "title #{opclass}",
             "summary #{opclass}",
+            "issue_id",
             "subject #{opclass}",
             "is_private",
             "status_id",
@@ -42,6 +44,7 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
       when Redmine::Database.mysql?
         columns = %i[
           original_type
+          project_name
           name
           identifier
           description
@@ -60,11 +63,17 @@ class AddIndexToSearcherRecords < ActiveRecord::Migration
           columns.each do |column|
             add_index(:searcher_records, column, type: "fulltext")
           end
+          add_index(:searcher_records, "original_type", name: "index_searcher_records_on_original_type_perfect_matching")
+          add_index(:searcher_records, "project_id")
+          add_index(:searcher_records, "issue_id")
         end
         d.down do
           columns.each do |column|
             remove_index(:searcher_records, column)
           end
+          remove_index(:searcher_records, name: "index_searcher_records_on_original_type_perfect_matching")
+          remove_index(:searcher_records, "project_id")
+          remove_index(:searcher_records, "issue_id")
         end
       else
         # Do nothing

@@ -13,12 +13,12 @@ module FullTextSearch
         def similar_issues(user: User.current, project_ids: [], limit: 5)
           desc = [subject, description, journals.sort_by(&:id).map(&:notes)].flatten.join("\n")
           sql = <<-SQL.strip_heredoc
-          select pgroonga.command(
+          select pgroonga_command(
                    'select',
                    ARRAY[
-                     'table', pgroonga.table_name('#{similar_issues_index_name}'),
+                     'table', pgroonga_table_name('#{similar_issues_index_name}'),
                      'output_columns', 'issue_id, _score',
-                     'filter', '(contents *S ' || pgroonga.escape(:desc) || ') && issue_id != :id' || ' && #{filter_condition(user, project_ids)}',
+                     'filter', '(contents *S ' || pgroonga_escape(:desc) || ') && issue_id != :id' || ' && #{filter_condition(user, project_ids)}',
                      'limit', ':limit',
                      'sort_keys', '-_score'
                    ]

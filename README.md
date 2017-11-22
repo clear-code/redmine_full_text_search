@@ -7,11 +7,8 @@ This plugin provides following features:
 
 ## Supported databases
 
-* PostgreSQL with Pgroonga
-* MySQL(MariaDB) with Mroonga
-  * We strongly recommend Mroonga 7.05 or later
-  * If you use Mroonga 7.04 or earlier, you cannot see similar issues
-  * We will drop old Mroonga support in future release
+* PostgreSQL with Pgroonga 2.0.0 or later
+* MySQL(MariaDB) with Mroonga 7.05 or later
 
 ## How to use
 
