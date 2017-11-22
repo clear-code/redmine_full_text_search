@@ -25,26 +25,26 @@ module FullTextSearch
                     when "date"
                       "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
-          query = if query_escape
-                    "mroonga_escape('#{query}')"
-                  else
-                    "\'#{query}\'"
-                  end
-          sql = <<-SQL.strip_heredoc
-          select mroonga_command(
-                   'select',
-                   'table', 'searcher_records',
-                   'output_columns', '*,_score',
-                   #{digest_columns.chomp}
-                   'drilldown', 'original_type',
-                   'match_columns', '#{target_columns(titles_only).join('||')}',
-                   'query', #{query},
-                   'filter', '#{filter_condition(user, project_ids, scope, attachments, open_issues)}',
-                   'limit', '#{limit}',
-                   'offset', '#{offset}',
-                   'sort_keys', '#{sort_keys}'
-                 )
-          SQL
+        query = if query_escape
+                  "mroonga_escape('#{query}')"
+                else
+                  "\'#{query}\'"
+                end
+        sql = <<-SQL.strip_heredoc
+        select mroonga_command(
+                 'select',
+                 'table', 'searcher_records',
+                 'output_columns', '*,_score',
+                 #{digest_columns.chomp}
+                 'drilldown', 'original_type',
+                 'match_columns', '#{target_columns(titles_only).join('||')}',
+                 'query', #{query},
+                 'filter', '#{filter_condition(user, project_ids, scope, attachments, open_issues)}',
+                 'limit', '#{limit}',
+                 'offset', '#{offset}',
+                 'sort_keys', '#{sort_keys}'
+               )
+        SQL
         r = nil
         ActiveSupport::Notifications.instrument("groonga.search", sql: sql) do
           r = connection.select_value(sql)
@@ -66,21 +66,21 @@ module FullTextSearch
       end
 
       def title_digest(name, columns)
-          <<-SQL.strip_heredoc
-          'columns[#{name}].stage', 'output',
-          'columns[#{name}].type', 'ShortText',
-          'columns[#{name}].flags', 'COLUMN_SCALAR',
-          'columns[#{name}].value', 'highlight_html(#{columns.join("+")})',
-          SQL
+        <<-SQL.strip_heredoc
+        'columns[#{name}].stage', 'output',
+        'columns[#{name}].type', 'ShortText',
+        'columns[#{name}].flags', 'COLUMN_SCALAR',
+        'columns[#{name}].value', 'highlight_html(#{columns.join("+")})',
+        SQL
       end
 
       def description_digest(name, columns)
-          <<-SQL.strip_heredoc
-          'columns[#{name}].stage', 'output',
-          'columns[#{name}].type', 'ShortText',
-          'columns[#{name}].flags', 'COLUMN_VECTOR',
-          'columns[#{name}].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
-          SQL
+        <<-SQL.strip_heredoc
+        'columns[#{name}].stage', 'output',
+        'columns[#{name}].type', 'ShortText',
+        'columns[#{name}].flags', 'COLUMN_VECTOR',
+        'columns[#{name}].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
+        SQL
       end
     end
   end
