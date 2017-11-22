@@ -33,8 +33,8 @@ module FullTextSearch
         order_type: @options[:params][:order_type]
       }
       begin
-        # pgroonga.command: select v1 or v3 format JSON
-        # mroonga.command: select v1 or v3 format JSON
+        # pgroonga_command: select v1 or v3 format JSON
+        # mroonga_command: select v1 or v3 format JSON
         response = FullTextSearch::SearcherRecord.search(@query, **search_options)
         SearchResult.new(response, query: @query)
       rescue => ex
