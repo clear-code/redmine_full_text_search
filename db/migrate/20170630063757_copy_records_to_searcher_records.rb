@@ -54,25 +54,24 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
   def load_data(table:, columns:, original_columns:)
     sql_base = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, project_name, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT base.id, '#{table.classify}', project_id, p.name, #{transform(original_columns)} FROM #{table} AS base
-    JOIN projects AS p ON (project_id = p.id)
+    SELECT base.id, '#{table.classify}', t.project_id, p.name, #{transform(original_columns)} FROM #{table} AS base
     SQL
     sql_rest = case table
                when "changesets"
-                 %Q[JOIN repositories AS r ON (base.repository_id = r.id)]
+                 %Q[JOIN repositories AS t ON (base.repository_id = t.id)]
                when "messages"
-                 %Q[JOIN boards AS b ON (base.board_id = b.id)]
+                 %Q[JOIN boards AS t ON (base.board_id = t.id)]
                when "journals"
-                 %Q[JOIN issues i ON (base.journalized_id = i.id)]
+                 %Q[JOIN issues t ON (base.journalized_id = t.id)]
                when "wiki_pages"
                  <<-SQL
-                 JOIN wikis AS w ON (base.wiki_id = w.id)
+                 JOIN wikis AS t ON (base.wiki_id = t.id)
                  JOIN wiki_contents as c ON (base.id = c.page_id)
                  SQL
                else
-                 ""
+                 "JOIN #{table} AS t ON (base.id = t.id)"
                end
-    sql = "#{sql_base} #{sql_rest};"
+    sql = "#{sql_base} #{sql_rest} JOIN projects AS p ON (t.project_id = p.id);"
     execute(sql)
   end
 
@@ -82,7 +81,7 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
     SELECT base.id, '#{table.classify}', project_id, p.name, base.id, #{transform(original_columns)} FROM #{table} AS base
     JOIN projects AS p ON (project_id = p.id)
     SQL
-    sql = "#{sql_base} #{sql_rest};"
+    sql = "#{sql_base};"
     execute(sql)
   end
 
@@ -90,10 +89,10 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
     sql_base = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, project_name, issue_id, original_created_on, original_updated_on, #{columns.join(", ")})
     SELECT base.id, '#{table.classify}', project_id, p.name, base.journalized_id, #{transform(original_columns)} FROM #{table} AS base
-    JOIN projects AS p ON (project_id = p.id)
     JOIN issues i ON (base.journalized_id = i.id)
+    JOIN projects AS p ON (i.project_id = p.id)
     SQL
-    sql = "#{sql_base} #{sql_rest};"
+    sql = "#{sql_base};"
     execute(sql)
   end
 
@@ -103,10 +102,10 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
     SELECT base.id, '#{table.classify}', r.project_id, p.name, status_id, is_private, #{transform(original_columns)} FROM #{table} AS base
     SQL
     sql_rest = <<-SQL
-    JOIN projects AS p ON (r.project_id = p.id)
     JOIN issues AS i ON (base.customized_id = i.id)
     JOIN custom_fields AS f ON (base.custom_field_id = f.id)
     JOIN custom_fields_projects AS r ON (base.custom_field_id = r.custom_field_id AND r.project_id = i.project_id)
+    JOIN projects AS p ON (r.project_id = p.id)
     SQL
     sql = "#{sql_base} #{sql_rest} WHERE searchable = true;"
     execute(sql)
@@ -116,8 +115,8 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
     SELECT base.id, '#{table.classify}', p.id, p.name, #{transform(original_columns)} FROM #{table} AS base
     SQL
     sql_rest = <<-SQL
-    JOIN projects AS p ON (base.customized_id = p.id)
     JOIN custom_fields AS f ON (base.custom_field_id = f.id)
+    JOIN projects AS p ON (base.customized_id = p.id)
     SQL
     sql = "#{sql_base} #{sql_rest} WHERE searchable = true;"
     execute(sql)
@@ -139,30 +138,34 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
     SELECT base.id, '#{table.classify}', t.project_id, p.name, container_id, container_type, status_id, is_private, #{transform(original_columns)} FROM #{table} AS base
     SQL
     sql_rest = <<-SQL
-    JOIN projects AS p ON (t.project_id = p.id)
     JOIN issues AS t ON (base.container_id = t.id AND base.container_type = 'Issue')
+    JOIN projects AS p ON (t.project_id = p.id)
     SQL
     execute("#{sql_base} #{sql_rest};")
 
     sql_base = <<-SQL
     INSERT INTO searcher_records(original_id, original_type, project_id, project_name, container_id, container_type, original_created_on, original_updated_on, #{columns.join(", ")})
     SELECT base.id, '#{table.classify}', t.project_id, p.name, container_id, container_type, #{transform(original_columns)} FROM #{table} AS base
-    JOIN projects AS p ON (t.project_id = p.id)
     SQL
     %w(documents news versions).each do |target|
-      sql_rest = %Q[JOIN #{target} AS t ON (base.container_id = t.id AND base.container_type = '#{target.classify}')]
+      sql_rest = <<-SQL
+      JOIN #{target} AS t ON (base.container_id = t.id AND base.container_type = '#{target.classify}')
+      JOIN projects AS p ON (t.project_id = p.id)
+      SQL
       execute("#{sql_base} #{sql_rest};")
     end
 
     sql_rest = <<-SQL
     JOIN messages AS m ON (base.container_id = m.id AND base.container_type = 'Message')
     JOIN boards AS t ON (m.board_id = t.id)
+    JOIN projects AS p ON (t.project_id = p.id)
     SQL
     execute("#{sql_base} #{sql_rest};")
 
     sql_rest = <<-SQL
     JOIN wiki_pages AS wp ON (base.container_id = wp.id AND base.container_type = 'WikiPage')
-    JOIN wikis AS t ON (p.wiki_id = t.id)
+    JOIN wikis AS t ON (wp.wiki_id = t.id)
+    JOIN projects AS p ON (t.project_id = p.id)
     SQL
     execute("#{sql_base} #{sql_rest};")
   end
