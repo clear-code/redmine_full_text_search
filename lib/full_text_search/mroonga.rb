@@ -25,9 +25,6 @@ module FullTextSearch
                     when "date"
                       "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
-        # mroonga_command cannot contain new line
-        # mroonga_command can accept multiple arguments since 7.0.5
-        if mroonga_version >= "7.05"
           query = if query_escape
                     "mroonga_escape('#{query}')"
                   else
@@ -48,28 +45,6 @@ module FullTextSearch
                    'sort_keys', '#{sort_keys}'
                  )
           SQL
-        else
-          query = if query_escape
-                    "\\'" + connection.select_value("select mroonga_escape('#{query}')") + "\\'"
-                  else
-                    "\\'#{query}\\'"
-                  end
-          sql = [
-            "select mroonga_command('",
-            "select --table searcher_records",
-            "--output_columns *,_score",
-            digest_columns,
-            "--drilldown original_type",
-            "--match_columns #{target_columns(titles_only).join('||')}",
-            "--query #{query}",
-            "--filter \\'#{filter_condition(user, project_ids, scope, attachments, open_issues)}\\'",
-            "--limit #{limit}",
-            "--offset #{offset}",
-            "--sort_keys \\'#{sort_keys}\\'",
-            "'",
-            ")"
-          ].flatten.join(" ")
-        end
         r = nil
         ActiveSupport::Notifications.instrument("groonga.search", sql: sql) do
           r = connection.select_value(sql)
@@ -91,46 +66,21 @@ module FullTextSearch
       end
 
       def title_digest(name, columns)
-        if mroonga_version >= "7.05"
           <<-SQL.strip_heredoc
           'columns[#{name}].stage', 'output',
           'columns[#{name}].type', 'ShortText',
           'columns[#{name}].flags', 'COLUMN_SCALAR',
           'columns[#{name}].value', 'highlight_html(#{columns.join("+")})',
           SQL
-        else
-          [
-            "--columns[#{name}].stage output",
-            "--columns[#{name}].type ShortText",
-            "--columns[#{name}].flags COLUMN_SCALAR",
-            "--columns[#{name}].value \\'highlight_html(#{columns.join("+")})\\'"
-          ]
-        end
       end
 
       def description_digest(name, columns)
-        if mroonga_version >= "7.05"
           <<-SQL.strip_heredoc
           'columns[#{name}].stage', 'output',
           'columns[#{name}].type', 'ShortText',
           'columns[#{name}].flags', 'COLUMN_VECTOR',
           'columns[#{name}].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
           SQL
-        else
-          [
-            "--columns[#{name}_snippet].stage output",
-            "--columns[#{name}_snippet].type ShortText",
-            "--columns[#{name}_snippet].flags COLUMN_VECTOR",
-            "--columns[#{name}_snippet].value \\'snippet_html(#{columns.join("+")}) || vector_new()\\'"
-          ]
-        end
-      end
-
-      def mroonga_version
-        return @mroonga_version if @mroonga_version
-        result = connection.execute("show variables like 'mroonga_version'")
-        @mroonga_version = result.to_a[0][1]
-        @mroonga_version
       end
     end
   end
