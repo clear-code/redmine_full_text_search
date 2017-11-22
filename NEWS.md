@@ -1,6 +1,6 @@
 # Redmine FullTextSearch
 
-## 0.7.0 - 2017-xx-xx
+## 0.7.0 - 2017-11-22
 
 Squash migrations to use PGroonga 2.x by default and drop PGroonga 1.x support.
 Also drop Mroonga 7.04 or earlier support.
