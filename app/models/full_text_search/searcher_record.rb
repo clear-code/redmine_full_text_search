@@ -355,11 +355,11 @@ module FullTextSearch
         "#{l(:label_document)}: "
       when "Issue"
         issue = original_record
-        "#{issue.tracker.name} ##{original_id} #{issue.status}: "
+        "#{issue.tracker.name} ##{original_id} (#{issue.status}): "
       when "Journal"
         journal = original_record
         issue = journal.issue
-        "#{issue.tracker.name} ##{issue.id}#{issue.status}: "
+        "#{issue.tracker.name} ##{issue.id} (#{issue.status}): "
       when "Message"
         "#{original_record.board.name}: "
       when "Project"
