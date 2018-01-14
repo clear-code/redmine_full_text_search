@@ -2,6 +2,9 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
   def change
     reversible do |d|
       d.up do
+        # Clear data
+        execute("TRUNCATE TABLE searcher_records")
+
         # Load data
         load_projects(table: "projects",
                       columns:                                %w[name identifier description status],
