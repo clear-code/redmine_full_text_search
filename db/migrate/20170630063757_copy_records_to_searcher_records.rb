@@ -33,7 +33,6 @@ class CopyRecordsToSearcherRecords < ActiveRecord::Migration
         load_attachments(table: "attachments",
                          columns:                          %w[filename description],
                          original_columns: %w[created_on NULL filename description])
-        
       end
       d.down do
         execute("TRUNCATE TABLE searcher_records")
