@@ -55,7 +55,6 @@ services:
       - "postgresql:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
-      - ./Gemfile.local:/usr/src/redmine/Gemfile.local
 
   redmine-3.3-postgresql:
     image: redmine:3.3
