@@ -83,3 +83,22 @@ services:
       - "postgresql:172.17.0.1"
     volumes:
       - .:/usr/src/redmine/plugins/full_text_search:ro
+
+  pgroonga:
+    build:
+      context: .
+      dockerfile: dockerfiles/pgroonga/Dockerfile
+    volumes:
+      - postgresql_data:/var/lib/postgresql
+
+  mroonga:
+    build:
+      context: .
+      dockerfile: dockerfiles/mroonga/Dockerfile
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  postgresql_data:
+  mysql_data:
+
