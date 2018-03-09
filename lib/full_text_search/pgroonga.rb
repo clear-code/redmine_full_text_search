@@ -25,9 +25,9 @@ module FullTextSearch
         sort_direction = order_type == "desc" ? "-" : ""
         sort_keys = case order_target
                     when "score"
-                      "#{sort_direction}_score,-original_updated_on,-original_created_on"
+                      "#{sort_direction}_score, -calculated_updated_on, -original_updated_on, -original_created_on"
                     when "date"
-                      "#{sort_direction}original_updated_on, #{sort_direction}original_created_on"
+                      "#{sort_direction}calculated_updated_on, #{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
         query = if query_escape
                   "pgroonga_query_escape('#{query}')"
@@ -40,7 +40,7 @@ module FullTextSearch
                  ARRAY[
                    'table', pgroonga_table_name('#{index_name}'),
                    'output_columns', '*,_score',
-                   #{digest_columns.chomp}
+                   #{dynamic_columns.chomp}
                    'drilldown', 'original_type',
                    'match_columns', '#{target_columns(titles_only).join("||")}',
                    'query', #{query},
@@ -90,6 +90,15 @@ module FullTextSearch
         'columns[#{name}].type', 'ShortText',
         'columns[#{name}].flags', 'COLUMN_VECTOR',
         'columns[#{name}].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
+        SQL
+      end
+
+      def calculated_updated_on(name, columns)
+        <<-SQL.strip_heredoc
+        'columns[#{name}].stage', 'filtered',
+        'columns[#{name}].type', 'Time',
+        'columns[#{name}].flags', 'COLUMN_SCALAR',
+        'columns[#{name}].value', 'max(#{columns.join(",")})',
         SQL
       end
     end

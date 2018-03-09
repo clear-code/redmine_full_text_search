@@ -4,6 +4,7 @@ module FullTextSearch
 
     attr_accessor :_score
     attr_accessor :title_digest, :description_digest
+    attr_accessor :calculated_updated_on
 
     acts_as_event(type: :_type,
                   datetime: :_datetime,
@@ -63,6 +64,11 @@ module FullTextSearch
       def digest_columns
         title_digest("title_digest", %w(subject title filename name short_comments)) +
           description_digest("description_digest", %w(content text notes description summary value long_comments))
+      end
+
+      def dynamic_columns
+        digest_columns +
+          calculated_updated_on("calculated_updated_on", %w(original_created_on original_updated_on))
       end
 
       # scope # => [:issues, :news, :documents, :changesets, :wiki_pages, :messages, :projects]
@@ -252,14 +258,7 @@ module FullTextSearch
     end
 
     def _datetime
-      case original_type
-      when "Changeset"
-        original_created_on
-      when "WikiContent", "Issue"
-        original_updated_on
-      else # Attachment
-        original_created_on
-      end
+      [original_created_on, original_updated_on].max
     end
 
     def _title
