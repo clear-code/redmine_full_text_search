@@ -255,7 +255,7 @@ module FullTextSearch
       case original_type
       when "Changeset"
         original_created_on
-      when "WikiContent"
+      when "WikiContent", "Issue"
         original_updated_on
       else # Attachment
         original_created_on
