@@ -226,10 +226,10 @@ module FullTextSearch
 
     def _type
       case original_type
-      when "Issue"
+      when "Issue", "issue"
         issue = original_record
         "issue" + (issue.closed? ? "-closed" : "")
-      when "Journal"
+      when "Journal", "journal"
         journal = original_record
         new_status = journal.new_status
         if new_status
@@ -241,16 +241,16 @@ module FullTextSearch
         else
           "issue-note"
         end
-      when "Message"
+      when "Message", "message"
         message = original_record
         if message.parent_id.nil?
           "message"
         else
           "reply"
         end
-      when "WikiContent"
+      when "WikiContent", "wikicontent"
         "wiki-page"
-      when "CustomValue"
+      when "CustomValue", "customvalue"
         original_record.customized.event_type
       else
         original_type.underscore.dasherize
@@ -263,25 +263,25 @@ module FullTextSearch
 
     def _title
       case original_type
-      when "Attachment"
+      when "Attachment", "attachment"
         "#{title_prefix}#{filename}"
-      when "Document"
+      when "Document", "document"
         "#{title_prefix}#{title}"
-      when "Issue"
+      when "Issue", "issue"
         "#{title_prefix} #{subject}"
-      when "Journal"
+      when "Journal", "journal"
         journal = original_record
         issue = journal.issue
         "#{title_prefix}#{issue.subject}"
-      when "Message"
+      when "Message", "message"
         "#{title_prefix}#{subject}"
-      when "Project"
+      when "Project", "project"
         "#{title_prefix}#{name}"
-      when "WikiPage"
+      when "WikiPage", "wikipage"
         "#{title_prefix}#{title}"
-      when "Changeset"
+      when "Changeset", "changeset"
         "#{title_prefix}#{short_comments}"
-      when "CustomValue"
+      when "CustomValue", "customvalue"
         original_record.customized.event_title
       else
         title
@@ -290,15 +290,15 @@ module FullTextSearch
 
     def _description
       case original_type
-      when "Journal"
+      when "Journal", "journal"
         notes
-      when "Message"
+      when "Message", "message"
         content
-      when "WikiPage"
+      when "WikiPage", "wikipage"
         text
-      when "Changeset"
+      when "Changeset", "changeset"
         long_comments.presence || comments
-      when "CustomValue"
+      when "CustomValue", "customvalue"
         original_record.customized.event_description
       else
         description
@@ -312,25 +312,25 @@ module FullTextSearch
 
     def _url
       case original_type
-      when "Attachment"
+      when "Attachment", "attachment"
         { controller: "attachments", action: "show", id: original_id, filename: filename }
-      when "Changeset"
+      when "Changeset", "changeset"
         changeset = original_record
         { controller: "repositories", action: "revision", id: project, repository_id: changeset.repository.identifier_param, rev: changeset.identifier }
-      when "Document"
+      when "Document", "document"
         { controller: "documents", action: "show", id: original_id }
-      when "Issue"
+      when "Issue", "issue"
         { controller: "issues", action: "show", id: original_id }
-      when "Journal"
+      when "Journal", "journal"
         journal = original_record
         { controller: "issues", action: "show", id: journal.issue.id, anchor: "change-#{original_id}" }
-      when "News"
+      when "News", "news"
         { controller: "news", action: "show", id: original_id }
-      when "Project"
+      when "Project", "project"
         { controller: "projects", action: "show", id: original_id }
-      when "WikiPage"
+      when "WikiPage", "wikipage"
         { controller: "wiki", action: "show", project_id: project, id: title }
-      when "CustomValue"
+      when "CustomValue", "customvalue"
         original_record.customized.event_url
       else
         { controller: "welcome" }
@@ -343,27 +343,27 @@ module FullTextSearch
 
     def title_prefix
       case original_type
-      when "Attachment"
+      when "Attachment", "attachment"
         ""
-      when "Changeset"
+      when "Changeset", "changeset"
         c = original_record
         repo = (c.repository && c.repository.identifier.present?) ? " (#{c.repository.identifier})" : ''
         delimiter = short_comments.blank? ? '' : ': '
         "#{l(:label_revision)} #{c.format_identifier}#{repo}#{delimiter}"
-      when "Document"
+      when "Document", "document"
         "#{l(:label_document)}: "
-      when "Issue"
+      when "Issue", "issue"
         issue = original_record
         "#{issue.tracker.name} ##{original_id} (#{issue.status}): "
-      when "Journal"
+      when "Journal", "journal"
         journal = original_record
         issue = journal.issue
         "#{issue.tracker.name} ##{issue.id} (#{issue.status}): "
-      when "Message"
+      when "Message", "message"
         "#{original_record.board.name}: "
-      when "Project"
+      when "Project", "project"
         "#{l(:label_project)}: "
-      when "WikiPage"
+      when "WikiPage", "wikipage"
         "#{l(:label_wiki)}: "
       else
         ""
