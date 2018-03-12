@@ -1,5 +1,15 @@
 # Redmine FullTextSearch
 
+## 0.7.1 - 2018-03-12
+
+Fix bugs as following
+
+* Add missing parenthesis to search result same as Redmine
+* Ensure removing existing records before copying data in migration
+* Display original_updated_on in search result if original_type is Issue
+* Sort search result properly when sort by updated_on
+* Handle normalized original_type properly when backend is PGroonga
+
 ## 0.7.0 - 2017-11-22
 
 Squash migrations to use PGroonga 2.x by default and drop PGroonga 1.x support.
