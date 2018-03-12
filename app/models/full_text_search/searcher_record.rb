@@ -217,7 +217,7 @@ module FullTextSearch
     alias rank score
 
     def original_record
-      @original_record ||= original_type.constantize.find(original_id)
+      @original_record ||= original_type.capitalize.constantize.find(original_id)
     end
 
     def project
