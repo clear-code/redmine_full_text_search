@@ -217,7 +217,22 @@ module FullTextSearch
     alias rank score
 
     def original_record
-      @original_record ||= original_type.capitalize.constantize.find(original_id)
+      @original_record ||= case original_type
+                           when "WikiPage", "wikipage"
+                             WikiPage.find(original_id)
+                           when "CustomValue", "customvalue"
+                             CustomValue.find(original_id)
+                           else
+                             # "Project", "project"
+                             # "News", "news"
+                             # "Issue", "issue"
+                             # "Document", "document"
+                             # "Changeset", "changeset"
+                             # "Message", "message"
+                             # "Journal", "journal"
+                             # "Attachment", "attachment"
+                             original_type.capitalize.constantize.find(original_id)
+                           end
     end
 
     def project
