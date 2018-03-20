@@ -7,7 +7,7 @@ Redmine::Plugin.register :full_text_search do
   name 'Full Text Search plugin'
   author 'Kenji Okimoto'
   description 'This plugin provides full text search for Redmine'
-  version '0.7.1'
+  version '0.7.2'
   url 'https://github.com/okkez/redmine_full_text_search'
   author_url 'https://github.com/okkez/redmine_full_text_search'
   settings default: { display_score: "0" }, partial: "settings/full_text_search"
