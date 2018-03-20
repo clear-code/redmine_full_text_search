@@ -1,5 +1,11 @@
 # Redmine FullTextSearch
 
+## 0.7.2 - 2018-03-20
+
+Bug fix release for 0.7.1.
+
+* Fix bug that handle original_type for CustomValue and WikiPage properly #48
+
 ## 0.7.1 - 2018-03-12
 
 Fix bugs as following
