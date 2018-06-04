@@ -27,7 +27,7 @@
     <%= call_hook(:view_search_index_options_content_bottom) %>
   </div>
 </fieldset>
-<%= hidden_field_tag 'options', '', :id => 'show-options' %>
+<%= hidden_field_tag 'options',  params[:options].presence || '1', :id => 'show-options' %>
 
 </div>
 <p><%= submit_tag l(:button_submit) %></p>
@@ -75,9 +75,15 @@ $("#search-form").submit(function(){
   $("#show-options").val($("#options-content").is(":visible") ? '1' : '0');
 });
 
-<% if params[:options] == '1' %>
-toggleFieldset($("#options-content"));
-<% end %>
+function showFieldset(el) {
+  var fieldset = $(el).parents('fieldset').first();
+  fieldset.removeClass('collapsed');
+  fieldset.children('div').show();
+}
+
+if ($("#show-options").val() == '1') {
+  showFieldset($("#options-content"));
+}
 <% end %>
 
 <%- if display_score? %>
