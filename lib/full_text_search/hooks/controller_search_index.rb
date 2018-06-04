@@ -12,7 +12,7 @@ module FullTextSearch
         @question.strip!
         @all_words = params[:all_words] ? params[:all_words].present? : true
         @titles_only = params[:titles_only] ? params[:titles_only].present? : false
-        @search_attachments = params[:attachments].presence || '0'
+        @search_attachments = params[:attachments].presence || '1'
         @open_issues = params[:open_issues] ? params[:open_issues].present? : false
 
         case params[:format]
