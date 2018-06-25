@@ -1,5 +1,13 @@
 # Redmine FullTextSearch
 
+## 0.7.3 - 2018-06-25
+
+Bug fix release for 0.7.2
+
+* Search attachments by default
+* Display search options by default
+* Fix bug that single quotes in query causes an internal server error #50
+
 ## 0.7.2 - 2018-03-20
 
 Bug fix release for 0.7.1.
