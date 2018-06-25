@@ -25,10 +25,11 @@ module FullTextSearch
                     when "date"
                       "#{sort_direction}calculated_updated_on, #{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
+        query = connection.quote_string(query)
         query = if query_escape
                   "mroonga_escape('#{query}')"
                 else
-                  "\'#{query}\'"
+                  "'#{query}'"
                 end
         sql = <<-SQL.strip_heredoc
         select mroonga_command(

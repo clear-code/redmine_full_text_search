@@ -29,6 +29,7 @@ module FullTextSearch
                     when "date"
                       "#{sort_direction}calculated_updated_on, #{sort_direction}original_updated_on, #{sort_direction}original_created_on"
                     end
+        query = connection.quote_string(query)
         query = if query_escape
                   "pgroonga_query_escape('#{query}')"
                 else
