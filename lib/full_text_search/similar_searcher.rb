@@ -48,7 +48,7 @@ module FullTextSearch
               r.contents = create_contents(record.id)
               r.status_id = record.status_id
               r.is_private = record.is_private
-              r.save
+              r.save!
             when Journal
               issue_id = record.journalized_id
               FullTextSearch::IssueContent
