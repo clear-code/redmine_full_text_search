@@ -172,6 +172,7 @@ module FullTextSearch
             searcher_record.status_id = record.container.status_id
             searcher_record.is_private = record.container.is_private
           else
+            return unless record.container.respond_to?(:project_id)
             searcher_record.project_id = record.container.project_id
             searcher_record.project_name = record.container.project.name
           end
