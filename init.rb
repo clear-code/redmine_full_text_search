@@ -31,5 +31,4 @@ Rails.configuration.to_prepare do
   Journal.include(FullTextSearch::SimilarSearcher::Model)
   SearchHelper.prepend(FullTextSearch::Hooks::SearchHelper)
   SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
-  IssuesHelper.include(FullTextSearch::Hooks::SimilarIssuesHelper)
 end
