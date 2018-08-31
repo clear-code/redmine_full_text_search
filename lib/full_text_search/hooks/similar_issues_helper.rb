@@ -22,3 +22,4 @@ module FullTextSearch
     end
   end
 end
+IssuesHelper.prepend(FullTextSearch::Hooks::SimilarIssuesHelper)
