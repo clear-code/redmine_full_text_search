@@ -10,6 +10,7 @@ Redmine::Plugin.register :full_text_search do
   version '0.7.2'
   url 'https://github.com/okkez/redmine_full_text_search'
   author_url 'https://github.com/okkez/redmine_full_text_search'
+  directory __dir__
   settings default: { display_score: "0" }, partial: "settings/full_text_search"
 end
 
