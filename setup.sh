@@ -64,7 +64,7 @@ export RAILS_ENV=production
 
 bin/rake generate_secret_token
 bin/rake db:migrate
-bin/rake redmine:load_default_data
+echo | bin/rake redmine:load_default_data
 
 ln -fs /vagrant plugins/full_text_search
 bundle install
