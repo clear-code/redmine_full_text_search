@@ -8,8 +8,8 @@ Redmine::Plugin.register :full_text_search do
   author 'Kenji Okimoto'
   description 'This plugin provides full text search for Redmine'
   version '0.7.2'
-  url 'https://github.com/okkez/redmine_full_text_search'
-  author_url 'https://github.com/okkez/redmine_full_text_search'
+  url 'https://github.com/clear-code/redmine_full_text_search'
+  author_url 'https://github.com/okkez'
   directory __dir__
   settings default: { display_score: "0" }, partial: "settings/full_text_search"
 end
