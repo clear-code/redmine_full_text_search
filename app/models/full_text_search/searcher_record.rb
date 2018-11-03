@@ -341,6 +341,8 @@ module FullTextSearch
         { controller: "issues", action: "show", id: journal.issue.id, anchor: "change-#{original_id}" }
       when "News", "news"
         { controller: "news", action: "show", id: original_id }
+      when "Message", "message"
+        { controller: "messages", action: "show", board_id: original_record.board.id, id: original_id }
       when "Project", "project"
         { controller: "projects", action: "show", id: original_id }
       when "WikiPage", "wikipage"
