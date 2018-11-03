@@ -342,7 +342,8 @@ module FullTextSearch
       when "News", "news"
         { controller: "news", action: "show", id: original_id }
       when "Message", "message"
-        { controller: "messages", action: "show", board_id: original_record.board.id, id: original_id }
+        message = original_record
+        { controller: "messages", action: "show", board_id: message.board.id, id: original_id }
       when "Project", "project"
         { controller: "projects", action: "show", id: original_id }
       when "WikiPage", "wikipage"
