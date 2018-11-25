@@ -60,7 +60,7 @@ module FullTextSearch
       def filter_condition(user, project_ids, scope, attachments, open_issues)
         conditions = _filter_condition(user, project_ids, scope, attachments, open_issues)
         if conditions.empty?
-          "1==1"
+          "1==0"
         else
           build_condition("||", conditions)
         end

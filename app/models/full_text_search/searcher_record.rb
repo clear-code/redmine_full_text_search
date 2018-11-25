@@ -81,6 +81,7 @@ module FullTextSearch
                         else
                           Project.visible(user).pluck(:id)
                         end
+          return [] if project_ids.empty?
         end
 
         unless attachments == "only"
