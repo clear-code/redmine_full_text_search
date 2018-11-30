@@ -74,17 +74,20 @@ module FullTextSearch
       # scope # => [:issues, :news, :documents, :changesets, :wiki_pages, :messages, :projects]
       def _filter_condition(user, project_ids, scope, attachments, open_issues)
         conditions = []
+
+        if project_ids.empty?
+          project_ids = if user.respond_to?(:visible_project_ids)
+                          user.visible_project_ids
+                        else
+                          Project.visible(user).pluck(:id)
+                        end
+          return [] if project_ids.empty?
+        end
+
         unless attachments == "only"
           scope.each do |s|
             case s
             when "projects"
-              if project_ids.empty?
-                project_ids = if user.respond_to?(:visible_project_ids)
-                                user.visible_project_ids
-                              else
-                                Project.visible(user).pluck(:id)
-                              end
-              end
               if project_ids.present?
                 conditions << build_condition("&&",
                                               'original_type == "Project"',
@@ -132,6 +135,7 @@ module FullTextSearch
                 conditions << build_condition("&&",
                                               'original_type == "CustomValue"',
                                               "is_private == false",
+                                              "in_values(project_id, #{project_ids.join(',')})",
                                               "in_values(custom_field_id, #{target_ids.join(',')})",
                                               open_issues_condition(open_issues))
               end
