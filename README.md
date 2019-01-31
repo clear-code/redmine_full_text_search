@@ -22,7 +22,7 @@ See [Mroonga document](http://mroonga.org/docs/install.html)
 
 ```text
 $ cd redmine/plugins
-$ git clone https://github.com/okkez/redmine_full_text_search.git full_text_search
+$ git clone https://github.com/clear-code/redmine_full_text_search.git full_text_search
 ```
 
 ### Set up this plugin
@@ -46,7 +46,7 @@ See https://pgroonga.github.io/reference/grant-usage-on-schema-pgroonga.html
 
 # Contributing
 
-1. Fork it ( http://github.com/okkez/redmine_full_text_search/fork )
+1. Fork it ( http://github.com/clear-code/redmine_full_text_search/fork )
 1. Create your feature branch (`git checkout -b my-new-feature`)
 1. Commit your changes (`git commit -am 'Add some feature'`)
 1. Push to the branch (`git push origin my-new-feature`)
