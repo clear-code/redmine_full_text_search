@@ -19,7 +19,6 @@ matrix:
   include:
     - name: "Redmine 3.4 & MySQL"
       <<: *redmine_3_4
-      <<: *mroonga
       env:
         - REDMINE_VERSION=3.4-stable
         - RDBMS=mysql
@@ -27,7 +26,6 @@ matrix:
         - GROONGA_ADAPTER=mroonga
     - name: "Redmine 3.4 & PostgreSQL"
       <<: *redmine_3_4
-      <<: *pgroonga
       env:
         - REDMINE_VERSION=3.4-stable
         - RDBMS=postgresql
