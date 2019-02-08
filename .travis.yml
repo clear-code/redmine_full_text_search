@@ -5,7 +5,7 @@ addons_mroonga: &addons_mroonga
     sources:
       - sourceline: "ppa:groonga/ppa"
     packages:
-      - mysql-5.7-mroonga
+      - mysql-server-mroonga
 
 addons_pgroonga: &addons_pgroonga
   apt:
