@@ -1,19 +1,7 @@
 dist: xenial
 
-addons_mroonga: &addons_mroonga
-  apt:
-    sources:
-      - sourceline: "ppa:groonga/ppa"
-    packages:
-      - mysql-server-mroonga
-
-addons_pgroonga: &addons_pgroonga
-  apt:
-    sources:
-      - sourceline: "ppa:groonga/ppa"
-    packages:
-      - postgresql-9.5-pgroonga
-  postgresql: "9.5"
+services:
+  - docker
 
 redmine_3_4: &redmine_3_4
   install:
@@ -27,26 +15,36 @@ redmine_3_4: &redmine_3_4
   script:
     - RAILS_ENV=test bin/rake redmine:plugins:test
 
+mroonga: &mroonga
+  before_install:
+    - docker run --detach -p 3306:3306 groonga/mroonga:latest
+
+pgroonga: &pgroonga
+  before_install:
+    - docker run --detach -p 5432:5432 groonga/pgroonga:latest
+
+addons_pgroonga: &addons_pgroonga
+  apt:
+    sources:
+      - sourceline: "ppa:groonga/ppa"
+    packages:
+      - postgresql-9.5-pgroonga
+  postgresql: "9.5"
+
 matrix:
   include:
     - name: "Redmine 3.4 & MySQL"
       <<: *redmine_3_4
+      <<: *mroonga
       env:
         - REDMINE_VERSION=3.4-stable
         - RDBMS=mysql
-      addons:
-        <<: *addons_mroonga
-      services:
-        - mysql
     - name: "Redmine 3.4 & PostgreSQL"
       <<: *redmine_3_4
+      <<: *pgroonga
       env:
         - REDMINE_VERSION=3.4-stable
         - RDBMS=postgresql
-      addons:
-        <<: *addons_pgroonga
-      services:
-        - postgresql
 
 before_install:
   - cd ..
