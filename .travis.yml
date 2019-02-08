@@ -56,5 +56,6 @@ before_install:
   - cd redmine/plugins
   - ln -s ../../redmine_full_text_search ./full_text_search
   - cd ../
-  - cp plugins/full_text_search/config/database.yml config/database.yml
+  - cp plugins/full_text_search/config/database.yml.example.${RDBMS}
+      config/database.yml
   - unset BUNDLE_GEMFILE
