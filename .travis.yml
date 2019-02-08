@@ -1,0 +1,65 @@
+dist: xenial
+
+addons_mroonga: &addons_mroonga
+  apt:
+    sources:
+      - sourceline: "ppa:groonga/ppa"
+  packages:
+    - mysql-5.7-mroonga
+
+addons_pgroonga: &addons_pgroonga
+  apt:
+    sources:
+      - sourceline: "ppa:groonga/ppa"
+  packages:
+    - postgresql-9.5-pgroonga
+
+install_redmine_3_4: &install_redmine_3_4
+  - gem install bundler -v "1.17.3"
+  - bundle _1.17.3_ install
+  - bin/rake db:create
+  - bin/rake generate_secret_token
+  - bin/rake db:migrate
+  - bin/rake redmine:load_default_data REDMINE_LANG=en
+  - bin/rake redmine:plugins:migrate
+script_redmine_3_4: &script_redmine_3_4
+  - RAILS_ENV=test bin/rake redmine:plugins:test
+
+matrix:
+  include:
+    - name: "Redmine 3.4 & MySQL"
+      env:
+        - REDMINE_VERSION=3.4-stable
+        - RDBMS=mysql
+      addons:
+        <<: &addons_mroonga
+      services:
+        - mysql
+      install:
+        <<: &install_redmine_3_4
+      script:
+        <<: &script_redmine_3_4
+    - name: "Redmine 3.4 & PostgreSQL"
+      env:
+        - REDMINE_VERSION=3.4-stable
+        - RDBMS=postgresql
+      addons:
+        <<: &addons_pgroonga
+      services:
+        - postgresql
+      install:
+        <<: &install_redmine_3_4
+      script:
+        <<: &script_redmine_3_4
+
+before_install:
+  - cd ..
+  - git clone
+      --depth 1
+      --branch ${REDMINE_VERSION}
+      https://github.com/redmine/redmine.git
+  - cd redmine/plugins
+  - ln -s ../../redmine_full_text_search ./full_text_search
+  - cd ../
+  - cp config/database.yml{.example.${RDBMS},}
+  - unset BUNDLE_GEMFILE
