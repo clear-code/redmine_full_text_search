@@ -12,6 +12,7 @@ redmine_3_4: &redmine_3_4
     - bin/rake db:migrate
     - bin/rake redmine:load_default_data REDMINE_LANG=en
     - bin/rake redmine:plugins:migrate
+    - bin/rake db:structure:dump
   script:
     - RAILS_ENV=test bin/rake redmine:plugins:test
 
@@ -47,4 +48,6 @@ before_install:
   - cd ../
   - cp plugins/full_text_search/config/database.yml.example.${RDBMS}
       config/database.yml
+  - echo "ActiveRecord::Base.schema_format = :sql" >
+      config/initializers/schema_format.rb
   - unset BUNDLE_GEMFILE
