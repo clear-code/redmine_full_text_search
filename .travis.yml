@@ -15,22 +15,6 @@ redmine_3_4: &redmine_3_4
   script:
     - RAILS_ENV=test bin/rake redmine:plugins:test
 
-mroonga: &mroonga
-  before_install:
-    - docker run --detach -p 3306:3306 groonga/mroonga:latest
-
-pgroonga: &pgroonga
-  before_install:
-    - docker run --detach -p 5432:5432 groonga/pgroonga:latest
-
-addons_pgroonga: &addons_pgroonga
-  apt:
-    sources:
-      - sourceline: "ppa:groonga/ppa"
-    packages:
-      - postgresql-9.5-pgroonga
-  postgresql: "9.5"
-
 matrix:
   include:
     - name: "Redmine 3.4 & MySQL"
@@ -39,14 +23,22 @@ matrix:
       env:
         - REDMINE_VERSION=3.4-stable
         - RDBMS=mysql
+        - RDBMS_PORT=3306
+        - GROONGA_ADAPTER=mroonga
     - name: "Redmine 3.4 & PostgreSQL"
       <<: *redmine_3_4
       <<: *pgroonga
       env:
         - REDMINE_VERSION=3.4-stable
         - RDBMS=postgresql
+        - RDBMS_PORT=5432
+        - GROONGA_ADAPTER=pgroonga
 
 before_install:
+  - docker run
+      --detach
+      -p ${RDBMS_PORT}:${RDBMS_PORT}
+       groonga/${GROONGA_ADAPTER}:latest
   - cd ..
   - git clone
       --depth 1
