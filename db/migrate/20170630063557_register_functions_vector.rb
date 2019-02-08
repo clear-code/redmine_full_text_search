@@ -5,6 +5,7 @@ class RegisterFunctionsVector < ActiveRecord::Migration
         command = "plugin_register functions/vector"
         case
         when Redmine::Database.postgresql?
+          enable_extension("pgroonga") unless extension_enabled?("pgroonga")
           execute("select pgroonga_command('#{command}')")
         when Redmine::Database.mysql?
           execute("select mroonga_command('#{command}')")
