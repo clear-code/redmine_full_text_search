@@ -32,12 +32,13 @@ matrix:
         - RDBMS=postgresql
         - RDBMS_PORT=5432
         - GROONGA_ADAPTER=pgroonga
+        - DOCKER_TAG="latest-debian-9.6"
 
 before_install:
   - docker run
       --detach
       -p ${RDBMS_PORT}:${RDBMS_PORT}
-       groonga/${GROONGA_ADAPTER}:latest
+       groonga/${GROONGA_ADAPTER}:${DOCKER_TAG:-latest}
   - cd ..
   - git clone
       --depth 1
