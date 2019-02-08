@@ -4,15 +4,15 @@ addons_mroonga: &addons_mroonga
   apt:
     sources:
       - sourceline: "ppa:groonga/ppa"
-  packages:
-    - mysql-5.7-mroonga
+    packages:
+      - mysql-5.7-mroonga
 
 addons_pgroonga: &addons_pgroonga
   apt:
     sources:
       - sourceline: "ppa:groonga/ppa"
-  packages:
-    - postgresql-9.5-pgroonga
+    packages:
+      - postgresql-9.5-pgroonga
 
 redmine_3_4: &redmine_3_4
   install:
