@@ -14,6 +14,15 @@ module FullTextSearch
                   url: :_url)
 
     class << self
+      def sync
+        FullTextSearch.target_classes.each do |target_class|
+          synchronizer = Synchronizer.new
+          target_class.find_each do |record|
+            synchronizer.upsert(record)
+          end
+        end
+      end
+
       def from_record(record_hash)
         h = record_hash.dup
         h.delete("_id")
@@ -161,7 +170,9 @@ module FullTextSearch
         conditions.concat(attachments_conditions(user, project_ids, scope, attachments, open_issues))
       end
 
-      # TODO Attachmentはコンテナごとに条件が必要。コンテナを見ることができたら検索可能にする
+      # TODO: Attachment needs conditions for each container. We can
+      # make attachment searchable when we can confirma container.
+      #
       # container_type: Issue, Journal, File, Document, News, WikiPage, Version, Message
       def attachments_conditions(user, project_ids, scope, attachments, open_issues)
         conditions = []
