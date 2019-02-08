@@ -13,6 +13,7 @@ addons_pgroonga: &addons_pgroonga
       - sourceline: "ppa:groonga/ppa"
     packages:
       - postgresql-9.5-pgroonga
+  postgresql: "9.5"
 
 redmine_3_4: &redmine_3_4
   install:
