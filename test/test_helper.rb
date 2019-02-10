@@ -68,7 +68,7 @@ module GroongaCommandExecutable
     if mroonga?
       function = "mroonga_command"
     else
-      function = "proonga_command"
+      function = "pgroonga_command"
     end
     connection = ActiveRecord::Base.connection
     sql = ActiveRecord::Base.__send__(:sanitize_sql_array,
