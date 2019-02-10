@@ -1,9 +1,17 @@
 require File.expand_path('../../../../test/test_helper', __FILE__)
 
-module NullValues
+module FullTextSearchBackend
   def mroonga?
     Redmine::Database.mysql?
   end
+
+  def pgroonga?
+    Redmine::Database.postgresql?
+  end
+end
+
+module NullValues
+  include FullTextSearchBackend
 
   def null_string
     if mroonga?
@@ -50,5 +58,21 @@ module NullValues
     else
       nil
     end
+  end
+end
+
+module GroongaCommandExecutable
+  include FullTextSearchBackend
+
+  def execute_groonga_command(*args)
+    if mroonga?
+      function = "mroonga_command"
+    else
+      function = "proonga_command"
+    end
+    connection = ActiveRecord::Base.connection
+    sql = ActiveRecord::Base.__send__(:sanitize_sql_array,
+                                      ["SELECT #{function}(?)", args])
+    connection.select_one(sql)
   end
 end
