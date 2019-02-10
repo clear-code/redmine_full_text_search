@@ -4,6 +4,8 @@ module FullTextSearch
   class JournalTest < ActiveSupport::TestCase
     make_my_diffs_pretty!
 
+    include NullValues
+
     fixtures :enumerations
     fixtures :issue_statuses
     fixtures :issues
@@ -24,31 +26,31 @@ module FullTextSearch
                        "original_id" => journal.id,
                        "original_type" => journal.class.name,
                        "original_created_on" => journal.created_on,
-                       "original_updated_on" => nil,
-                       "name" => nil,
-                       "description" => nil,
-                       "identifier" => nil,
-                       "status" => nil,
-                       "title" => nil,
-                       "summary" => nil,
-                       "tracker_id" => nil,
-                       "subject" => nil,
+                       "original_updated_on" => null_datetime,
+                       "name" => null_string,
+                       "description" => null_string,
+                       "identifier" => null_string,
+                       "status" => null_number,
+                       "title" => null_string,
+                       "summary" => null_string,
+                       "tracker_id" => null_number,
+                       "subject" => null_string,
                        "author_id" => journal.user_id,
-                       "is_private" => nil,
+                       "is_private" => null_boolean,
                        "status_id" => journal.journalized.status_id,
                        "issue_id" => journal.journalized_id,
-                       "comments" => nil,
-                       "short_comments" => nil,
-                       "long_comments" => nil,
-                       "content" => nil,
-                       "notes" => nil,
+                       "comments" => null_string,
+                       "short_comments" => null_string,
+                       "long_comments" => null_string,
+                       "content" => null_string,
+                       "notes" => null_string,
                        "private_notes" => journal.private_notes,
-                       "text" => nil,
-                       "value" => nil,
-                       "custom_field_id" => nil,
-                       "container_id" => nil,
-                       "container_type" => nil,
-                       "filename" => nil,
+                       "text" => null_string,
+                       "value" => null_string,
+                       "custom_field_id" => null_number,
+                       "container_id" => null_number,
+                       "container_type" => null_string,
+                       "filename" => null_string,
                      }
                    ],
                    records.all.collect {|record| record.attributes.except("id")})

@@ -4,6 +4,8 @@ module FullTextSearch
   class IssueTest < ActiveSupport::TestCase
     make_my_diffs_pretty!
 
+    include NullValues
+
     fixtures :enumerations
     fixtures :issue_statuses
     fixtures :projects
@@ -24,30 +26,30 @@ module FullTextSearch
                        "original_type" => issue.class.name,
                        "original_created_on" => issue.created_on,
                        "original_updated_on" => issue.updated_on,
-                       "name" => nil,
-                       "description" => issue.description,
-                       "identifier" => nil,
-                       "status" => nil,
-                       "title" => nil,
-                       "summary" => nil,
+                       "name" => null_string,
+                       "description" => issue.description || null_string,
+                       "identifier" => null_string,
+                       "status" => null_number,
+                       "title" => null_string,
+                       "summary" => null_string,
                        "tracker_id" => issue.tracker_id,
                        "subject" => issue.subject,
                        "author_id" => issue.author_id,
                        "is_private" => issue.is_private,
                        "status_id" => issue.status_id,
                        "issue_id" => issue.id,
-                       "comments" => nil,
-                       "short_comments" => nil,
-                       "long_comments" => nil,
-                       "content" => nil,
-                       "notes" => nil,
-                       "private_notes" => nil,
-                       "text" => nil,
-                       "value" => nil,
-                       "custom_field_id" => nil,
-                       "container_id" => nil,
-                       "container_type" => nil,
-                       "filename" => nil,
+                       "comments" => null_string,
+                       "short_comments" => null_string,
+                       "long_comments" => null_string,
+                       "content" => null_string,
+                       "notes" => null_string,
+                       "private_notes" => null_boolean,
+                       "text" => null_string,
+                       "value" => null_string,
+                       "custom_field_id" => null_number,
+                       "container_id" => null_number,
+                       "container_type" => null_string,
+                       "filename" => null_string,
                      }
                    ],
                    records.all.collect {|record| record.attributes.except("id")})
