@@ -23,7 +23,9 @@ module FullTextSearch
 
     def test_search
       get :index
-      # TODO: assert
+      assert_select("#options-content") do
+        assert_select(".full-text-search-order")
+      end
     end
   end
 end
