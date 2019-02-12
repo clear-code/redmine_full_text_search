@@ -18,6 +18,7 @@ redmine_3_4: &redmine_3_4
 
 redmine_4_0: &redmine_4_0
   install:
+    - bundle install
     - bin/rails db:create
     - bin/rails generate_secret_token
     - bin/rails db:migrate
