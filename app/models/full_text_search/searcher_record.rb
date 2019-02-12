@@ -15,6 +15,7 @@ module FullTextSearch
 
     class << self
       def sync
+        destroy_all
         FullTextSearch.target_classes.each do |target_class|
           synchronizer = Synchronizer.new
           target_class.find_each do |record|
