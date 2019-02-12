@@ -7,11 +7,11 @@ module FullTextSearch
           after_save Callbacks
           after_destroy Callbacks
         end
-        case
-        when Redmine::Database.postgresql?
+        case ActiveRecord::Base.connection_config[:adapter]
+        when "postgresql"
           require "full_text_search/similar_searcher/pgroonga"
           base.include(FullTextSearch::SimilarSearcher::PGroonga)
-        when Redmine::Database.mysql?
+        when "mysql2"
           require "full_text_search/similar_searcher/mroonga"
           base.include(FullTextSearch::SimilarSearcher::Mroonga)
         end

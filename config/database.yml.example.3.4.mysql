@@ -1,6 +1,6 @@
 production:
   adapter: mysql2
-  database: redmine
+  database: redmine_34
   host: 127.0.0.1
   username: root
   password: ""
@@ -8,7 +8,7 @@ production:
 
 development:
   adapter: mysql2
-  database: redmine_development
+  database: redmine_34_development
   host: 127.0.0.1
   username: root
   password: ""
@@ -16,7 +16,7 @@ development:
 
 test:
   adapter: mysql2
-  database: redmine_test
+  database: redmine_34_test
   host: 127.0.0.1
   username: root
   password: ""

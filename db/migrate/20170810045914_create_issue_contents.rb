@@ -1,4 +1,6 @@
-class CreateIssueContents < ActiveRecord::Migration
+migration = ActiveRecord::Migration
+migration = migration[4.2] if migration.respond_to?(:[])
+class CreateIssueContents < migration
   def change
     reversible do |d|
       d.up do

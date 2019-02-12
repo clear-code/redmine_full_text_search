@@ -16,19 +16,45 @@ redmine_3_4: &redmine_3_4
   script:
     - RAILS_ENV=test bin/rake redmine:plugins:test
 
+redmine_4_0: &redmine_4_0
+  install:
+    - bin/rails db:create
+    - bin/rails generate_secret_token
+    - bin/rails db:migrate
+    - bin/rails redmine:load_default_data REDMINE_LANG=en
+    - bin/rails redmine:plugins:migrate
+    - bin/rails db:structure:dump
+  script:
+    - RAILS_ENV=test bin/rails redmine:plugins:test
+
 matrix:
   include:
     - name: "Redmine 3.4 & MySQL"
       <<: *redmine_3_4
       env:
-        - REDMINE_VERSION=3.4-stable
+        - REDMINE_VERSION=3.4
         - RDBMS=mysql
         - RDBMS_PORT=3306
         - GROONGA_ADAPTER=mroonga
     - name: "Redmine 3.4 & PostgreSQL"
       <<: *redmine_3_4
       env:
-        - REDMINE_VERSION=3.4-stable
+        - REDMINE_VERSION=3.4
+        - RDBMS=postgresql
+        - RDBMS_PORT=5432
+        - GROONGA_ADAPTER=pgroonga
+        - DOCKER_TAG="latest-debian-9.6"
+    - name: "Redmine 4.0 & MySQL"
+      <<: *redmine_4_0
+      env:
+        - REDMINE_VERSION=4.0
+        - RDBMS=mysql
+        - RDBMS_PORT=3306
+        - GROONGA_ADAPTER=mroonga
+    - name: "Redmine 4.0 & PostgreSQL"
+      <<: *redmine_4_0
+      env:
+        - REDMINE_VERSION=4.0
         - RDBMS=postgresql
         - RDBMS_PORT=5432
         - GROONGA_ADAPTER=pgroonga
@@ -42,12 +68,12 @@ before_install:
   - cd ..
   - git clone
       --depth 1
-      --branch ${REDMINE_VERSION}
+      --branch ${REDMINE_VERSION}-stable
       https://github.com/redmine/redmine.git
   - cd redmine/plugins
   - ln -s ../../redmine_full_text_search ./full_text_search
   - cd ../
-  - cp plugins/full_text_search/config/database.yml.example.${RDBMS}
+  - cp plugins/full_text_search/config/database.yml.example.${REDMINE_VERSION}.${RDBMS}
       config/database.yml
   - cp plugins/full_text_search/config/initializers/schema_format.rb
       config/initializers/schema_format.rb

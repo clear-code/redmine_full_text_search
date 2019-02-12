@@ -16,11 +16,11 @@ Rails.configuration.to_prepare do
   require_dependency "full_text_search/hooks/similar_issues_helper"
   require_dependency "full_text_search/searcher"
 
-  case
-  when Redmine::Database.postgresql?
+  case ActiveRecord::Base.connection_config[:adapter]
+  when "postgresql"
     require_dependency "full_text_search/pgroonga"
     FullTextSearch::SearcherRecord.prepend(FullTextSearch::PGroonga)
-  when Redmine::Database.mysql?
+  when "mysql2"
     require_dependency "full_text_search/mroonga"
     FullTextSearch::SearcherRecord.prepend(FullTextSearch::Mroonga)
   else
