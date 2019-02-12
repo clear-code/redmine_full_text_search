@@ -8,10 +8,6 @@ module FullTextSearch
 
     tests SearchController
 
-    fixtures :custom_fields
-    fixtures :custom_fields_projects
-    fixtures :custom_fields_trackers
-    fixtures :custom_values
     fixtures :enabled_modules
     fixtures :enumerations
     fixtures :issue_statuses
@@ -27,10 +23,12 @@ module FullTextSearch
       @request.session[:user_id] = User.admin.first.id
     end
 
-    def format_issue_titles(issues)
+    def format_issues(issues)
       issues.collect do |issue|
-        "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
+        label =
+          "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
           "#{issue.subject}"
+        [label, issue_path(issue)]
       end
     end
 
@@ -55,13 +53,18 @@ module FullTextSearch
           Issue.find(1),
         ]
         assert_select("#search-results") do
-          assert_equal(format_issue_titles(issues),
-                       css_select("dt a").collect(&:text))
+          assert_equal(format_issues(issues),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
     end
 
     class CustomFieldTest < self
+      fixtures :custom_fields
+      fixtures :custom_fields_projects
+      fixtures :custom_fields_trackers
+      fixtures :custom_values
+
       def search(query, params={})
         get :index, params: {"q" => query, "issues" => "1"}.merge(params)
       end
@@ -84,8 +87,39 @@ module FullTextSearch
         issue2 = generate_issue!(project2, custom_field_values)
         search("searchable", id: project1.id)
         assert_select("#search-results") do
-          assert_equal(format_issue_titles([issue1]),
-                       css_select("dt a").collect(&:text))
+          assert_equal(format_issues([issue1]),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+    end
+
+    class MessageTest < self
+      fixtures :boards
+      fixtures :messages
+
+      def search(query)
+        get :index, params: {"q" => query, "forums" => "1"}
+      end
+
+      def format_messages(messages)
+        messages.collect do |message|
+          [
+            "#{message.board.name}: #{message.subject}",
+            board_message_path(message.board, message),
+          ]
+        end
+      end
+
+      def test_search
+        messages = [
+          Message.find(1),
+          Message.find(3),
+          Message.find(2),
+        ]
+        search("first post")
+        assert_select("#search-results") do
+          assert_equal(format_messages(messages),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
     end
