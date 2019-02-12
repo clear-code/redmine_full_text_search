@@ -80,7 +80,7 @@ module FullTextSearch
         'columns[#{name}].stage', 'output',
         'columns[#{name}].type', 'ShortText',
         'columns[#{name}].flags', 'COLUMN_VECTOR',
-        'columns[#{name}].value', 'snippet_html(#{columns.join("+")}) || vector_new()',
+        'columns[#{name}].value', 'snippet_html(#{columns.join("+")}) || vector_new("")',
         SQL
       end
 
