@@ -49,6 +49,6 @@ before_install:
   - cd ../
   - cp plugins/full_text_search/config/database.yml.example.${RDBMS}
       config/database.yml
-  - echo "ActiveRecord::Base.schema_format = :sql" >
+  - cp plugins/full_text_search/config/initializers/schema_format.rb
       config/initializers/schema_format.rb
   - unset BUNDLE_GEMFILE
