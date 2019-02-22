@@ -80,24 +80,6 @@ module FullTextSearch
       end
     end
 
-    class IssueTest < self
-      def search(query)
-        get :index, params: {"q" => query, "issues" => "1"}
-      end
-
-      def test_search
-        search("print OR private")
-        issues = [
-          Issue.find(6),
-          Issue.find(1),
-        ]
-        assert_select("#search-results") do
-          assert_equal(format_issues(issues),
-                       css_select("dt a").collect {|a| [a.text, a["href"]]})
-        end
-      end
-    end
-
     class CustomFieldTest < self
       fixtures :custom_fields
       fixtures :custom_fields_projects
@@ -127,6 +109,24 @@ module FullTextSearch
         search("searchable", id: project1.id)
         assert_select("#search-results") do
           assert_equal(format_issues([issue1]),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+    end
+
+    class IssueTest < self
+      def search(query)
+        get :index, params: {"q" => query, "issues" => "1"}
+      end
+
+      def test_search
+        search("print OR private")
+        issues = [
+          Issue.find(6),
+          Issue.find(1),
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_issues(issues),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
