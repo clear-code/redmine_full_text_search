@@ -67,7 +67,7 @@ module FullTextSearch
         controller: "issues",
         action: "show",
         id: journal.issue.id,
-        anchor: "change-#{original_id}",
+        anchor: "change-#{journal.id}",
       }
     end
   end

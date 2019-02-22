@@ -14,6 +14,7 @@ module FullTextSearch
     fixtures :enumerations
     fixtures :issue_statuses
     fixtures :issues
+    fixtures :journals
     fixtures :messages
     fixtures :projects
     fixtures :projects_trackers
@@ -29,12 +30,38 @@ module FullTextSearch
       @request.session[:user_id] = User.admin.first.id
     end
 
-    def format_issues(issues)
-      issues.collect do |issue|
-        label =
-          "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
-          "#{issue.subject}"
-        [label, issue_path(issue)]
+    def format_items(items)
+      items.collect do |item|
+        case item
+        when Attachment
+          attachment = item
+          [
+            attachment.filename,
+            named_attachment_path(id: attachment.id,
+                                  filename: attachment.filename),
+          ]
+        when Issue
+          issue = item
+          label =
+            "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
+            "#{issue.subject}"
+          [label, issue_path(issue)]
+        when Journal
+          journal = item
+          issue = journal.journalized
+          label =
+            "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
+            "#{issue.subject}"
+          [label, issue_path(issue, anchor: "change-#{journal.id}")]
+        when Message
+          message = item
+          [
+            "#{message.board.name}: #{message.subject}",
+            board_message_path(message.board, message),
+          ]
+        else
+          raise "Unsupported item: #{item.inspect}"
+        end
       end
     end
 
@@ -58,23 +85,13 @@ module FullTextSearch
         get :index, params: {"q" => query, "issues" => "1"}
       end
 
-      def format_attachments(attachments)
-        attachments.collect do |attachment|
-          [
-            attachment.filename,
-            named_attachment_path(id: attachment.id,
-                                  filename: attachment.filename),
-          ]
-        end
-      end
-
       def test_search
         search("upload")
         attachments = [
           @attachment,
         ]
         assert_select("#search-results") do
-          assert_equal(format_attachments(attachments),
+          assert_equal(format_items(attachments),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
@@ -108,7 +125,7 @@ module FullTextSearch
         issue2 = generate_issue!(project2, custom_field_values)
         search("searchable", id: project1.id)
         assert_select("#search-results") do
-          assert_equal(format_issues([issue1]),
+          assert_equal(format_items([issue1]),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
@@ -124,29 +141,19 @@ module FullTextSearch
         issues = [
           Issue.find(6),
           Issue.find(1),
+          Journal.find(5),
+          Journal.find(4),
         ]
         assert_select("#search-results") do
-          assert_equal(format_issues(issues),
+          assert_equal(format_items(issues),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
     end
 
     class MessageTest < self
-      fixtures :boards
-      fixtures :messages
-
       def search(query)
         get :index, params: {"q" => query, "forums" => "1"}
-      end
-
-      def format_messages(messages)
-        messages.collect do |message|
-          [
-            "#{message.board.name}: #{message.subject}",
-            board_message_path(message.board, message),
-          ]
-        end
       end
 
       def test_search
@@ -157,7 +164,7 @@ module FullTextSearch
         ]
         search("first post")
         assert_select("#search-results") do
-          assert_equal(format_messages(messages),
+          assert_equal(format_items(messages),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
