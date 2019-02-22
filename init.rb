@@ -11,10 +11,26 @@ end
 
 Rails.configuration.to_prepare do
   require_dependency "full_text_search"
+  require_dependency "full_text_search/resolver"
+
+  require_dependency "full_text_search/mapper"
+  require_dependency "full_text_search/attachment_mapper"
+  require_dependency "full_text_search/changeset_mapper"
+  require_dependency "full_text_search/custom_value_mapper"
+  require_dependency "full_text_search/document_mapper"
+  require_dependency "full_text_search/issue_mapper"
+  require_dependency "full_text_search/journal_mapper"
+  require_dependency "full_text_search/message_mapper"
+  require_dependency "full_text_search/news_mapper"
+  require_dependency "full_text_search/project_mapper"
+  require_dependency "full_text_search/wiki_content_mapper"
+  require_dependency "full_text_search/wiki_page_mapper"
+
   require_dependency "full_text_search/hooks/search_index_options_content_bottom_hook"
   require_dependency "full_text_search/hooks/issues_show_description_bottom_hook"
   require_dependency "full_text_search/hooks/similar_issues_helper"
   require_dependency "full_text_search/searcher"
+  require_dependency "full_text_search/similar_searcher"
 
   case ActiveRecord::Base.connection_config[:adapter]
   when "postgresql"
@@ -26,8 +42,8 @@ Rails.configuration.to_prepare do
   else
     # Do nothing
   end
-  FullTextSearch.target_classes.each do |klass|
-    klass.include(FullTextSearch::Model)
+  FullTextSearch.resolver.each do |redmine_class, mapper_class|
+    mapper_class.attach(redmine_class)
   end
   Issue.include(FullTextSearch::SimilarSearcher::Model)
   Journal.include(FullTextSearch::SimilarSearcher::Model)

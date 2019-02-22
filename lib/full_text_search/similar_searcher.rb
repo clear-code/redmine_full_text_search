@@ -9,10 +9,10 @@ module FullTextSearch
         end
         case ActiveRecord::Base.connection_config[:adapter]
         when "postgresql"
-          require "full_text_search/similar_searcher/pgroonga"
+          require_dependency "full_text_search/similar_searcher/pgroonga"
           base.include(FullTextSearch::SimilarSearcher::PGroonga)
         when "mysql2"
-          require "full_text_search/similar_searcher/mroonga"
+          require_dependency "full_text_search/similar_searcher/mroonga"
           base.include(FullTextSearch::SimilarSearcher::Mroonga)
         end
       end

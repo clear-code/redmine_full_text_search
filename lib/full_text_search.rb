@@ -1,19 +1,11 @@
 module FullTextSearch
   class << self
-    def target_classes
-      [
-        Attachment,
-        Changeset,
-        CustomValue,
-        Document,
-        Issue,
-        Journal,
-        Message,
-        News,
-        Project,
-        WikiContent,
-        WikiPage,
-      ]
+    def resolver
+      @resolver ||= Resolver.new
+    end
+
+    def attach
+      resolver
     end
   end
 end

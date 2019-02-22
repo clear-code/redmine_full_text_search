@@ -16,10 +16,10 @@ module FullTextSearch
     class << self
       def sync
         destroy_all
-        FullTextSearch.target_classes.each do |target_class|
-          synchronizer = Synchronizer.new
-          target_class.find_each do |record|
-            synchronizer.upsert(record)
+        FullTextSearch.resolver.each do |redmine_class, mapper_class|
+          redmine_class.find_each do |record|
+            mapper = mapper_class.redmine_mapper(record)
+            mapper.upsert_searcher_record
           end
         end
       end
@@ -50,21 +50,6 @@ module FullTextSearch
             value
           ]
         end
-      end
-
-      def target_models
-        [
-          Project,
-          News,
-          Issue,
-          Document,
-          Changeset,
-          Message,
-          Journal,
-          WikiPage,
-          CustomValue,
-          Attachment
-        ]
       end
 
       def container_types
@@ -232,23 +217,12 @@ module FullTextSearch
     end
     alias rank score
 
+    def mapper
+      @mapper ||= FullTextSearch.resolver.resolve(self)
+    end
+
     def original_record
-      @original_record ||= case original_type
-                           when "WikiPage", "wikipage"
-                             WikiPage.find(original_id)
-                           when "CustomValue", "customvalue"
-                             CustomValue.find(original_id)
-                           else
-                             # "Project", "project"
-                             # "News", "news"
-                             # "Issue", "issue"
-                             # "Document", "document"
-                             # "Changeset", "changeset"
-                             # "Message", "message"
-                             # "Journal", "journal"
-                             # "Attachment", "attachment"
-                             original_type.capitalize.constantize.find(original_id)
-                           end
+      @original_record ||= mapper.redmine_record
     end
 
     def project
@@ -256,36 +230,7 @@ module FullTextSearch
     end
 
     def _type
-      case original_type
-      when "Issue", "issue"
-        issue = original_record
-        "issue" + (issue.closed? ? "-closed" : "")
-      when "Journal", "journal"
-        journal = original_record
-        new_status = journal.new_status
-        if new_status
-          if new_status.is_closed?
-            "issue-closed"
-          else
-            "issue-edit"
-          end
-        else
-          "issue-note"
-        end
-      when "Message", "message"
-        message = original_record
-        if message.parent_id.nil?
-          "message"
-        else
-          "reply"
-        end
-      when "WikiContent", "wikicontent"
-        "wiki-page"
-      when "CustomValue", "customvalue"
-        original_record.customized.event_type
-      else
-        original_type.underscore.dasherize
-      end
+      mapper.type
     end
 
     def _datetime
@@ -293,47 +238,11 @@ module FullTextSearch
     end
 
     def _title
-      case original_type
-      when "Attachment", "attachment"
-        "#{title_prefix}#{filename}"
-      when "Document", "document"
-        "#{title_prefix}#{title}"
-      when "Issue", "issue"
-        "#{title_prefix} #{subject}"
-      when "Journal", "journal"
-        journal = original_record
-        issue = journal.issue
-        "#{title_prefix}#{issue.subject}"
-      when "Message", "message"
-        "#{title_prefix}#{subject}"
-      when "Project", "project"
-        "#{title_prefix}#{name}"
-      when "WikiPage", "wikipage"
-        "#{title_prefix}#{title}"
-      when "Changeset", "changeset"
-        "#{title_prefix}#{short_comments}"
-      when "CustomValue", "customvalue"
-        original_record.customized.event_title
-      else
-        title
-      end
+      mapper.title
     end
 
     def _description
-      case original_type
-      when "Journal", "journal"
-        notes
-      when "Message", "message"
-        content
-      when "WikiPage", "wikipage"
-        text
-      when "Changeset", "changeset"
-        long_comments.presence || comments
-      when "CustomValue", "customvalue"
-        original_record.customized.event_description
-      else
-        description
-      end
+      mapper.description
     end
 
     def _author
@@ -342,71 +251,17 @@ module FullTextSearch
     end
 
     def _url
-      case original_type
-      when "Attachment", "attachment"
-        { controller: "attachments", action: "show", id: original_id, filename: filename }
-      when "Changeset", "changeset"
-        changeset = original_record
-        { controller: "repositories", action: "revision", id: project, repository_id: changeset.repository.identifier_param, rev: changeset.identifier }
-      when "Document", "document"
-        { controller: "documents", action: "show", id: original_id }
-      when "Issue", "issue"
-        { controller: "issues", action: "show", id: original_id }
-      when "Journal", "journal"
-        journal = original_record
-        { controller: "issues", action: "show", id: journal.issue.id, anchor: "change-#{original_id}" }
-      when "News", "news"
-        { controller: "news", action: "show", id: original_id }
-      when "Message", "message"
-        message = original_record
-        { controller: "messages", action: "show", board_id: message.board.id, id: original_id }
-      when "Project", "project"
-        { controller: "projects", action: "show", id: original_id }
-      when "WikiPage", "wikipage"
-        { controller: "wiki", action: "show", project_id: project, id: title }
-      when "CustomValue", "customvalue"
-        original_record.customized.event_url
-      else
-        { controller: "welcome" }
-      end
+      mapper.url
     end
 
     def event_group
       # Not in use /search
-    end
-
-    def title_prefix
-      case original_type
-      when "Attachment", "attachment"
-        ""
-      when "Changeset", "changeset"
-        c = original_record
-        repo = (c.repository && c.repository.identifier.present?) ? " (#{c.repository.identifier})" : ''
-        delimiter = short_comments.blank? ? '' : ': '
-        "#{l(:label_revision)} #{c.format_identifier}#{repo}#{delimiter}"
-      when "Document", "document"
-        "#{l(:label_document)}: "
-      when "Issue", "issue"
-        issue = original_record
-        "#{issue.tracker.name} ##{original_id} (#{issue.status}): "
-      when "Journal", "journal"
-        journal = original_record
-        issue = journal.issue
-        "#{issue.tracker.name} ##{issue.id} (#{issue.status}): "
-      when "Message", "message"
-        "#{original_record.board.name}: "
-      when "Project", "project"
-        "#{l(:label_project)}: "
-      when "WikiPage", "wikipage"
-        "#{l(:label_wiki)}: "
-      else
-        ""
-      end
+      nil
     end
 
     def event_title_digest
-      @vent_title_digest ||= if title_digest.present?
-                                "#{title_prefix}#{title_digest}".html_safe
+      @event_title_digest ||= if title_digest.present?
+                                "#{mapper.title_prefix}#{title_digest}".html_safe
                               else
                                 event_title
                               end
