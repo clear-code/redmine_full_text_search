@@ -37,16 +37,30 @@ module FullTextSearch
         searcher_record.project_id = wiki_page.wiki.project_id
         searcher_record.project_name = wiki_page.wiki.project.name
       when "Issue"
-        searcher_record.project_id = @record.container.project_id
-        searcher_record.project_name = @nrecord.container.project.name
-        searcher_record.status_id = @record.container.status_id
-        searcher_record.is_private = @record.container.is_private
+        issue = @record.container
+        searcher_record.issue_id = issue.id
+        searcher_record.project_id = issue.project_id
+        searcher_record.project_name = issue.project.name
+        searcher_record.status_id = issue.status_id
+        searcher_record.is_private = issue.is_private
       else
         return unless @record.container.respond_to?(:project_id)
         searcher_record.project_id = @record.container.project_id
         searcher_record.project_name = @record.container.project.name
       end
       searcher_record.save!
+      ExtractTextJob.perform_later(searcher_record.id)
+    end
+
+    def extract_text
+      return unless @record.readable?
+
+      searcher_record = find_searcher_record
+      resolver = Plaintext::Resolver.new(@record.diskfile,
+                                         @record.content_type)
+      resolver.max_plaintext_bytes = nil
+      text = resolver.text
+      searcher_record.update_column(:content, text)
     end
   end
 

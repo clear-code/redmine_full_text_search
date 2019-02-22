@@ -65,8 +65,12 @@ module FullTextSearch
         FullTextSearch.resolver.resolve(@mapper).find(@record.original_id)
     end
 
+    def redmine_mapper
+      @mapper.redmine_mapper(redmine_record)
+    end
+
     def type
-      @record.orignal_type.underscore.dasherize
+      @record.original_type.underscore.dasherize
     end
 
     def title

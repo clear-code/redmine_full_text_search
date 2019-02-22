@@ -9,6 +9,12 @@ Redmine::Plugin.register :full_text_search do
   settings default: { display_score: "0" }, partial: "settings/full_text_search"
 end
 
+jobs_dir = File.join(__dir__, "app", "jobs")
+ActiveSupport::Dependencies.autoload_paths += [jobs_dir]
+if Rails.application.config.eager_load
+  Rails.application.config.eager_load_paths += [jobs_dir]
+end
+
 Rails.configuration.to_prepare do
   require_dependency "full_text_search"
   require_dependency "full_text_search/resolver"
