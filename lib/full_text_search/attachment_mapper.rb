@@ -58,7 +58,6 @@ module FullTextSearch
       searcher_record = find_searcher_record
       resolver = Plaintext::Resolver.new(@record.diskfile,
                                          @record.content_type)
-      resolver.max_plaintext_bytes = nil
       text = resolver.text
       searcher_record.update_column(:content, text)
     end
