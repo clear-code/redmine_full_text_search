@@ -8,14 +8,20 @@ module FullTextSearch
 
     tests SearchController
 
+    fixtures :attachments
+    fixtures :boards
     fixtures :enabled_modules
     fixtures :enumerations
     fixtures :issue_statuses
     fixtures :issues
+    fixtures :messages
     fixtures :projects
     fixtures :projects_trackers
     fixtures :trackers
     fixtures :users
+    fixtures :wiki_contents
+    fixtures :wiki_pages
+    fixtures :wikis
 
     def setup
       SearcherRecord.sync
@@ -37,6 +43,39 @@ module FullTextSearch
         get :index
         assert_select("#options-content") do
           assert_select(".full-text-search-order")
+        end
+      end
+    end
+
+    class AttachmentTest < self
+      def setup
+        super
+        file = uploaded_test_file("testfile.txt", "text/plain")
+        @attachment = Attachment.generate!(file: file)
+      end
+
+      def search(query)
+        get :index, params: {"q" => query, "issues" => "1"}
+      end
+
+      def format_attachments(attachments)
+        attachments.collect do |attachment|
+          [
+            attachment.filename,
+            named_attachment_path(id: attachment.id,
+                                  filename: attachment.filename),
+          ]
+        end
+      end
+
+      def test_search
+        search("upload")
+        attachments = [
+          @attachment,
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_attachments(attachments),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
     end
