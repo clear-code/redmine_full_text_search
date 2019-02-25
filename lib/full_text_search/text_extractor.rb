@@ -9,6 +9,7 @@ module FullTextSearch
       data = ChupaText::InputData.new(@path)
       data.mime_type = @content_type
       extractor = ChupaText::Extractor.new
+      extractor.apply_configuration(ChupaText::Configuration.default)
       text = ""
       extractor.extract(data) do |extracted|
         text << extracted.body
