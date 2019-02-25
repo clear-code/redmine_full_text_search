@@ -59,6 +59,12 @@ module FullTextSearch
             "#{message.board.name}: #{message.subject}",
             board_message_path(message.board, message),
           ]
+        when WikiPage
+          wiki_page = item
+          [
+            "Wiki: #{wiki_page.title}",
+            project_wiki_page_path(wiki_page.project.id, wiki_page.title),
+          ]
         else
           raise "Unsupported item: #{item.inspect}"
         end
@@ -161,6 +167,26 @@ module FullTextSearch
           Message.find(1),
           Message.find(3),
           Message.find(2),
+        ]
+        search("first post")
+        assert_select("#search-results") do
+          assert_equal(format_items(messages),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+    end
+
+    class WikiTest < self
+      def search(query)
+        get :index, params: {"q" => "CookBook", "wiki" => "1"}
+      end
+
+      def test_search
+        messages = [
+          WikiPage.find(1),
+          Issue.find(6),
+          Issue.find(5),
+          Issue.find(13),
         ]
         search("first post")
         assert_select("#search-results") do

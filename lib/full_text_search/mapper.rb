@@ -54,6 +54,7 @@ module FullTextSearch
 
   class SearcherMapper
     include Rails.application.routes.url_helpers
+    include Redmine::I18n
 
     def initialize(mapper, record)
       @mapper = mapper
