@@ -178,15 +178,12 @@ module FullTextSearch
 
     class WikiTest < self
       def search(query)
-        get :index, params: {"q" => "CookBook", "wiki" => "1"}
+        get :index, params: {"q" => "cookbook gzipped", "wiki" => "1"}
       end
 
       def test_search
         messages = [
           WikiPage.find(1),
-          Issue.find(6),
-          Issue.find(5),
-          Issue.find(13),
         ]
         search("first post")
         assert_select("#search-results") do
