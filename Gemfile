@@ -1,2 +1,2 @@
+gem "chupa-text"
 gem "groonga-client"
-gem "plaintext"

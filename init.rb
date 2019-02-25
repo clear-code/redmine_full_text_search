@@ -15,9 +15,12 @@ if Rails.application.config.eager_load
   Rails.application.config.eager_load_paths += [jobs_dir]
 end
 
+require_relative "config/initializers/chupa_text"
+
 Rails.configuration.to_prepare do
   require_dependency "full_text_search"
   require_dependency "full_text_search/resolver"
+  require_dependency "full_text_search/text_extractor"
 
   require_dependency "full_text_search/mapper"
   require_dependency "full_text_search/attachment_mapper"

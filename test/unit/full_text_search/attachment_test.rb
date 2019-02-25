@@ -17,7 +17,7 @@ module FullTextSearch
     def test_save_issue
       filename = "testfile.txt"
       file = uploaded_test_file(filename, "text/plain")
-      content = "this is a text file for upload tests with multiple lines"
+      content = "this is a text file for upload tests\r\nwith multiple lines\r\n"
       attachment = Attachment.generate!(file: file)
       attachment.reload
       records = SearcherRecord.where(original_id: attachment.id,

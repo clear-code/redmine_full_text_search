@@ -1,3 +1,5 @@
+require "chupa-text"
+
 module FullTextSearch
   class AttachmentMapper < Mapper
     class << self
@@ -55,10 +57,12 @@ module FullTextSearch
     def extract_text
       return unless @record.readable?
 
+      extractor = TextExtractor.new(@record.diskfile,
+                                    @record.content_type)
+      text = extractor.extract
+      return if text.nil?
+
       searcher_record = find_searcher_record
-      resolver = Plaintext::Resolver.new(@record.diskfile,
-                                         @record.content_type)
-      text = resolver.text
       searcher_record.update_column(:content, text)
     end
   end
