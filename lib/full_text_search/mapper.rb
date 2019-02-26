@@ -4,14 +4,23 @@ module FullTextSearch
       def attach(redmine_class)
         mapper_class = self
         redmine_class.class_eval do
-          after_save mapper_class
+          after_commit mapper_class, on: [:create, :update]
           after_destroy mapper_class
         end
       end
 
-      def after_save(record)
-        mapper = redmine_mapper(record)
-        mapper.upsert_searcher_record
+      def after_commit(record)
+        begin
+          mapper = redmine_mapper(record)
+          mapper.upsert_searcher_record
+        rescue => error
+          Rails.logger.error do
+            message = "[full-text-search] Failed to upsert searcher record"
+            message << ": #{error.class}: #{error.message}\n"
+            message << error.backtrace.join("\n")
+            message
+          end
+        end
       end
 
       def after_destroy(record)
