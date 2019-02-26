@@ -4,8 +4,6 @@ module FullTextSearch
 
     def perform(searcher_record_id)
       searcher_record = SearcherRecord.find(searcher_record_id)
-      return unless searcher_record
-
       mapper = searcher_record.mapper.redmine_mapper
       mapper.extract_text
     end
