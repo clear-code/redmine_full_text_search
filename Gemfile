@@ -1,2 +1,5 @@
 gem "chupa-text"
+gem "chupa-text-decomposer-libreoffice-excel"
+gem "chupa-text-decomposer-libreoffice-powerpoint"
+gem "chupa-text-decomposer-libreoffice-word"
 gem "groonga-client"
