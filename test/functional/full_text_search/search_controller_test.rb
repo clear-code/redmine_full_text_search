@@ -143,11 +143,10 @@ module FullTextSearch
       end
 
       def test_search
-        search("print OR private")
+        search("print OR (private (subproject OR version))")
         issues = [
           Issue.find(6),
           Issue.find(1),
-          Journal.find(5),
           Journal.find(4),
         ]
         assert_select("#search-results") do
