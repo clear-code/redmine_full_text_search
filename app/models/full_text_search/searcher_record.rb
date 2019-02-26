@@ -24,6 +24,12 @@ module FullTextSearch
         end
       end
 
+      def extract_text
+        where(original_type: "Attachment").find_each do |record|
+          record.mapper.redmine_mapper.extract_text
+        end
+      end
+
       def from_record(record_hash)
         h = record_hash.dup
         h.delete("_id")
