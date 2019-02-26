@@ -63,7 +63,8 @@ module FullTextSearch
       return if text.nil?
 
       searcher_record = find_searcher_record
-      searcher_record.update_column(:content, text)
+      searcher_record.content = text
+      searcher_record.save!
     end
   end
 
