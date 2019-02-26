@@ -80,3 +80,15 @@ module GroongaCommandExecutable
     connection.select_one(sql)
   end
 end
+
+class TestLogger
+  attr_reader :messages
+  def initialize
+    @messages = []
+  end
+
+  def error(message=nil)
+    message ||= yield
+    @messages << [:error, message]
+  end
+end

@@ -15,8 +15,8 @@ module FullTextSearch
           mapper.upsert_searcher_record
         rescue => error
           Rails.logger.error do
-            message = "[full-text-search] Failed to upsert searcher record"
-            message << ": #{error.class}: #{error.message}\n"
+            message = "[full-text-search] Failed to upsert searcher record: "
+            message << "#{error.class}: #{error.message}\n"
             message << error.backtrace.join("\n")
             message
           end

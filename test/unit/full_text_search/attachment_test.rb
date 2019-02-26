@@ -14,7 +14,7 @@ module FullTextSearch
     fixtures :trackers
     fixtures :users
 
-    def test_save_issue
+    def test_save
       filename = "testfile.txt"
       file = uploaded_test_file(filename, "text/plain")
       content = "this is a text file for upload tests\r\nwith multiple lines\r\n"
@@ -66,6 +66,67 @@ module FullTextSearch
       assert_equal(1, records.size)
       attachment.destroy!
       assert_equal([], records.reload.to_a)
+    end
+  end
+
+  class AttachmentExtractTest < ActiveSupport::TestCase
+    make_my_diffs_pretty!
+
+    fixtures :enumerations
+    fixtures :issue_statuses
+    fixtures :issues
+    fixtures :projects
+    fixtures :projects_trackers
+    fixtures :trackers
+    fixtures :users
+
+    def fixture_file_path(name)
+      File.expand_path(File.join(__dir__, "..", "..", "files", name))
+    end
+
+    def capture_log
+      original_logger = Rails.logger
+      begin
+        logger = TestLogger.new
+        Rails.logger = logger
+        yield
+        normalize_messages(logger.messages)
+      ensure
+        Rails.logger = original_logger
+      end
+    end
+
+    def normalize_messages(messages)
+      messages.collect do |level, message|
+        [level, message.lines(chomp: true).first]
+      end
+    end
+
+    def test_encrypted
+      filename = "encrypted.zip" # password is "password"
+      content_type = "application/zip"
+      file = fixture_file_upload(fixture_file_path(filename), content_type)
+      attachment = nil
+      messages = capture_log do
+        attachment = Attachment.generate!(file: file)
+      end
+      path = attachment.diskfile
+      record = SearcherRecord.where(original_id: attachment.id,
+                                    original_type: attachment.class.name).first
+      assert_equal([
+                     [
+                       :error,
+                       "[full-text-search][text-extract] " +
+                       "Failed to extract text: " +
+                       "SearcherRecord: #{record.id}: " +
+                       "Attachment: #{attachment.id}: " +
+                       "path: <#{path}>: " +
+                       "content-type: <#{content_type}>: " +
+                       "ChupaText::EncryptedError: " +
+                       "Encrypted data: <file://#{path}>(#{content_type})",
+                     ],
+                   ],
+                   messages)
     end
   end
 end

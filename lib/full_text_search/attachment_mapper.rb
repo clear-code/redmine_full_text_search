@@ -57,13 +57,30 @@ module FullTextSearch
     def extract_text
       return unless @record.readable?
 
-      extractor = TextExtractor.new(@record.diskfile,
-                                    @record.content_type)
-      text = extractor.extract
-      return if text.nil?
-
       searcher_record = find_searcher_record
-      searcher_record.content = text
+      return unless searcher_record.persisted?
+
+      content = nil
+      path = @record.diskfile
+      content_type = @record.content_type
+      begin
+        extractor = TextExtractor.new(path, content_type)
+        content = extractor.extract
+      rescue => error
+        Rails.logger.error do
+          message = "[full-text-search][text-extract] Failed to extract text: "
+          message << "SearcherRecord: #{searcher_record.id}: "
+          message << "Attachment: #{@record.id}: "
+          message << "path: <#{path}>: "
+          message << "content-type: <#{content_type}>: "
+          message << "#{error.class}: #{error.message}\n"
+          message << error.backtrace.join("\n")
+          message
+        end
+        return
+      end
+
+      searcher_record.content = content
       searcher_record.save!
     end
   end
