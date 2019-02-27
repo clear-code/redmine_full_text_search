@@ -4,7 +4,7 @@ production:
   host: 127.0.0.1
   username: root
   password: ""
-  encoding: utf8
+  encoding: utf8mb4
 
 development:
   adapter: mysql2
@@ -12,7 +12,7 @@ development:
   host: 127.0.0.1
   username: root
   password: ""
-  encoding: utf8
+  encoding: utf8mb4
 
 test:
   adapter: mysql2
@@ -20,4 +20,4 @@ test:
   host: 127.0.0.1
   username: root
   password: ""
-  encoding: utf8
+  encoding: utf8mb4
