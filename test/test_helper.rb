@@ -57,7 +57,7 @@ module NullValues
             break
           end
         end
-        Time.at(0 - utc_offset).in_time_zone
+        Time.at(0 - utc_offset - Time.now.utc_offset).in_time_zone
       end
     else
       nil
