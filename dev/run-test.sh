@@ -13,4 +13,4 @@ fi
 env \
   PSQLRC=/tmp/nonexistent \
   RAILS_ENV=test \
-    ${task_runner} redmine:plugins:test
+    ${task_runner} redmine:plugins:test "$@"
