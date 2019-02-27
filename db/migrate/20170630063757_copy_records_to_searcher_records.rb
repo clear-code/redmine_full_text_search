@@ -32,9 +32,7 @@ class CopyRecordsToSearcherRecords < migration
         load_data(table: "wiki_pages",
                   columns:                          %w[title text],
                   original_columns: %w[created_on NULL title c.text])
-        load_custom_values(table: "custom_values",
-                           columns:                    %w[value custom_field_id],
-                           original_columns: %w[NULL NULL value custom_field_id])
+        load_custom_values
         load_attachments(table: "attachments",
                          columns:                          %w[filename description],
                          original_columns: %w[created_on NULL filename description])
@@ -100,7 +98,10 @@ class CopyRecordsToSearcherRecords < migration
     execute(sql)
   end
 
-  def load_custom_values(table:, columns:, original_columns:)
+  def load_custom_values
+    table = "custom_values"
+    columns = %w[original_created_on original_updated_on value custom_field_id]
+    original_columns = %w[NULL NULL value custom_field_id]
     sql_base = <<-SQL
     INSERT INTO
       searcher_records(
@@ -110,8 +111,6 @@ class CopyRecordsToSearcherRecords < migration
         project_name,
         status_id,
         is_private,
-        original_created_on,
-        original_updated_on,
         #{columns.join(", ")}
       )
     SELECT
@@ -145,8 +144,6 @@ class CopyRecordsToSearcherRecords < migration
         original_type,
         project_id,
         project_name,
-        original_created_on,
-        original_updated_on,
         #{columns.join(", ")}
       )
     SELECT
