@@ -102,21 +102,60 @@ class CopyRecordsToSearcherRecords < migration
 
   def load_custom_values(table:, columns:, original_columns:)
     sql_base = <<-SQL
-    INSERT INTO searcher_records(original_id, original_type, project_id, project_name, status_id, is_private, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT base.id, '#{table.classify}', r.project_id, p.name, status_id, is_private, #{transform(original_columns)} FROM #{table} AS base
+    INSERT INTO
+      searcher_records(
+        original_id,
+        original_type,
+        project_id,
+        project_name,
+        status_id,
+        is_private,
+        original_created_on,
+        original_updated_on,
+        #{columns.join(", ")}
+      )
+    SELECT
+      base.id,
+      '#{table.classify}',
+      r.project_id,
+      p.name,
+      status_id,
+      is_private,
+      #{transform(original_columns)}
+    FROM #{table} AS base
     SQL
     sql_rest = <<-SQL
-    JOIN issues AS i ON (base.customized_id = i.id)
-    JOIN custom_fields AS f ON (base.custom_field_id = f.id)
-    JOIN custom_fields_projects AS r ON (base.custom_field_id = r.custom_field_id AND r.project_id = i.project_id)
-    JOIN projects AS p ON (r.project_id = p.id)
+    JOIN issues AS i
+      ON (base.customized_id = i.id)
+    JOIN custom_fields AS f
+      ON (base.custom_field_id = f.id)
+    JOIN custom_fields_projects AS r
+      ON (base.custom_field_id = r.custom_field_id AND
+          r.project_id = i.project_id)
+    JOIN projects AS p
+      ON (r.project_id = p.id)
     SQL
     sql = "#{sql_base} #{sql_rest} WHERE searchable = true;"
     execute(sql)
 
     sql_base = <<-SQL
-    INSERT INTO searcher_records(original_id, original_type, project_id, project_name, original_created_on, original_updated_on, #{columns.join(", ")})
-    SELECT base.id, '#{table.classify}', p.id, p.name, #{transform(original_columns)} FROM #{table} AS base
+    INSERT INTO
+      searcher_records(
+        original_id,
+        original_type,
+        project_id,
+        project_name,
+        original_created_on,
+        original_updated_on,
+        #{columns.join(", ")}
+      )
+    SELECT
+      base.id,
+      '#{table.classify}',
+      p.id,
+      p.name,
+      #{transform(original_columns)}
+    FROM #{table} AS base
     SQL
     sql_rest = <<-SQL
     JOIN custom_fields AS f ON (base.custom_field_id = f.id)
