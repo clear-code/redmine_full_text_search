@@ -81,7 +81,8 @@ module FullTextSearch
     fixtures :users
 
     def fixture_file_path(name)
-      File.expand_path(File.join(__dir__, "..", "..", "files", name))
+      path = Pathname(File.join(__dir__, "..", "..", "files", name)).expand_path
+      path.relative_path_from(Pathname(self.class.fixture_path))
     end
 
     def capture_log
@@ -110,6 +111,9 @@ module FullTextSearch
       messages = capture_log do
         attachment = Attachment.generate!(file: file)
       end
+      error_messages = messages.find_all do |level, _|
+        level == :error
+      end
       path = attachment.diskfile
       record = SearcherRecord.where(original_id: attachment.id,
                                     original_type: attachment.class.name).first
@@ -126,7 +130,7 @@ module FullTextSearch
                        "Encrypted data: <file://#{path}>(#{content_type})",
                      ],
                    ],
-                   messages)
+                   error_messages)
     end
   end
 end
