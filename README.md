@@ -29,7 +29,8 @@ $ git clone https://github.com/clear-code/redmine_full_text_search.git full_text
 
 ```text
 $ cd redmine
-$ ./bin/rake redmine:plugins:migrate RAILS_ENV=production
+$ RAILS_ENV=production bin/rake redmine:plugins:migrate
+$ RAILS_ENV=production bin/rake full_text_search:synchronize
 ```
 
 And restart Redmine.
