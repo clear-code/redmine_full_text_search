@@ -6,7 +6,7 @@ Redmine::Plugin.register :full_text_search do
   url 'https://github.com/clear-code/redmine_full_text_search'
   author_url 'https://github.com/okkez'
   directory __dir__
-  settings default: { display_score: "0" }, partial: "settings/full_text_search"
+  settings partial: "settings/full_text_search"
 end
 
 jobs_dir = File.join(__dir__, "app", "jobs")
@@ -19,6 +19,7 @@ require_relative "config/initializers/chupa_text"
 
 Rails.configuration.to_prepare do
   require_dependency "full_text_search"
+  require_dependency "full_text_search/settings"
   require_dependency "full_text_search/resolver"
   require_dependency "full_text_search/text_extractor"
 
@@ -40,6 +41,10 @@ Rails.configuration.to_prepare do
   require_dependency "full_text_search/hooks/similar_issues_helper"
   require_dependency "full_text_search/searcher"
   require_dependency "full_text_search/similar_searcher"
+
+  class << Setting
+    prepend FullTextSearch::SettingsObjectize
+  end
 
   case ActiveRecord::Base.connection_config[:adapter]
   when "postgresql"

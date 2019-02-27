@@ -12,7 +12,10 @@ module FullTextSearch
       extractor.apply_configuration(ChupaText::Configuration.default)
       text = ""
       extractor.extract(data) do |extracted|
-        text << extracted.body
+        body = extracted.body
+        next if body.empty?
+        text << "\n" unless text.empty?
+        text << body
       end
       text
     end

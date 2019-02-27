@@ -5,4 +5,5 @@ en:
   label_full_text_search_order_type_asc: asc
   label_full_text_search_order_type_desc: desc
   label_full_text_search_display_score: Display score
+  label_full_text_search_attachment_max_text_size: Max text size extracted from attachments
   label_similar_issues: Similar issues

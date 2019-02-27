@@ -80,6 +80,26 @@ module FullTextSearch
         return
       end
 
+      max_size = Setting.plugin_full_text_search.attachment_max_text_size
+      if content.encoding == Encoding::ASCII_8BIT
+        content.force_encoding(Encoding::UTF_8)
+      else
+        content.encode!(Encoding::UTF_8,
+                        invalid: :replace,
+                        undef: :replace,
+                        replace: "")
+      end
+      if content.bytesize > max_size
+        Rails.logger.info do
+          message = "[full-text-search][text-extract] Truncated extracted text: "
+          message << "#{content.bytesize} -> #{max_size}: "
+          message << "SearcherRecord: #{searcher_record.id}: "
+          message << "Attachment: #{@record.id}"
+          message
+        end
+        content = content.byteslice(0, max_size)
+      end
+      content.scrub!("")
       searcher_record.content = content
       searcher_record.save!
     end

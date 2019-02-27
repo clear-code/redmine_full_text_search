@@ -5,4 +5,5 @@ ja:
   label_full_text_search_order_type_asc: 昇順
   label_full_text_search_order_type_desc: 降順
   label_full_text_search_display_score: スコアを表示
+  label_full_text_search_attachment_max_text_size: 添付ファイルから抽出する最大テキストサイズ
   label_similar_issues: 類似チケット

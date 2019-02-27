@@ -118,19 +118,47 @@ module FullTextSearch
       record = SearcherRecord.where(original_id: attachment.id,
                                     original_type: attachment.class.name).first
       assert_equal([
-                     [
-                       :error,
-                       "[full-text-search][text-extract] " +
-                       "Failed to extract text: " +
-                       "SearcherRecord: #{record.id}: " +
-                       "Attachment: #{attachment.id}: " +
-                       "path: <#{path}>: " +
-                       "content-type: <#{content_type}>: " +
-                       "ChupaText::EncryptedError: " +
-                       "Encrypted data: <file://#{path}>(#{content_type})",
-                     ],
+                     "[full-text-search][text-extract] " +
+                     "Failed to extract text: " +
+                     "SearcherRecord: #{record.id}: " +
+                     "Attachment: #{attachment.id}: " +
+                     "path: <#{path}>: " +
+                     "content-type: <#{content_type}>: " +
+                     "ChupaText::EncryptedError: " +
+                     "Encrypted data: <file://#{path}>(#{content_type})",
                    ],
-                   error_messages)
+                   error_messages.collect(&:last))
+    end
+
+    def test_max_size
+      filename = "japanese.txt"
+      file = fixture_file_upload(fixture_file_path(filename), "text/plain")
+      attachment = nil
+      messages = capture_log do
+        with_settings(plugin_full_text_search: {
+                        "attachment_max_text_size_in_mb" => 7 / 1.megabytes.to_f,
+                      }) do
+          attachment = Attachment.generate!(file: file)
+        end
+      end
+      info_messages = messages.find_all do |level, message|
+        level == :info and message.start_with?("[full-text-search]")
+      end
+      record = SearcherRecord.where(original_id: attachment.id,
+                                    original_type: attachment.class.name).first
+      assert_equal([
+                     "こん",
+                     [
+                       "[full-text-search][text-extract] " +
+                       "Truncated extracted text: 16 -> 7: " +
+                       "SearcherRecord: #{record.id}: " +
+                       "Attachment: #{attachment.id}",
+                     ]
+                   ],
+                   [
+                     record.content,
+                     info_messages.collect(&:last),
+                   ])
     end
   end
 end
