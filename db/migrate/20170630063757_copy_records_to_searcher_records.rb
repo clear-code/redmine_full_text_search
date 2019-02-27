@@ -116,7 +116,7 @@ class CopyRecordsToSearcherRecords < migration
     SELECT
       base.id,
       '#{table.classify}',
-      r.project_id,
+      i.project_id,
       p.name,
       status_id,
       is_private,
@@ -128,13 +128,14 @@ class CopyRecordsToSearcherRecords < migration
       ON (base.customized_id = i.id)
     JOIN custom_fields AS f
       ON (base.custom_field_id = f.id)
-    JOIN custom_fields_projects AS r
-      ON (base.custom_field_id = r.custom_field_id AND
-          r.project_id = i.project_id)
     JOIN projects AS p
-      ON (r.project_id = p.id)
+      ON (i.project_id = p.id)
     SQL
-    sql = "#{sql_base} #{sql_rest} WHERE searchable = true;"
+    sql_condition = <<-SQL
+    WHERE searchable = true AND
+          customized_type = 'Issue'
+    SQL
+    sql = "#{sql_base} #{sql_rest} #{sql_condition};"
     execute(sql)
 
     sql_base = <<-SQL
@@ -155,10 +156,14 @@ class CopyRecordsToSearcherRecords < migration
     FROM #{table} AS base
     SQL
     sql_rest = <<-SQL
-    JOIN custom_fields AS f ON (base.custom_field_id = f.id)
-    JOIN projects AS p ON (base.customized_id = p.id)
+    JOIN projects AS p
+      ON (base.customized_id = p.id)
     SQL
-    sql = "#{sql_base} #{sql_rest} WHERE searchable = true;"
+    sql_condition = <<-SQL
+    WHERE searchable = true AND
+          customized_type <> 'Issue'
+    SQL
+    sql = "#{sql_base} #{sql_rest} #{sql_condition};"
     execute(sql)
   end
 
