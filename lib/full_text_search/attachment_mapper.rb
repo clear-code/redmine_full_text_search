@@ -78,6 +78,19 @@ module FullTextSearch
           message
         end
         return
+      rescue NoMemoryError => error
+        Rails.logger.error do
+          message = "[full-text-search][text-extract] Failed to extract text "
+          message << "by no memory error: "
+          message << "SearcherRecord: #{searcher_record.id}: "
+          message << "Attachment: #{@record.id}: "
+          message << "path: <#{path}>: "
+          message << "content-type: <#{content_type}>: "
+          message << "#{error.message}\n"
+          message << error.backtrace.join("\n")
+          message
+        end
+        return
       end
 
       max_size = Setting.plugin_full_text_search.attachment_max_text_size
