@@ -38,12 +38,10 @@ And restart Redmine.
 **NOTE** for PGroonga:
 
 If you use normal user for Redmine. You must run following query as
-super user before run `./bin/rake redmine:plugins:migrate RAILS_ENV=production`:
+super user before run `RAILS_ENV=production bin/rake
+redmine:plugins:migrate`:
 
 1. `CREATE EXTENSION IF NOT EXISTS pgroonga;`
-1. `GRANT USAGE ON SCHEMA pgroonga TO <user>;`
-
-See https://pgroonga.github.io/reference/grant-usage-on-schema-pgroonga.html
 
 # Contributing
 
