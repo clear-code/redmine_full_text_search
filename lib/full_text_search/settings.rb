@@ -34,7 +34,7 @@ module FullTextSearch
         result = connection.exec_query("SELECT @@max_allowed_packet",
                                        "max allowed package")
         max_allowed_packet = result[0]["@@max_allowed_packet"]
-        [size, (max_allowed_packet * 0.9).floor].min
+        [size, (max_allowed_packet * 0.7).floor].min
       else
         size
       end
