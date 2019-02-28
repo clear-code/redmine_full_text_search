@@ -6,6 +6,9 @@ module FullTextSearch
         redmine_class.class_eval do
           after_commit mapper_class, on: [:create, :update]
           after_destroy mapper_class
+          define_method(:to_searcher_record) do
+            mapper_class.redmine_mapper(self).find_searcher_record
+          end
         end
       end
 

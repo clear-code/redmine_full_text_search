@@ -98,9 +98,23 @@ module FullTextSearch
     end
 
     def normalize_messages(messages)
-      messages.collect do |level, message|
+      messages = messages.collect do |level, message|
         [level, message.lines(chomp: true).first]
       end
+      messages.find_all do |_level, message|
+        message.start_with?("[full-text-search]")
+      end
+    end
+
+    def format_log_message(message, context, error_message=nil)
+      formatted_message = "[full-text-search][text-extract] "
+      formatted_message << "#{message}: "
+      formatted_message << "SearcherRecord: #{context[:searcher_record].id}: "
+      formatted_message << "Attachment: #{context[:attachment].id}: "
+      formatted_message << "path: <#{context[:path]}>: "
+      formatted_message << "content-type: <#{context[:content_type]}>"
+      formatted_message << ": #{error_message}" if error_message
+      formatted_message
     end
 
     def test_encrypted
@@ -111,23 +125,29 @@ module FullTextSearch
       messages = capture_log do
         attachment = Attachment.generate!(file: file)
       end
-      error_messages = messages.find_all do |level, _|
-        level == :error
-      end
       path = attachment.diskfile
-      record = SearcherRecord.where(original_id: attachment.id,
-                                    original_type: attachment.class.name).first
+      context = {
+        attachment: attachment,
+        searcher_record: attachment.to_searcher_record,
+        path: path,
+        content_type: content_type,
+      }
+      error_message = "ChupaText::EncryptedError: " +
+                      "Encrypted data: <file://#{path}>(#{content_type})"
       assert_equal([
-                     "[full-text-search][text-extract] " +
-                     "Failed to extract text: " +
-                     "SearcherRecord: #{record.id}: " +
-                     "Attachment: #{attachment.id}: " +
-                     "path: <#{path}>: " +
-                     "content-type: <#{content_type}>: " +
-                     "ChupaText::EncryptedError: " +
-                     "Encrypted data: <file://#{path}>(#{content_type})",
+                     [
+                       :debug,
+                       format_log_message("Extracting...",
+                                          context),
+                     ],
+                     [
+                       :error,
+                       format_log_message("Failed to extract text",
+                                          context,
+                                          error_message),
+                     ],
                    ],
-                   error_messages.collect(&:last))
+                   messages)
     end
 
     def test_max_size
@@ -141,23 +161,36 @@ module FullTextSearch
           attachment = Attachment.generate!(file: file)
         end
       end
-      info_messages = messages.find_all do |level, message|
-        level == :info and message.start_with?("[full-text-search]")
-      end
-      record = SearcherRecord.where(original_id: attachment.id,
-                                    original_type: attachment.class.name).first
+      searcher_record = attachment.to_searcher_record
+      context = {
+        attachment: attachment,
+        searcher_record: searcher_record,
+        path: attachment.diskfile,
+        content_type: "text/plain",
+      }
       assert_equal([
                      "こん",
                      [
-                       "[full-text-search][text-extract] " +
-                       "Truncated extracted text: 16 -> 7: " +
-                       "SearcherRecord: #{record.id}: " +
-                       "Attachment: #{attachment.id}",
-                     ]
+                       [
+                         :debug,
+                         format_log_message("Extracting...",
+                                            context),
+                       ],
+                       [
+                         :debug,
+                         format_log_message("Extracted",
+                                            context),
+                       ],
+                       [
+                         :info,
+                         format_log_message("Truncated extracted text: 16 -> 6",
+                                            context),
+                       ],
+                     ],
                    ],
                    [
-                     record.content,
-                     info_messages.collect(&:last),
+                     searcher_record.content,
+                     messages,
                    ])
     end
   end

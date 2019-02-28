@@ -60,39 +60,39 @@ module FullTextSearch
       searcher_record = find_searcher_record
       return unless searcher_record.persisted?
 
-      content = nil
-      path = @record.diskfile
-      content_type = @record.content_type
+      context = {
+        searcher_record: searcher_record,
+        content: nil,
+        path: @record.diskfile,
+        content_type: @record.content_type,
+      }
+      Rails.logger.debug do
+        format_log_message("Extracting...", context)
+      end
       begin
-        extractor = TextExtractor.new(path, content_type)
-        content = extractor.extract
+        extractor = TextExtractor.new(context[:path],
+                                      context[:content_type])
+        context[:content] = extractor.extract
       rescue => error
         Rails.logger.error do
-          message = "[full-text-search][text-extract] Failed to extract text: "
-          message << "SearcherRecord: #{searcher_record.id}: "
-          message << "Attachment: #{@record.id}: "
-          message << "path: <#{path}>: "
-          message << "content-type: <#{content_type}>: "
-          message << "#{error.class}: #{error.message}\n"
-          message << error.backtrace.join("\n")
-          message
+          format_log_message("Failed to extract text",
+                             context,
+                             error)
         end
         return
       rescue NoMemoryError => error
         Rails.logger.error do
-          message = "[full-text-search][text-extract] Failed to extract text "
-          message << "by no memory error: "
-          message << "SearcherRecord: #{searcher_record.id}: "
-          message << "Attachment: #{@record.id}: "
-          message << "path: <#{path}>: "
-          message << "content-type: <#{content_type}>: "
-          message << "#{error.message}\n"
-          message << error.backtrace.join("\n")
-          message
+          format_log_message("Failed to extract text by no memory",
+                             context,
+                             error)
         end
         return
       end
+      Rails.logger.debug do
+        format_log_message("Extracted", context)
+      end
 
+      content = context[:content]
       max_size = Setting.plugin_full_text_search.attachment_max_text_size
       if content.encoding == Encoding::ASCII_8BIT
         content.force_encoding(Encoding::UTF_8)
@@ -102,19 +102,34 @@ module FullTextSearch
                         undef: :replace,
                         replace: "")
       end
-      if content.bytesize > max_size
-        Rails.logger.info do
-          message = "[full-text-search][text-extract] Truncated extracted text: "
-          message << "#{content.bytesize} -> #{max_size}: "
-          message << "SearcherRecord: #{searcher_record.id}: "
-          message << "Attachment: #{@record.id}"
-          message
-        end
+      original_size = content.bytesize
+      if original_size > max_size
         content = content.byteslice(0, max_size)
       end
       content.scrub!("")
+      if original_size > max_size
+        Rails.logger.info do
+          format_log_message("Truncated extracted text: " +
+                             "#{original_size} -> #{content.bytesize}",
+                             context)
+        end
+      end
       searcher_record.content = content
       searcher_record.save!
+    end
+
+    private
+    def format_log_message(message, context, error=nil)
+      formatted_message = "[full-text-search][text-extract] #{message}: "
+      formatted_message << "SearcherRecord: #{context[:searcher_record].id}: "
+      formatted_message << "Attachment: #{@record.id}: "
+      formatted_message << "path: <#{context[:path]}>: "
+      formatted_message << "content-type: <#{context[:content_type]}>"
+      if error
+        formatted_message << ": #{error.class}: #{error.message}\n"
+        formatted_message << error.backtrace.join("\n")
+      end
+      formatted_message
     end
   end
 

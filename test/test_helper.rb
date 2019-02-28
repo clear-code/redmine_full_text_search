@@ -87,6 +87,10 @@ class TestLogger
     @messages = []
   end
 
+  def debug(message=nil)
+    @messages << [:debug, message || yield]
+  end
+
   def info(message=nil)
     @messages << [:info, message || yield]
   end
