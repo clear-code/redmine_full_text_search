@@ -28,7 +28,16 @@ module FullTextSearch
     end
 
     def attachment_max_text_size
-      (attachment_max_text_size_in_mb * 1.megabytes).floor
+      size = (attachment_max_text_size_in_mb * 1.megabytes).floor
+      if Redmine::Database.mysql?
+        connection = ActiveRecord::Base.connection
+        result = connection.exec_query("SELECT @@max_allowed_packet",
+                                       "max allowed package")
+        max_allowed_packet = result[0]["@@max_allowed_packet"]
+        [size, (max_allowed_packet * 0.9).floor].min
+      else
+        size
+      end
     end
   end
 end
