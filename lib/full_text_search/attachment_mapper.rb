@@ -59,6 +59,7 @@ module FullTextSearch
       return unless searcher_record.persisted?
 
       before_memory_usage = memory_usage
+      start_time = Time.now
       context = {
         searcher_record: searcher_record,
         content: nil,
@@ -91,6 +92,7 @@ module FullTextSearch
         end
         return
       end
+      context[:elapsed_time] = Time.now - start_time
       after_memory_usage = memory_usage
       context[:memory_usage_diff] = after_memory_usage - before_memory_usage
       context[:memory_usage] = after_memory_usage
@@ -157,6 +159,17 @@ module FullTextSearch
       formatted_message << "Attachment: #{@record.id}: "
       formatted_message << "path: <#{context[:path]}>: "
       formatted_message << "content-type: <#{context[:content_type]}>"
+      elapsed_time = context[:elapsed_time]
+      if elapsed_time
+        if elapsed_time < 1
+          formatted_elapsed_time = "%.2fms" % (elapsed_time * 1000)
+        elsif elapsed_time < 60
+          formatted_elapsed_time = "%.2fs" % elapsed_time
+        else
+          formatted_elapsed_time = "%.2fh" % (elapsed_time / 60)
+        end
+        formatted_message << ": elapsed time: <#{formatted_elapsed_time}>"
+      end
       memory_usage = context[:memory_usage]
       if memory_usage > 0
         formatted_memory_usage =
