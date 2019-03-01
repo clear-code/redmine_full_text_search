@@ -165,8 +165,10 @@ module FullTextSearch
           formatted_elapsed_time = "%.2fms" % (elapsed_time * 1000)
         elsif elapsed_time < 60
           formatted_elapsed_time = "%.2fs" % elapsed_time
+        elsif elapsed_time < (60 * 60)
+          formatted_elapsed_time = "%.2fm" % (elapsed_time / 60)
         else
-          formatted_elapsed_time = "%.2fh" % (elapsed_time / 60)
+          formatted_elapsed_time = "%.2fh" % (elapsed_time / 60 / 60)
         end
         formatted_message << ": elapsed time: <#{formatted_elapsed_time}>"
       end
