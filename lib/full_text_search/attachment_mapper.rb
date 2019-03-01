@@ -58,12 +58,14 @@ module FullTextSearch
       searcher_record = find_searcher_record
       return unless searcher_record.persisted?
 
+      before_memory_usage = memory_usage
       context = {
         searcher_record: searcher_record,
         content: nil,
         path: @record.diskfile,
         content_type: @record.content_type,
         max_size: Setting.plugin_full_text_search.attachment_max_text_size,
+        memory_usage: before_memory_usage,
       }
       resolve_context(context)
       Rails.logger.debug do
@@ -89,6 +91,9 @@ module FullTextSearch
         end
         return
       end
+      after_memory_usage = memory_usage
+      context[:memory_usage_diff] = after_memory_usage - before_memory_usage
+      context[:memory_usage] = after_memory_usage
       Rails.logger.debug do
         format_log_message("Extracted", context)
       end
@@ -131,12 +136,40 @@ module FullTextSearch
       end
     end
 
+    def memory_usage
+      status_path = "/proc/self/status"
+      if File.exist?(status_path)
+        File.open(status_path) do |status|
+          status.each_line do |line|
+            case line
+            when /\AVmRSS:\s+(\d+) kB/
+              return Integer($1, 10) * 1024
+            end
+          end
+        end
+      end
+      0
+    end
+
     def format_log_message(message, context, error=nil)
       formatted_message = "[full-text-search][text-extract] #{message}: "
       formatted_message << "SearcherRecord: #{context[:searcher_record].id}: "
       formatted_message << "Attachment: #{@record.id}: "
       formatted_message << "path: <#{context[:path]}>: "
       formatted_message << "content-type: <#{context[:content_type]}>"
+      memory_usage = context[:memory_usage]
+      if memory_usage > 0
+        formatted_memory_usage =
+          "%.2fGiB" % (memory_usage / 1024.0 / 1024.0 / 1024.0)
+        formatted_message << ": memory usage: <#{formatted_memory_usage}>"
+        memory_usage_diff = context[:memory_usage_diff]
+        if memory_usage_diff
+          formatted_memory_usage_diff =
+            "%.2fMiB" % (memory_usage_diff / 1024.0 / 1024.0)
+          formatted_message << ": memory usage diff: "
+          formatted_message << "<#{formatted_memory_usage_diff}>"
+        end
+      end
       if error
         formatted_message << ": #{error.class}: #{error.message}\n"
         formatted_message << error.backtrace.join("\n")
