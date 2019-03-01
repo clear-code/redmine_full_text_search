@@ -66,6 +66,7 @@ module FullTextSearch
         path: @record.diskfile,
         content_type: @record.content_type,
       }
+      resolve_context(context)
       Rails.logger.debug do
         format_log_message("Extracting...", context)
       end
@@ -119,6 +120,18 @@ module FullTextSearch
     end
 
     private
+    def resolve_context(context)
+      case context[:content_type]
+      when "application/x-tar"
+        case File.extname(context[:path]).downcase
+        when ".gz"
+          context[:content_type] = "application/gzip"
+        when ".bz2"
+          context[:content_type] = "application/x-bzip2"
+        end
+      end
+    end
+
     def format_log_message(message, context, error=nil)
       formatted_message = "[full-text-search][text-extract] #{message}: "
       formatted_message << "SearcherRecord: #{context[:searcher_record].id}: "
