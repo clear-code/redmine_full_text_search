@@ -101,8 +101,15 @@ module FullTextSearch
       messages = messages.collect do |level, message|
         [level, message.lines(chomp: true).first]
       end
-      messages.find_all do |_level, message|
+      messages = messages.find_all do |_level, message|
         message.start_with?("[full-text-search]")
+      end
+      messages.collect do |level, message|
+        [
+          level,
+          message.gsub(/: (?:elapsed time|memory usage|memory usage diff): <.*?>/,
+                       "")
+        ]
       end
     end
 
