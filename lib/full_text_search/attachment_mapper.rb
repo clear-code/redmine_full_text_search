@@ -1,5 +1,3 @@
-require "chupa-text"
-
 module FullTextSearch
   class AttachmentMapper < Mapper
     class << self
