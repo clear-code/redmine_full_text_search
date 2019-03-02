@@ -9,7 +9,10 @@ namespace :full_text_search do
   namespace :attachment do
     desc "Extract"
     task :extract => :environment do
-      FullTextSearch::SearcherRecord.extract_text
+      options = {}
+      id = ENV["ID"]
+      options[:ids] = [Integer(id, 10)] if id.present?
+      FullTextSearch::SearcherRecord.extract_text(options)
     end
   end
 end

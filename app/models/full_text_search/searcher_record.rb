@@ -24,8 +24,11 @@ module FullTextSearch
         end
       end
 
-      def extract_text
-        where(original_type: "Attachment").find_each do |record|
+      def extract_text(options={})
+        attachments = where(original_type: "Attachment")
+        ids = options[:ids]
+        attachments = attachments.where(id: ids) if ids
+        attachments.find_each do |record|
           record.mapper.redmine_mapper.extract_text
         end
       end
