@@ -69,7 +69,7 @@ module FullTextSearch
         memory_usage: before_memory_usage,
       }
       resolve_context(context)
-      Rails.logger.debug do
+      Rails.logger.info do
         format_log_message("Extracting...", context)
       end
       begin
@@ -96,7 +96,7 @@ module FullTextSearch
       after_memory_usage = memory_usage
       context[:memory_usage_diff] = after_memory_usage - before_memory_usage
       context[:memory_usage] = after_memory_usage
-      Rails.logger.debug do
+      Rails.logger.info do
         format_log_message("Extracted", context)
       end
 

@@ -143,7 +143,7 @@ module FullTextSearch
                       "Encrypted data: <file://#{path}>(#{content_type})"
       assert_equal([
                      [
-                       :debug,
+                       :info,
                        format_log_message("Extracting...",
                                           context),
                      ],
@@ -179,18 +179,13 @@ module FullTextSearch
                      "こん",
                      [
                        [
-                         :debug,
+                         :info,
                          format_log_message("Extracting...",
                                             context),
                        ],
                        [
-                         :debug,
-                         format_log_message("Extracted",
-                                            context),
-                       ],
-                       [
                          :info,
-                         format_log_message("Truncated extracted text: 16 -> 6",
+                         format_log_message("Extracted",
                                             context),
                        ],
                      ],
