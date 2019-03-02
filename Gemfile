@@ -1,2 +1,2 @@
-gem "chupa-text", ">= 1.1.9"
+gem "chupa-text", ">= 1.2.0"
 gem "groonga-client"

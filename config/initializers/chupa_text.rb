@@ -3,6 +3,7 @@ ChupaText::Decomposers.enable_all_gems
 ChupaText::Decomposers.load
 ChupaText::Configuration.default
 ENV["CHUPA_TEXT_EXTERNAL_COMMAND_LIMIT_CPU"] ||= "180"
+ENV["CHUPA_TEXT_EXTERNAL_COMMAND_TIMEOUT"] ||= "180"
 if File.readable?("/proc/meminfo")
   File.open("/proc/meminfo") do |meminfo|
     meminfo.each_line do |line|
