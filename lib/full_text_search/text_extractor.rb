@@ -4,7 +4,7 @@ module FullTextSearch
       @path = Pathname(path)
       @content_type = content_type
       @max_size = max_size
-      @extractor = ChupaText::Extractor.new
+      @extractor = ChupaText::Extractor.new(max_body_size: @max_size)
       @extractor.apply_configuration(ChupaText::Configuration.default)
     end
 
