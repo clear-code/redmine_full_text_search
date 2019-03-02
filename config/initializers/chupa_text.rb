@@ -2,6 +2,7 @@ ChupaText.logger = Rails.logger
 ChupaText::Decomposers.enable_all_gems
 ChupaText::Decomposers.load
 ChupaText::Configuration.default
+ENV["CHUPA_TEXT_EXTERNAL_COMMAND_LIMIT_CPU"] ||= "180"
 if File.readable?("/proc/meminfo")
   File.open("/proc/meminfo") do |meminfo|
     meminfo.each_line do |line|
