@@ -15,22 +15,45 @@ module FullTextSearch
 
     class << self
       def sync
-        destroy_all
+        bar_format = "[:bar] :current/:total(:percent) :eta :rate/s :elapsed"
+        destroy_bar = TTY::ProgressBar.new("Destroy #{bar_format}",
+                                           total: count)
+        find_each do |record|
+          record.destroy
+          destroy_bar.advance
+        end
+
+        all_bar = TTY::ProgressBar::Multi.new("All #{bar_format}")
+        bars = {}
+        FullTextSearch.resolver.collect do |redmine_class, _|
+          bars[redmine_class] =
+            all_bar.register("#{redmine_class.name} #{bar_format}",
+                             total: redmine_class.count)
+        end
         FullTextSearch.resolver.each do |redmine_class, mapper_class|
+          bar = bars[redmine_class]
           redmine_class.find_each do |record|
             mapper = mapper_class.redmine_mapper(record)
             mapper.upsert_searcher_record
+            bar.advance
           end
+          bar.finish
         end
+        all_bar.finish
       end
 
       def extract_text(options={})
         attachments = where(original_type: "Attachment")
         ids = options[:ids]
         attachments = attachments.where(id: ids) if ids
+        bar_format = "[:bar] :current/:total(:percent) :eta :rate/s :elapsed"
+        bar = TTY::ProgressBar.new("Extract #{bar_format}",
+                                   total: attachments.count)
         attachments.find_each do |record|
           record.mapper.redmine_mapper.extract_text
+          bar.advance
         end
+        bar.finish
       end
 
       def from_record(record_hash)
