@@ -25,7 +25,7 @@ module FullTextSearch
 
         all_bar = TTY::ProgressBar::Multi.new("All #{bar_format}")
         bars = {}
-        FullTextSearch.resolver.collect do |redmine_class, _|
+        FullTextSearch.resolver.each do |redmine_class, _|
           bars[redmine_class] =
             all_bar.register("#{redmine_class.name} #{bar_format}",
                              total: redmine_class.count)
