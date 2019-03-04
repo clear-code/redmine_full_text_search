@@ -72,7 +72,6 @@ module FullTextSearch
         content: nil,
         path: @record.diskfile,
         content_type: @record.content_type,
-        max_size: Setting.plugin_full_text_search.attachment_max_text_size,
         memory_usage: before_memory_usage,
       }
       resolve_context(context)
@@ -81,8 +80,7 @@ module FullTextSearch
       end
       begin
         extractor = TextExtractor.new(context[:path],
-                                      context[:content_type],
-                                      context[:max_size])
+                                      context[:content_type])
         context[:content] = extractor.extract
       rescue => error
         Rails.logger.error do
@@ -106,29 +104,7 @@ module FullTextSearch
       Rails.logger.info do
         format_log_message("Extracted", context)
       end
-
-      content = context[:content]
-      if content.encoding == Encoding::ASCII_8BIT
-        content.force_encoding(Encoding::UTF_8)
-      else
-        content.encode!(Encoding::UTF_8,
-                        invalid: :replace,
-                        undef: :replace,
-                        replace: "")
-      end
-      original_size = content.bytesize
-      if original_size > context[:max_size]
-        content = content.byteslice(0, context[:max_size])
-      end
-      content.scrub!("")
-      if original_size > context[:max_size]
-        Rails.logger.info do
-          format_log_message("Truncated extracted text: " +
-                             "#{original_size} -> #{content.bytesize}",
-                             context)
-        end
-      end
-      searcher_record.content = content
+      searcher_record.content = context[:content]
       searcher_record.save!
     end
 

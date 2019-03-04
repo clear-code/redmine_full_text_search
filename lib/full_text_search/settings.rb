@@ -39,5 +39,45 @@ module FullTextSearch
         size
       end
     end
+
+    DEFAULT_EXTERNAL_COMMAND_TIMEOUT = 180
+    def external_command_timeout
+      timeout = @raw.fetch("external_command_timeout",
+                           DEFAULT_EXTERNAL_COMMAND_TIMEOUT)
+      begin
+        Float(timeout)
+      rescue ArgumentError
+        DEFAULT_EXTERNAL_COMMAND_TIMEOUT
+      end
+    end
+
+    external_command_max_memory_in_mb = 1024
+    if File.readable?("/proc/meminfo")
+      File.open("/proc/meminfo") do |meminfo|
+        meminfo.each_line do |line|
+          case line
+          when /\AMemTotal:\s+(\d+) kB/
+            total_memory = Integer($1, 10)
+            external_command_max_memory_in_mb =
+              ((total_memory / 4) / 1024.0).round
+            break
+          end
+        end
+      end
+    end
+    DEFAULT_EXTERNAL_COMMAND_MAX_MEMORY_IN_MB = external_command_max_memory_in_mb
+    def external_command_max_memory_in_mb
+      size = @raw.fetch("external_command_max_memory_in_mb",
+                        DEFAULT_EXTERNAL_COMMAND_MAX_MEMORY_IN_MB)
+      begin
+        Float(size)
+      rescue ArgumentError
+        DEFAULT_EXTERNAL_COMMAND_MAX_MEMORY_IN_MB
+      end
+    end
+
+    def external_command_max_memory
+      (external_command_max_memory_in_mb * 1.megabytes).floor
+    end
   end
 end

@@ -14,3 +14,20 @@
                      size: 6) %>
   <%= l(:"number.human.storage_units.units.mb") %>
 </p>
+
+<p>
+  <%= label_tag("settings[external_command_timeout]",
+                l(:label_full_text_search_external_command_timeout)) %>
+  <%= text_field_tag("settings[external_command_timeout]",
+                     settings.external_command_timeout,
+                     size: 6) %>
+</p>
+
+<p>
+  <%= label_tag("settings[external_command_max_memory_in_mb]",
+                l(:label_full_text_search_external_command_max_memory)) %>
+  <%= text_field_tag("settings[external_command_max_memory_in_mb]",
+                     settings.external_command_max_memory_in_mb,
+                     size: 6) %>
+  <%= l(:"number.human.storage_units.units.mb") %>
+</p>
