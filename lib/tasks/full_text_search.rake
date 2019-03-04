@@ -3,7 +3,8 @@
 namespace :full_text_search do
   desc "Synchronize"
   task :synchronize => :environment do
-    FullTextSearch::SearcherRecord.sync
+    batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
+    batch_runner.synchronize(extract_text: :immediate)
   end
 
   namespace :attachment do
@@ -12,7 +13,8 @@ namespace :full_text_search do
       options = {}
       id = ENV["ID"]
       options[:ids] = [Integer(id, 10)] if id.present?
-      FullTextSearch::SearcherRecord.extract_text(options)
+      batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
+      batch_runner.extract_text(**options)
     end
   end
 end

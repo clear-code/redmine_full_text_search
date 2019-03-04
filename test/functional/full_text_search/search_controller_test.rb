@@ -25,7 +25,8 @@ module FullTextSearch
     fixtures :wikis
 
     def setup
-      SearcherRecord.sync
+      batch_runner = BatchRunner.new(show_progress: false)
+      batch_runner.synchronize
       execute_groonga_command("plugin_register functions/vector")
       @request.session[:user_id] = User.admin.first.id
     end
