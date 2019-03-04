@@ -89,7 +89,8 @@ option_parser.on("--slow-elapsed-time-threshold=THRESHOLD",
   options.slow_elapsed_time_threshold = parse_time(threshold)
 end
 
-ARGF.each_line(chomp: true) do |line|
+ARGF.each_line do |line|
+  line = line.chomp
   original_line = line
   line = line.scrub unless line.valid_encoding?
   case line
