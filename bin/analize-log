@@ -1,0 +1,144 @@
+#!/usr/bin/env ruby
+
+require "English"
+require "optparse"
+require "ostruct"
+
+def parse_size(value)
+  case value
+  when /\A([-\d.]+)B?\z/
+    Float($1)
+  when /\A([-\d.]+)KB?\z/
+    Float($1) * 1000
+  when /\A([-\d.]+)KiB?\z/
+    Float($1) * 1024
+  when /\A([-\d.]+)MB?\z/
+    Float($1) * 1000 * 1000
+  when /\A([-\d.]+)MiB?\z/
+    Float($1) * 1024 * 1024
+  when /\A([-\d.]+)GB?\z/
+    Float($1) * 1000 * 1000 * 1000
+  when /\A([-\d.]+)GiB?\z/
+    Float($1) * 1024 * 1024 * 1024
+  else
+    raise "invalid size: <#{value}>"
+  end
+end
+
+def format_size(size)
+  if size < 1024
+    "%d" % size
+  elsif size < (1024 * 1024)
+    "%.2fKiB" % (size / 1024.0)
+  elsif size < (1024 * 1024 * 1024)
+    "%.2fMiB" % (size / 1024.0 / 1024.0)
+  else
+    "%.2fGiB" % (size / 1024.0 / 1024.0 / 1024.0)
+  end
+end
+
+def parse_time(value)
+  case value
+  when /\A([-\d.]+)ms\z/
+    Float($1) / 1000
+  when /\A([-\d.]+)s?\z/
+    Float($1)
+  when /\A([-\d.]+)m\z/
+    Float($1) * 60
+  when /\A([-\d.]+)h\z/
+    Float($1) * 60 * 60
+  else
+    raise "invalid size: <#{value}>"
+  end
+end
+
+def format_time(time)
+  if time < 1
+    "%.2fms" % (time / 1000.0)
+  elsif time < 60
+    "%.2fs" % time
+  elsif time < (60 * 60)
+    "%.2fm" % (time / 60.0)
+  else
+    "%.2fh" % (time / 60.0 / 60.0)
+  end
+end
+
+options = OpenStruct.new
+options.large_memory_usage_diff_threshold = parse_size("512MiB")
+options.large_memory_usage_threshold = parse_size("1GiB")
+options.slow_elapsed_time_threshold = parse_time("5s")
+option_parser = OptionParser.new
+option_parser.on("--large-memory-usage-diff-threshold=THRESHOLD",
+                 Integer,
+                 "Use THRESHOLD as the threshold " +
+                 "to judge large memory usage diff",
+                 "(#{format_size(options.large_memory_usage_diff_threshold)})") do |threshold|
+  options.memory_usage_diff_threshold = parse_size(threshold)
+end
+option_parser.on("--large-memory-usage-threshold=THRESHOLD",
+                 "Use THRESHOLD as the threshold " +
+                 "to judge large memory usage",
+                 "(#{format_size(options.large_memory_usage_threshold)})") do |threshold|
+  options.large_memory_usage_threshold = parse_size(threshold)
+end
+option_parser.on("--slow-elapsed-time-threshold=THRESHOLD",
+                 "Use THRESHOLD as the threshold " +
+                 "to judge slow elapsed time",
+                 "(#{format_time(options.slow_elapsed_time_threshold)})") do |threshold|
+  options.slow_elapsed_time_threshold = parse_time(threshold)
+end
+
+ARGF.each_line(chomp: true) do |line|
+  original_line = line
+  line = line.scrub unless line.valid_encoding?
+  case line
+  when /\A\[full-text-search\]/
+    content = $POSTMATCH
+    case content
+    when /\A\[text-extract\] /
+      text_extract_message = $POSTMATCH
+      components = text_extract_message.split(": ")
+      case components[0]
+      when "Extracted"
+        attributes = components[1..-1].each_slice(2).to_h
+        case attributes["memory usage diff"] || ""
+        when /\A<(.*?)>\z/
+          memory_usage_diff = parse_size($1)
+          if memory_usage_diff >= options.large_memory_usage_diff_threshold
+            p [:large_memory_usage_diff,
+               format_size(memory_usage_diff),
+               attributes["path"],
+               attributes["SearcherRecord"]]
+          end
+        end
+        case attributes["memory usage"] || ""
+        when /\A<(.*?)>\z/
+          memory_usage = parse_size($1)
+          if memory_usage >= options.large_memory_usage_threshold
+            p [:large_memory_usage,
+               format_size(memory_usage),
+               attributes["path"],
+               attributes["SearcherRecord"]]
+          end
+        end
+        case attributes["elapsed time"] || ""
+        when /\A<(.*?)>\z/
+          elapsed_time = parse_time($1)
+          if elapsed_time >= options.slow_elapsed_time_threshold
+            p [:slow_elapsed_time,
+               format_time(elapsed_time),
+               attributes["path"],
+               attributes["SearcherRecord"]]
+          end
+        end
+      when "Failed to extract text"
+        case components[11]
+        when "ChupaText::EncryptedError"
+        else
+          p [:error, line]
+        end
+      end
+    end
+  end
+end
