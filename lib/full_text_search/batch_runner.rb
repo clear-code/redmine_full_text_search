@@ -67,7 +67,7 @@ module FullTextSearch
 
     def create_sub_progress_bar(bar, label, *args)
       if @show_progress
-        bar.register("#{label.name} #{progress_bar_format}", *args)
+        bar.register("#{label} #{progress_bar_format}", *args)
       else
         NullProgressBar.new
       end
