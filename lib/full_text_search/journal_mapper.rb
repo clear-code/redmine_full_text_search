@@ -13,7 +13,7 @@ module FullTextSearch
   resolver.register(Journal, JournalMapper)
 
   class RedmineJournalMapper < RedmineMapper
-    def upsert_searcher_record
+    def upsert_searcher_record(options={})
       # journal belongs to an issue for now.
       searcher_record = find_searcher_record
       searcher_record.original_id = @record.id

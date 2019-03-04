@@ -34,7 +34,7 @@ module FullTextSearch
           bar = bars[redmine_class]
           redmine_class.find_each do |record|
             mapper = mapper_class.redmine_mapper(record)
-            mapper.upsert_searcher_record
+            mapper.upsert_searcher_record(extract_text: :none)
             bar.advance
           end
           bar.finish

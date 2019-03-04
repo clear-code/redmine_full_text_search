@@ -13,7 +13,7 @@ module FullTextSearch
   resolver.register(Attachment, AttachmentMapper)
 
   class RedmineAttachmentMapper < RedmineMapper
-    def upsert_searcher_record
+    def upsert_searcher_record(options={})
       # container is not specified when initial upload
       return if @record.container_type.nil?
 
@@ -49,7 +49,14 @@ module FullTextSearch
         searcher_record.project_name = @record.container.project.name
       end
       searcher_record.save!
-      ExtractTextJob.perform_later(searcher_record.id)
+      case options[:extract_text]
+      when :immediate
+        extract_text
+      when :none
+        # Do nothing
+      else
+        ExtractTextJob.perform_later(searcher_record.id)
+      end
     end
 
     def extract_text

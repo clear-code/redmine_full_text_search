@@ -13,7 +13,7 @@ module FullTextSearch
   resolver.register(News, NewsMapper)
 
   class RedmineNewsMapper < RedmineMapper
-    def upsert_searcher_record
+    def upsert_searcher_record(options={})
       searcher_record = find_searcher_record
       searcher_record.original_id = @record.id
       searcher_record.original_type = @record.class.name

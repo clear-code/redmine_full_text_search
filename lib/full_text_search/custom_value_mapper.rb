@@ -13,7 +13,7 @@ module FullTextSearch
   resolver.register(CustomValue, CustomValueMapper)
 
   class RedmineCustomValueMapper < RedmineMapper
-    def upsert_searcher_record
+    def upsert_searcher_record(options={})
       return unless @record.custom_field.searchable
 
       searcher_record = find_searcher_record
