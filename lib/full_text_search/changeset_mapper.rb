@@ -31,7 +31,7 @@ module FullTextSearch
   class SearcherChangesetMapper < SearcherMapper
     def title_prefix
       changeset = redmine_record
-      repository = changeset.reposity
+      repository = changeset.repository
       if repository and repository.identifier.present?
         repository = " (#{repository.identifier})"
       else

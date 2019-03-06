@@ -10,6 +10,11 @@ module FullTextSearch
 
     fixtures :attachments
     fixtures :boards
+    fixtures :changesets
+    fixtures :custom_fields
+    fixtures :custom_fields_projects
+    fixtures :custom_fields_trackers
+    fixtures :custom_values
     fixtures :enabled_modules
     fixtures :enumerations
     fixtures :issue_statuses
@@ -18,6 +23,7 @@ module FullTextSearch
     fixtures :messages
     fixtures :projects
     fixtures :projects_trackers
+    fixtures :repositories
     fixtures :trackers
     fixtures :users
     fixtures :wiki_contents
@@ -41,6 +47,17 @@ module FullTextSearch
             named_attachment_path(id: attachment.id,
                                   filename: attachment.filename),
           ]
+        when Changeset
+          changeset = item
+          label = "Revision #{changeset.revision}: #{changeset.comments}"
+          path_parameters = {
+            controller: "repositories",
+            action: "revision",
+            id: changeset.repository.project_id,
+            repository_id: changeset.repository.identifier_param,
+            rev: changeset.identifier,
+          }
+          [label, @routes.path_for(path_parameters)]
         when Issue
           issue = item
           label =
@@ -104,12 +121,24 @@ module FullTextSearch
       end
     end
 
-    class CustomFieldTest < self
-      fixtures :custom_fields
-      fixtures :custom_fields_projects
-      fixtures :custom_fields_trackers
-      fixtures :custom_values
+    class ChangesetTest < self
+      def search(query)
+        get :index, params: {"q" => query, "changesets" => "1"}
+      end
 
+      def test_search
+        search("helloworld")
+        attachments = [
+          Changeset.find(105),
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_items(attachments),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+    end
+
+    class CustomFieldTest < self
       def search(query, params={})
         get :index, params: {"q" => query, "issues" => "1"}.merge(params)
       end
