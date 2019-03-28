@@ -11,13 +11,14 @@ module FullTextSearch
       ChupaText::ExternalCommand.default_limit_as =
         settings.external_command_max_memory
       @max_size = settings.attachment_max_text_size
-      @extractor = ChupaText::Extractor.new(max_body_size: @max_size)
+      @extractor = ChupaText::Extractor.new
       @extractor.apply_configuration(ChupaText::Configuration.default)
     end
 
     def extract
       data = ChupaText::InputData.new(@path)
       data.mime_type = @content_type
+      data.max_body_size = @max_size
       text = ""
       @extractor.extract(data) do |extracted|
         body = extracted.body
