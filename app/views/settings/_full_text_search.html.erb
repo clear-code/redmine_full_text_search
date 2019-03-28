@@ -31,3 +31,10 @@
                      size: 6) %>
   <%= l(:"number.human.storage_units.units.mb") %>
 </p>
+
+<p>
+  <%= label_tag("settings[server_url]",
+                l(:label_full_text_search_server_url)) %>
+  <%= text_field_tag("settings[server_url]",
+                     settings.server_url) %>
+</p>

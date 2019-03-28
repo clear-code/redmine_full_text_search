@@ -79,5 +79,9 @@ module FullTextSearch
     def external_command_max_memory
       (external_command_max_memory_in_mb * 1.megabytes).floor
     end
+
+    def server_url
+      @raw["server_url"]
+    end
   end
 end

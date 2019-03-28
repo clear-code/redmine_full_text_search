@@ -8,4 +8,5 @@ ja:
   label_full_text_search_attachment_max_text_size: 添付ファイルから抽出する最大テキストサイズ
   label_full_text_search_external_command_timeout: 外部コマンドのタイムアウト時間（秒）
   label_full_text_search_external_command_max_memory: 外部コマンドの最大使用可能メモリー
+  label_full_text_search_server_url: ChupaTextサーバーのURL
   label_similar_issues: 類似チケット

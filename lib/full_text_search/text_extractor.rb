@@ -10,6 +10,8 @@ module FullTextSearch
         settings.external_command_timeout
       ChupaText::ExternalCommand.default_limit_as =
         settings.external_command_max_memory
+      ChupaText::Decomposers::HTTPServer.default_url =
+        settings.server_url
       @max_size = settings.attachment_max_text_size
       @extractor = ChupaText::Extractor.new
       @extractor.apply_configuration(ChupaText::Configuration.default)

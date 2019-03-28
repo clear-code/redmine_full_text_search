@@ -80,6 +80,39 @@ module FullTextSearch
     fixtures :trackers
     fixtures :users
 
+    def setup
+      @server = nil
+    end
+
+    def setup_server
+      port = 40080
+      path = "/extraction.json"
+      @server_url = "http://127.0.0.1:#{port}#{path}"
+      logger = WEBrick::Log.new
+      logger.level = logger.class::ERROR
+      @server = WEBrick::HTTPServer.new(Port: port,
+                                        Logger: logger,
+                                        AccessLog: [])
+      @server.mount_proc(path) do |request, response|
+        response.status = 200
+        response.content_type = "application/json"
+        response.body = JSON.generate(@server_response)
+      end
+      @server_thread = Thread.new do
+        @server.start
+      end
+    end
+
+    def teardown
+      teardown_server
+    end
+
+    def teardown_server
+      return if @server.nil?
+      @server.shutdown
+      @server_thread.join
+    end
+
     def fixture_file_path(name)
       path = Pathname(File.join(__dir__, "..", "..", "files", name)).expand_path
       path.relative_path_from(Pathname(self.class.fixture_path))
@@ -194,6 +227,37 @@ module FullTextSearch
                      searcher_record.content,
                      messages,
                    ])
+    end
+
+    def test_server_url
+      setup_server
+      filename = "one-page.pdf"
+      @server_response = {
+        "mime-type" => "appliation/pdf",
+        "uri" => "file:///tmp/one-page.pdf",
+        "path" => "/tmp/one-page.pdf",
+        "size" => 100,
+        "texts" => [
+          {
+            "mime-type" => "text/plain",
+            "uri" => "file:///tmp/one-page.txt",
+            "path" => "/tmp/one-page.txt",
+            "size" => 8,
+            "source-mime-types" => [
+              "application/pdf",
+            ],
+            "body" => "one page",
+          },
+        ],
+      }
+      file = fixture_file_upload(fixture_file_path(filename), "application/pdf")
+      with_settings(plugin_full_text_search: {
+                      "server_url" => @server_url,
+                    }) do
+        attachment = Attachment.generate!(file: file)
+        searcher_record = attachment.to_searcher_record
+        assert_equal("one page", searcher_record.content)
+      end
     end
   end
 end
