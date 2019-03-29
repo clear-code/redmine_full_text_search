@@ -4,6 +4,15 @@ module FullTextSearch
       @show_progress = show_progress
     end
 
+    def destroy
+      destroy_bar = create_progress_bar("Destroy",
+                                        total: SearcherRecord.count)
+      destroy_bar.iterate(SearcherRecord.find_each) do |record|
+        record.destroy
+      end
+      destroy_bar.finish
+    end
+
     def synchronize(extract_text: nil)
       synchronize_searcher_records(extract_text: extract_text)
     end
@@ -22,24 +31,19 @@ module FullTextSearch
 
     private
     def synchronize_searcher_records(extract_text: nil)
-      destroy_bar = create_progress_bar("Destroy",
-                                        total: SearcherRecord.count)
-      destroy_bar.iterate(SearcherRecord.find_each) do |record|
-        record.destroy
-      end
-      destroy_bar.finish
-
       all_bar = create_multi_progress_bar("All")
       bars = {}
-      FullTextSearch.resolver.each do |redmine_class, _|
+      FullTextSearch.resolver.each do |redmine_class, mapper_class|
+        target_records = mapper_class.not_mapped_redmine_records
         bars[redmine_class] =
           create_sub_progress_bar(all_bar,
                                   redmine_class.name,
-                                  total: redmine_class.count)
+                                  total: target_records.count)
       end
       FullTextSearch.resolver.each do |redmine_class, mapper_class|
         bar = bars[redmine_class]
-        redmine_class.find_each do |record|
+        target_records = mapper_class.not_mapped_redmine_records
+        target_records.find_each do |record|
           mapper = mapper_class.redmine_mapper(record)
           mapper.upsert_searcher_record(extract_text: extract_text)
           bar.advance

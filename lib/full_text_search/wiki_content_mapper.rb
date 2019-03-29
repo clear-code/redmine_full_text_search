@@ -13,6 +13,16 @@ module FullTextSearch
   resolver.register(WikiContent, WikiContentMapper)
 
   class RedmineWikiContentMapper < RedmineMapper
+    class << self
+      def original_id_column
+        :page_id
+      end
+
+      def original_type(redmine_class)
+        "WikiPage"
+      end
+    end
+
     def upsert_searcher_record(options={})
       searcher_record = find_searcher_record
       searcher_record.original_id = @record.page_id
@@ -22,14 +32,6 @@ module FullTextSearch
       searcher_record.text = @record.text
       searcher_record.original_updated_on = @record.updated_on
       searcher_record.save!
-    end
-
-    private
-    def searcher_record_keys
-      {
-        original_id: @record.page_id,
-        original_type: "WikiPage",
-      }
     end
   end
 

@@ -31,6 +31,14 @@ module FullTextSearch
         mapper.destroy_searcher_record
       end
 
+      def redmine_class
+        FullTextSearch.resolver.resolve(self)
+      end
+
+      def not_mapped_redmine_records
+        redmine_mapper_class.not_mapped(redmine_class)
+      end
+
       def redmine_mapper(record)
         redmine_mapper_class.new(self, record)
       end
@@ -42,6 +50,24 @@ module FullTextSearch
   end
 
   class RedmineMapper
+    class << self
+      def not_mapped(redmine_class)
+        searcher_records =
+          SearcherRecord
+            .where(original_type: original_type(redmine_class))
+            .select(:original_id)
+        redmine_class.where.not(original_id_column => searcher_records)
+      end
+
+      def original_id_column
+        :id
+      end
+
+      def original_type(redmine_class)
+        redmine_class.name
+      end
+    end
+
     def initialize(mapper, record)
       @mapper = mapper
       @record = record
@@ -58,8 +84,8 @@ module FullTextSearch
     private
     def searcher_record_keys
       {
-        original_id: @record.id,
-        original_type: @record.class.name,
+        original_id: @record.__send__(self.class.original_id_column),
+        original_type: self.class.original_type(@record.class),
       }
     end
   end
