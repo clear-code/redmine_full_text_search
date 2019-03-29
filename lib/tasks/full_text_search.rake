@@ -2,12 +2,15 @@
 
 namespace :full_text_search do
   desc "Tag"
-  task :tag do
-    version = Redmine::Plugin.find(:full_text_search).version
-    sh("git", "tag",
-       "-a", version,
-       "-m", "#{version} has been released!!!")
-    sh("git", "push", "--tags")
+  task :tag => :environment do
+    plugin = Redmine::Plugin.find(:full_text_search)
+    version = plugin.version
+    cd(plugin.directory) do
+      sh("git", "tag",
+         "-a", "v#{version}",
+         "-m", "#{version} has been released!!!")
+      # sh("git", "push", "--tags")
+    end
   end
 
   desc "Release"
