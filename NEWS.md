@@ -1,5 +1,13 @@
 # Redmine FullTextSearch
 
+## 0.8.1 - 2019-03-29
+
+Wiki related bug fix release of 0.8.1.
+
+### Fixes
+
+  * Fixed a Wiki page index bug.
+
 ## 0.8.0 - 2019-03-29
 
 Redmine 4.0 support and attachment content search support release.
