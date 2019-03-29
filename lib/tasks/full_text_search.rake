@@ -9,7 +9,7 @@ namespace :full_text_search do
       sh("git", "tag",
          "-a", "v#{version}",
          "-m", "#{version} has been released!!!")
-      # sh("git", "push", "--tags")
+      sh("git", "push", "--tags")
     end
   end
 
