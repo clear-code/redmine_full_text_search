@@ -34,7 +34,6 @@ Rails.configuration.to_prepare do
   require_dependency "full_text_search/message_mapper"
   require_dependency "full_text_search/news_mapper"
   require_dependency "full_text_search/project_mapper"
-  require_dependency "full_text_search/wiki_content_mapper"
   require_dependency "full_text_search/wiki_page_mapper"
 
   require_dependency "full_text_search/hooks/search_index_options_content_bottom_hook"
