@@ -43,6 +43,18 @@ redmine:plugins:migrate`:
 
 1. `CREATE EXTENSION IF NOT EXISTS pgroonga;`
 
+## Authors
+
+  * Kenji Okimoto
+
+  * Kouhei Sutou `<kou@clear-code.com>`
+
+  * Shimadzu Corporation
+
+## License
+
+The MIT License. See [LICENSE](LICENSE) for details.
+
 ## Contributing
 
 1. Fork it ( http://github.com/clear-code/redmine_full_text_search/fork )
