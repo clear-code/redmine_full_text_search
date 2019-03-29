@@ -43,7 +43,7 @@ redmine:plugins:migrate`:
 
 1. `CREATE EXTENSION IF NOT EXISTS pgroonga;`
 
-# Contributing
+## Contributing
 
 1. Fork it ( http://github.com/clear-code/redmine_full_text_search/fork )
 1. Create your feature branch (`git checkout -b my-new-feature`)
