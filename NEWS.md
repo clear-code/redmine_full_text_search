@@ -1,5 +1,52 @@
 # Redmine FullTextSearch
 
+## 0.8.0 - 2019-03-29
+
+Redmine 4.0 support and attachment content search support release.
+
+### Improvements
+
+  * Resolved plugin conflict.
+    [GitHub#55][Reported by yassan][Looked into by Akiko Takano]
+    [GitHub#57][Reported by yassan]
+
+  * Added support for installing to not `plugins/full_text_search`
+    directory.
+    [GitHub#58][Reported by Olexandr Minzak]
+
+  * Added support for Redmine 4.0.
+
+  * Added support for attachment content search.
+
+### Fixes
+
+  * [Similar issue search]
+    Fixed a bug that garbage record is created on error
+
+  * Fixed broken links for messages in search result page.
+    [GitHub#59][Patch by Tatsuya Saito]
+
+  * Fixed a bug that custom field search shows issues in other
+    projects.
+    [GitHub#60][Patch by Tatsuya Saito]
+
+  * Fixed a bug that garbage string is shown on no snippet record.
+
+  * Fixed a migration bug for custom values.
+    [GitHub#62][Reported by Okojo]
+
+### Thanks
+
+  * yassan
+
+  * Akiko Takano
+
+  * Olexandr Minzak
+
+  * Tatsuya Saito
+
+  * Okojo
+
 ## 0.7.3 - 2018-06-25
 
 Bug fix release for 0.7.2
@@ -20,9 +67,9 @@ Fix bugs as following
 
 * Add missing parenthesis to search result same as Redmine
 * Ensure removing existing records before copying data in migration
-* Display original_updated_on in search result if original_type is Issue
+* Display `original_updated_on` in search result if `original_type` is Issue
 * Sort search result properly when sort by updated_on
-* Handle normalized original_type properly when backend is PGroonga
+* Handle normalized `original_type` properly when backend is PGroonga
 
 ## 0.7.0 - 2017-11-22
 
