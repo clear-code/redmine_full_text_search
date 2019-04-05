@@ -10,6 +10,13 @@ else
   task_runner="bin/rails"
 fi
 
+test_svn_repository="tmp/test/subversion_repository"
+if [ ! -d "${test_svn_repository}" ]; then
+  svnadmin create "${test_svn_repository}"
+  zcat test/fixtures/repositories/subversion_repository.dump.gz | \
+    svnadmin load "${test_svn_repository}"
+fi
+
 ${task_runner} db:drop || true
 ${task_runner} generate_secret_token
 ${task_runner} db:create
