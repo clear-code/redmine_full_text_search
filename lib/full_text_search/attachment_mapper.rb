@@ -79,9 +79,10 @@ module FullTextSearch
         format_log_message("Extracting...", context)
       end
       begin
-        extractor = TextExtractor.new(context[:path],
-                                      context[:content_type])
-        context[:content] = extractor.extract
+        extractor = TextExtractor.new
+        context[:content] = extractor.extract(context[:path],
+                                              nil,
+                                              context[:content_type])
       rescue => error
         Rails.logger.error do
           format_log_message("Failed to extract text",

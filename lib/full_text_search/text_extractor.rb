@@ -1,28 +1,29 @@
 module FullTextSearch
   class TextExtractor
-    def initialize(path, content_type)
-      @path = Pathname(path)
-      @content_type = content_type
-      settings = Setting.plugin_full_text_search
-      ChupaText::ExternalCommand.default_timeout =
-        settings.external_command_timeout
-      ChupaText::ExternalCommand.default_limit_cpu =
-        settings.external_command_timeout
-      ChupaText::ExternalCommand.default_limit_as =
-        settings.external_command_max_memory
-      ChupaText::Decomposers::HTTPServer.default_url =
-        settings.server_url
-      @max_size = settings.attachment_max_text_size
-      @extractor = ChupaText::Extractor.new
-      @extractor.apply_configuration(ChupaText::Configuration.default)
+    class << self
+      @@extractors = {}
+      def extractor
+        @@extractors[Thread.current.object_id] ||= build_extractor
+      end
+
+      def build_extractor
+        extractor = ChupaText::Extractor.new
+        extractor.apply_configuration(ChupaText::Configuration.default)
+        extractor
+      end
     end
 
-    def extract
-      data = ChupaText::InputData.new(@path)
-      data.mime_type = @content_type
+    def extract(path, input, content_type)
+      apply_settings
+      if input
+        data = ChupaText::VirtualFileData.new(path, input)
+      else
+        data = ChupaText::InputData.new(path)
+      end
+      data.mime_type = content_type
       data.max_body_size = @max_size
       text = ""
-      @extractor.extract(data) do |extracted|
+      self.class.extractor.extract(data) do |extracted|
         body = extracted.body
         next if body.empty?
         text << "\n" unless text.empty?
@@ -34,6 +35,20 @@ module FullTextSearch
       end
       text.scrub!("")
       text
+    end
+
+    private
+    def apply_settings
+      settings = Setting.plugin_full_text_search
+      ChupaText::ExternalCommand.default_timeout =
+        settings.external_command_timeout
+      ChupaText::ExternalCommand.default_limit_cpu =
+        settings.external_command_timeout
+      ChupaText::ExternalCommand.default_limit_as =
+        settings.external_command_max_memory
+      ChupaText::Decomposers::HTTPServer.default_url =
+        settings.server_url
+      @max_size = settings.attachment_max_text_size
     end
   end
 end

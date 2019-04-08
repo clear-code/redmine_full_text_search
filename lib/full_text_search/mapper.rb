@@ -56,11 +56,9 @@ module FullTextSearch
           SearcherRecord
             .where(original_type: original_type(redmine_class))
             .select(:original_id)
-        redmine_class.where.not(original_id_column => searcher_records)
-      end
-
-      def original_id_column
-        :id
+        redmine_class
+          .where.not(id: searcher_records)
+          .order(id: :asc)
       end
 
       def original_type(redmine_class)
@@ -84,7 +82,7 @@ module FullTextSearch
     private
     def searcher_record_keys
       {
-        original_id: @record.__send__(self.class.original_id_column),
+        original_id: :id,
         original_type: self.class.original_type(@record.class),
       }
     end
@@ -113,7 +111,7 @@ module FullTextSearch
     end
 
     def title
-      "#{title_prefix}#{@record.title}"
+      "#{title_prefix}#{@record.title}#{title_suffix}"
     end
 
     def description
@@ -127,6 +125,10 @@ module FullTextSearch
     end
 
     def title_prefix
+      ""
+    end
+
+    def title_suffix
       ""
     end
   end

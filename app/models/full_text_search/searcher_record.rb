@@ -250,19 +250,21 @@ module FullTextSearch
     end
 
     def event_title_digest
-      @event_title_digest ||= if title_digest.present?
-                                "#{mapper.title_prefix}#{title_digest}".html_safe
-                              else
-                                event_title
-                              end
+      @event_title_digest ||=
+        if title_digest.present?
+          "#{mapper.title_prefix}#{title_digest}#{mapper.title_suffix}".html_safe
+        else
+          event_title
+        end
     end
 
     def event_description_digest
-      @event_description_digest ||= if description_digest.select(&:present?).present?
-                                       description_digest.join(" &hellip; ").html_safe
-                                     else
-                                       event_description.truncate(255)
-                                     end
+      @event_description_digest ||=
+        if description_digest.select(&:present?).present?
+          description_digest.join(" &hellip; ").html_safe
+        else
+          event_description.truncate(255)
+        end
     end
   end
 end

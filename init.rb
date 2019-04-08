@@ -24,8 +24,11 @@ Rails.configuration.to_prepare do
   require_dependency "full_text_search/text_extractor"
   require_dependency "full_text_search/batch_runner"
 
+  require_dependency "full_text_search/scm_adapter_cat_io"
+
   require_dependency "full_text_search/mapper"
   require_dependency "full_text_search/attachment_mapper"
+  require_dependency "full_text_search/change_mapper"
   require_dependency "full_text_search/changeset_mapper"
   require_dependency "full_text_search/custom_value_mapper"
   require_dependency "full_text_search/document_mapper"
