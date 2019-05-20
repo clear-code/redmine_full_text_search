@@ -82,7 +82,7 @@ module FullTextSearch
     private
     def searcher_record_keys
       {
-        original_id: :id,
+        original_id: @record.id,
         original_type: self.class.original_type(@record.class),
       }
     end
