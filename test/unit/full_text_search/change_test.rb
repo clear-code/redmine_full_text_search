@@ -5,6 +5,7 @@ module FullTextSearch
     make_my_diffs_pretty!
 
     include NullValues
+    include TimeValue
 
     fixtures :enabled_modules
     fixtures :projects
@@ -40,8 +41,8 @@ module FullTextSearch
                        "project_name" => @project.name,
                        "original_id" => 2,
                        "original_type" => "Change",
-                       "original_created_on" => Time.parse("2007-09-10T16:54:52Z"),
-                       "original_updated_on" => Time.parse("2007-09-10T16:54:52Z"),
+                       "original_created_on" => parse_time("2007-09-10T16:54:52.203Z"),
+                       "original_updated_on" => parse_time("2007-09-10T16:54:52.203Z"),
                        "name" => null_string,
                        "description" => null_string,
                        "identifier" => "2",
@@ -58,7 +59,7 @@ module FullTextSearch
                        "short_comments" => null_string,
                        "long_comments" => null_string,
                        "notes" => null_string,
-                       "private_notes" => false,
+                       "private_notes" => null_boolean,
                        "text" => null_string,
                        "value" => null_string,
                        "custom_field_id" => null_number,
@@ -71,8 +72,8 @@ module FullTextSearch
                        "project_name" => @project.name,
                        "original_id" => 20,
                        "original_type" => "Change",
-                       "original_created_on" => Time.parse("2010-06-20T09:13:43Z"),
-                       "original_updated_on" => Time.parse("2010-06-20T09:13:43Z"),
+                       "original_created_on" => parse_time("2010-06-20T09:13:43.065362Z"),
+                       "original_updated_on" => parse_time("2010-06-20T09:13:43.065362Z"),
                        "name" => null_string,
                        "description" => null_string,
                        "identifier" => "11",
@@ -82,14 +83,14 @@ module FullTextSearch
                        "tracker_id" => null_number,
                        "subject" => null_string,
                        "author_id" => null_number,
-                       "is_private" => false,
+                       "is_private" => null_boolean,
                        "status_id" => null_number,
                        "issue_id" => null_number,
                        "comments" => null_string,
                        "short_comments" => null_string,
                        "long_comments" => null_string,
                        "notes" => null_string,
-                       "private_notes" => false,
+                       "private_notes" => null_boolean,
                        "text" => null_string,
                        "value" => null_string,
                        "custom_field_id" => null_number,

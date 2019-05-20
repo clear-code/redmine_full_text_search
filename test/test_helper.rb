@@ -67,6 +67,19 @@ module NullValues
   end
 end
 
+module TimeValue
+  include FullTextSearchBackend
+
+  def parse_time(string)
+    time = Time.zone.parse(string)
+    if mroonga?
+      time.change(nsec: 0)
+    else
+      time
+    end
+  end
+end
+
 module GroongaCommandExecutable
   include FullTextSearchBackend
 
