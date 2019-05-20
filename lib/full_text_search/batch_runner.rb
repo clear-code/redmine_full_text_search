@@ -78,7 +78,7 @@ module FullTextSearch
         outdated_searcher_records = mapper_class.outdated_searcher_records
         bar = bars["#{redmine_class.name}:Outdated"]
         outdated_searcher_records.find_each do |record|
-          mapper = mapper_class.redmine_mapper(record.redmine_record)
+          mapper = mapper_class.redmine_mapper(record.original_record)
           mapper.upsert_searcher_record(extract_text: extract_text)
           bar.advance
         end
