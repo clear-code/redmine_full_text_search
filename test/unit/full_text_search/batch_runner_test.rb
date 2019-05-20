@@ -40,6 +40,7 @@ module FullTextSearch
 
     def test_synchronize_outdated
       issue = Issue.generate!
+      issue.reload
       searcher_record = SearcherRecord.where(original_type: issue.class.name,
                                              original_id: issue.id).first
       searcher_record.original_updated_on -= 1
