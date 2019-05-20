@@ -71,7 +71,11 @@ before_install:
       --depth 1
       --branch ${REDMINE_VERSION}-stable
       https://github.com/redmine/redmine.git
-  - cd redmine/plugins
+  - cd redmine
+  - svnadmin create tmp/test/subversion_repository
+  - zcat test/fixtures/repositories/subversion_repository.dump.gz |
+      svnadmin load tmp/test/subversion_repository
+  - cd plugins
   - ln -s ../../redmine_full_text_search ./full_text_search
   - cd ../
   - cp plugins/full_text_search/config/database.yml.example.${REDMINE_VERSION}.${RDBMS}
