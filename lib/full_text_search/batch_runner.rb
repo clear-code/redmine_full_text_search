@@ -33,23 +33,58 @@ module FullTextSearch
     def synchronize_searcher_records(extract_text: nil)
       all_bar = create_multi_progress_bar("All")
       bars = {}
+
       FullTextSearch.resolver.each do |redmine_class, mapper_class|
-        target_records = mapper_class.not_mapped_redmine_records
-        bars[redmine_class] =
+        new_redmine_records = mapper_class.not_mapped_redmine_records
+        label = "#{redmine_class.name}:New"
+        bars[label] =
           create_sub_progress_bar(all_bar,
-                                  redmine_class.name,
-                                  total: target_records.count)
+                                  label,
+                                  total: new_redmine_records.count)
+
+        orphan_searcher_records = mapper_class.orphan_searcher_records
+        label = "#{redmine_class.name}:Orphan"
+        bars[label] =
+          create_sub_progress_bar(all_bar,
+                                  label,
+                                  total: orphan_searcher_records.count)
+
+        outdated_searcher_records = mapper_class.outdated_searcher_records
+        label = "#{redmine_class.name}:Outdated"
+        bars[label] =
+          create_sub_progress_bar(all_bar,
+                                  label,
+                                  total: outdated_searcher_records.count)
       end
+
       FullTextSearch.resolver.each do |redmine_class, mapper_class|
-        bar = bars[redmine_class]
-        target_records = mapper_class.not_mapped_redmine_records
-        target_records.find_each do |record|
+        new_redmine_records = mapper_class.not_mapped_redmine_records
+        bar = bars["#{redmine_class.name}:New"]
+        new_redmine_records.find_each do |record|
           mapper = mapper_class.redmine_mapper(record)
           mapper.upsert_searcher_record(extract_text: extract_text)
           bar.advance
         end
         bar.finish
+
+        orphan_searcher_records = mapper_class.orphan_searcher_records
+        bar = bars["#{redmine_class.name}:Orphan"]
+        orphan_searcher_records.find_each do |record|
+          record.destroy
+          bar.advance
+        end
+        bar.finish
+
+        outdated_searcher_records = mapper_class.outdated_searcher_records
+        bar = bars["#{redmine_class.name}:Outdated"]
+        outdated_searcher_records.find_each do |record|
+          mapper = mapper_class.redmine_mapper(record.redmine_record)
+          mapper.upsert_searcher_record(extract_text: extract_text)
+          bar.advance
+        end
+        bar.finish
       end
+
       all_bar.finish
     end
 

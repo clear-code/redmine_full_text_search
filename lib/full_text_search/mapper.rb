@@ -39,6 +39,14 @@ module FullTextSearch
         redmine_mapper_class.not_mapped(redmine_class)
       end
 
+      def orphan_searcher_records
+        searcher_mapper_class.orphan(redmine_class)
+      end
+
+      def outdated_searcher_records
+        searcher_mapper_class.outdated(redmine_class)
+      end
+
       def redmine_mapper(record)
         redmine_mapper_class.new(self, record)
       end
@@ -54,15 +62,11 @@ module FullTextSearch
       def not_mapped(redmine_class)
         searcher_records =
           SearcherRecord
-            .where(original_type: original_type(redmine_class))
+            .where(original_type: redmine_class.name)
             .select(:original_id)
         redmine_class
           .where.not(id: searcher_records)
           .order(id: :asc)
-      end
-
-      def original_type(redmine_class)
-        redmine_class.name
       end
     end
 
@@ -83,7 +87,7 @@ module FullTextSearch
     def searcher_record_keys
       {
         original_id: @record.id,
-        original_type: self.class.original_type(@record.class),
+        original_type: @record.class.name,
       }
     end
   end
@@ -91,6 +95,37 @@ module FullTextSearch
   class SearcherMapper
     include Rails.application.routes.url_helpers
     include Redmine::I18n
+
+    class << self
+      def orphan(redmine_class)
+        SearcherRecord
+          .where(original_type: redmine_class.name)
+          .joins(<<-SQL)
+LEFT OUTER JOIN #{redmine_class.table_name}
+  ON #{redmine_class.table_name}.id =
+     #{SearcherRecord.table_name}.original_id
+          SQL
+          .where(redmine_class.table_name => {id: nil})
+      end
+
+      def outdated(redmine_class)
+        unless redmine_class.column_names.include?("updated_on")
+          return SearcherRecord.none
+        end
+
+        SearcherRecord
+          .where(original_type: redmine_class.name)
+          .joins(<<-SQL)
+JOIN #{redmine_class.table_name}
+  ON #{redmine_class.table_name}.id =
+     #{SearcherRecord.table_name}.original_id
+          SQL
+          .where(<<-SQL)
+#{SearcherRecord.table_name}.original_updated_on <
+#{redmine_class.table_name}.updated_on
+          SQL
+      end
+    end
 
     def initialize(mapper, record)
       @mapper = mapper

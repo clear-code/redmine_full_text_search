@@ -17,7 +17,7 @@ module FullTextSearch
       def not_mapped(redmine_class)
         searcher_records =
           SearcherRecord
-            .where(original_type: original_type(redmine_class))
+            .where(original_type: redmine_class.name)
             .select(:original_id)
         targets = redmine_class.where.not(id: searcher_records)
         last_original_id =
@@ -43,7 +43,7 @@ module FullTextSearch
         return unless entry.is_file?
         searcher_record = find_searcher_record
         searcher_record.original_id = @record.id
-        searcher_record.original_type = self.class.original_type(@record.class)
+        searcher_record.original_type = @record.class.name
         searcher_record.container_id = repository.id
         searcher_record.container_type = "Repository"
         searcher_record.project_id = repository.project_id
@@ -80,7 +80,7 @@ module FullTextSearch
     def searcher_record_keys
       {
         original_id: @record.id,
-        original_type: self.class.original_type(@record.class),
+        original_type: @record.class.name,
         filename: @record.path,
       }
     end
