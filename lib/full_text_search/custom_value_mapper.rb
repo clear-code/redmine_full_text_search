@@ -14,9 +14,19 @@ module FullTextSearch
 
   class RedmineCustomValueMapper < RedmineMapper
     def upsert_searcher_record(options={})
-      return unless @record.custom_field.searchable
-
       searcher_record = find_searcher_record
+
+      unless @record.custom_field.searchable
+        searcher_record.destroy! if searcher_record.persisted?
+        return
+      end
+
+      customized = @record.customized
+      unless customized
+        searcher_record.destroy! if searcher_record.persisted?
+        return
+      end
+
       # searchable CustomValue belongs to issue or project
       searcher_record.original_id = @record.id
       searcher_record.original_type = @record.class.name
@@ -24,17 +34,18 @@ module FullTextSearch
       searcher_record.custom_field_id = @record.custom_field_id
       case @record.customized_type
       when "Project"
-        searcher_record.project_id = @record.customized.id
-        searcher_record.project_name = @record.customized.name
+        searcher_record.project_id = customized.id
+        searcher_record.project_name = customized.name
       when "Issue"
-        searcher_record.project_id = @record.customized.project_id
-        searcher_record.project_name = @record.customized.project.name
-        searcher_record.status_id = @record.customized.status_id
-        searcher_record.is_private = @record.customized.is_private
+        searcher_record.project_id = customized.project_id
+        searcher_record.project_name = customized.project.name
+        searcher_record.issue_id = customized.id
+        # How to reflect new visibility when issue is changed to
+        # private after custom value is created?
+        searcher_record.is_private = customized.is_private
       else
-        # Not in use for now...
-        searcher_record.project_id = @record.customized.project_id
-        searcher_record.project_name = @record.customized.project.name
+        searcher_record.destroy! if searcher_record.persisted?
+        return
       end
       searcher_record.save!
     end
