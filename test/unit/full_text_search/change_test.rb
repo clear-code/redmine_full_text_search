@@ -22,8 +22,10 @@ module FullTextSearch
 
     def test_fetch_changesets
       @repository.fetch_changesets
-      records = SearcherRecord.where(container_id: @repository.id,
-                                     container_type: "Repository")
+      records = SearcherRecord.
+                  where(container_id: @repository.id,
+                        container_type: "Repository").
+                  order(original_id: :asc)
       assert_equal([
                      [
                        "/subversion_test/.project",
