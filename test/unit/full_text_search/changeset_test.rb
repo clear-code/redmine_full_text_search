@@ -18,6 +18,7 @@ module FullTextSearch
         generating_changeset.comments = "Fix a memory leak\n\nThis is critical."
         generating_changeset.committer = User.find(2).login
       end
+      changeset.reload
       records = SearcherRecord.where(original_id: changeset.id,
                                      original_type: "Changeset")
       assert_equal([
