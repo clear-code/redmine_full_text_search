@@ -24,12 +24,7 @@ module FullTextSearch
       searcher_record.original_type = @record.class.name
       searcher_record.project_id = repository.project_id
       searcher_record.project_name = repository.project.name
-      user = @record.user
-      if user
-        searcher_record.author_id = user.id
-      else
-        searcher_record.author_id = nil
-      end
+      searcher_record.author_id = @record.user&.id
       searcher_record.comments = @record.comments
       searcher_record.short_comments = @record.short_comments&.strip
       searcher_record.long_comments = @record.long_comments&.strip
