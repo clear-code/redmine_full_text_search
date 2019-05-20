@@ -14,11 +14,22 @@ module FullTextSearch
 
   class RedmineChangesetMapper < RedmineMapper
     def upsert_searcher_record(options={})
+      repository = @record.repository
       searcher_record = find_searcher_record
+      if repository.nil?
+        searcher_record.destroy! if searcher_record.persisted?
+        return
+      end
       searcher_record.original_id = @record.id
       searcher_record.original_type = @record.class.name
-      searcher_record.project_id = @record.repository.project_id
-      searcher_record.project_name = @record.repository.project.name
+      searcher_record.project_id = repository.project_id
+      searcher_record.project_name = repository.project.name
+      user = @record.user
+      if user
+        searcher_record.author_id = user.id
+      else
+        searcher_record.author_id = nil
+      end
       searcher_record.comments = @record.comments
       searcher_record.short_comments = @record.short_comments&.strip
       searcher_record.long_comments = @record.long_comments&.strip
