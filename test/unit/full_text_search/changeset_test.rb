@@ -56,5 +56,14 @@ module FullTextSearch
                    ],
                    records.all.collect {|record| record.attributes.except("id")})
     end
+
+    def test_destroy
+      changeset = Changeset.generate!
+      records = SearcherRecord.where(original_id: changeset.id,
+                                     original_type: changeset.class.name)
+      assert_equal(1, records.size)
+      changeset.destroy!
+      assert_equal([], records.reload.to_a)
+    end
   end
 end
