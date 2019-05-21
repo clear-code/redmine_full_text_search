@@ -126,6 +126,9 @@ module FullTextSearch
         enumerator.each(&block)
       end
 
+      def start
+      end
+
       def advance
       end
 
