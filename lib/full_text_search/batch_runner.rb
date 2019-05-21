@@ -32,7 +32,6 @@ module FullTextSearch
     private
     def synchronize_searcher_records(extract_text: nil)
       all_bar = create_multi_progress_bar("All")
-      all_bar.start
       bars = {}
 
       FullTextSearch.resolver.each do |redmine_class, mapper_class|
