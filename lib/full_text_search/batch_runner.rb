@@ -32,6 +32,7 @@ module FullTextSearch
     private
     def synchronize_searcher_records(extract_text: nil)
       all_bar = create_multi_progress_bar("All")
+      all_bar.start
       bars = {}
 
       FullTextSearch.resolver.each do |redmine_class, mapper_class|
@@ -60,6 +61,7 @@ module FullTextSearch
       FullTextSearch.resolver.each do |redmine_class, mapper_class|
         new_redmine_records = mapper_class.not_mapped_redmine_records
         bar = bars["#{redmine_class.name}:New"]
+        bar.start
         new_redmine_records.find_each do |record|
           mapper = mapper_class.redmine_mapper(record)
           mapper.upsert_searcher_record(extract_text: extract_text)
@@ -69,6 +71,7 @@ module FullTextSearch
 
         orphan_searcher_records = mapper_class.orphan_searcher_records
         bar = bars["#{redmine_class.name}:Orphan"]
+        bar.start
         orphan_searcher_records.select(:id).find_each do |record|
           record.destroy
           bar.advance
@@ -77,6 +80,7 @@ module FullTextSearch
 
         outdated_searcher_records = mapper_class.outdated_searcher_records
         bar = bars["#{redmine_class.name}:Outdated"]
+        bar.start
         outdated_searcher_records.select(:id,
                                          :original_id,
                                          :original_type).find_each do |record|
