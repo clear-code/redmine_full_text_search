@@ -14,8 +14,8 @@ module FullTextSearch
         "filter" => filter,
         "output_columns" => output_columns.join(", "),
         "sort_keys" => sort_keys.join(", "),
-        "offset" => @request.offset,
-        "limit" => @request.limit,
+        "offset" => (@request.offset || 0).to_s,
+        "limit" => (@request.limit || 10).to_s,
         "drilldown" => "original_type",
       }
       return SearchResult.new(empty_response) unless arguments["filter"]

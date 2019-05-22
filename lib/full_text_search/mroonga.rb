@@ -24,7 +24,7 @@ module FullTextSearch
         command.arguments.each do |name, value|
           next if value.blank?
           arguments << name
-          arguments << value.to_s
+          arguments << value
         end
         placeholders = (["?"] * arguments.size).join(", ")
         sql_template = "SELECT mroonga_command(#{placeholders})"
