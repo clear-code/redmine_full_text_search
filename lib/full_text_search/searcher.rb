@@ -152,7 +152,7 @@ module FullTextSearch
           if target_ids.present?
             conditions << [
               "&&",
-              'original_type == "Issue"',
+              "original_type == 'Issue'",
               "is_private == false",
               "in_values(project_id, #{target_ids.join(', ')})",
               open_issues_condition,
@@ -190,7 +190,7 @@ module FullTextSearch
           if target_ids.present?
             conditions << [
               "&&",
-              'original_type == "CustomValue"',
+              "original_type == 'CustomValue'",
               "is_private == false",
               "in_values(project_id, #{project_ids.join(', ')})",
               "in_values(custom_field_id, #{target_ids.join(', ')})",
