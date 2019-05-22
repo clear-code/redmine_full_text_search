@@ -9,6 +9,10 @@ Redmine::Plugin.register :full_text_search do
   settings partial: "settings/full_text_search"
 end
 
+Redmine::Search.map do |search|
+  search.register :changes
+end
+
 jobs_dir = File.join(__dir__, "app", "jobs")
 ActiveSupport::Dependencies.autoload_paths += [jobs_dir]
 if Rails.application.config.eager_load
@@ -49,16 +53,6 @@ Rails.configuration.to_prepare do
     prepend FullTextSearch::SettingsObjectize
   end
 
-  case ActiveRecord::Base.connection_config[:adapter]
-  when "postgresql"
-    require_dependency "full_text_search/pgroonga"
-    FullTextSearch::SearcherRecord.prepend(FullTextSearch::PGroonga)
-  when "mysql2"
-    require_dependency "full_text_search/mroonga"
-    FullTextSearch::SearcherRecord.prepend(FullTextSearch::Mroonga)
-  else
-    # Do nothing
-  end
   FullTextSearch.resolver.each do |redmine_class, mapper_class|
     mapper_class.attach(redmine_class)
   end

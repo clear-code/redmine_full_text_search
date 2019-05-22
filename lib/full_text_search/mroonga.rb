@@ -1,96 +1,34 @@
 module FullTextSearch
   module Mroonga
-    def self.prepended(base)
-      base.extend(ClassMethods)
-    end
+    extend ActiveSupport::Concern
 
     module ClassMethods
-      def search(query,
-                 user: User.current,
-                 project_ids: [],
-                 scope: [],
-                 attachments: "0",
-                 all_words: true,
-                 titles_only: false,
-                 open_issues: false,
-                 offset: nil,
-                 limit: 10,
-                 order_target: "score",
-                 order_type: "desc",
-                 query_escape: false)
-        sort_direction = order_type == "desc" ? "-" : ""
-        sort_keys = case order_target
-                    when "score"
-                      "#{sort_direction}_score,-original_updated_on,-original_created_on"
-                    when "date"
-                      "#{sort_direction}calculated_updated_on, #{sort_direction}original_updated_on, #{sort_direction}original_created_on"
-                    end
-        query = connection.quote_string(query)
-        query = if query_escape
-                  "mroonga_escape('#{query}')"
-                else
-                  "'#{query}'"
-                end
-        sql = <<-SQL.strip_heredoc
-        select mroonga_command(
-                 'select',
-                 'table', 'searcher_records',
-                 'output_columns', '*,_score',
-                 #{dynamic_columns.chomp}
-                 'drilldown', 'original_type',
-                 'match_columns', '#{target_columns(titles_only).join('||')}',
-                 'query', #{query},
-                 'filter', '#{filter_condition(user, project_ids, scope, attachments, open_issues)}',
-                 'limit', '#{limit}',
-                 'offset', '#{offset}',
-                 'sort_keys', '#{sort_keys}'
-               )
-        SQL
-        r = nil
+      def select(command)
+        sql = build_sql(command)
+        raw_response = nil
         ActiveSupport::Notifications.instrument("groonga.search", sql: sql) do
-          r = connection.select_value(sql)
+          raw_response = connection.select_value(sql)
         end
-        # NOTE: Hack to use Groonga::Client::Response.parse
-        # Raise Mysql2::Error if error occurred
-        body = JSON.parse(r)
+        response_class = Groonga::Client::Response.find(command.command_name)
         header = [0, 0, 0]
-        [header, body].to_json
+        body = JSON.parse(raw_response)
+        response = response_class.new(command, header, body)
+        response.raw = "[#{header.to_json}, #{raw_response}]"
+        response
       end
 
-      def filter_condition(user, project_ids, scope, attachments, open_issues)
-        conditions = _filter_condition(user, project_ids, scope, attachments, open_issues)
-        if conditions.empty?
-          "1==0"
-        else
-          build_condition("||", conditions)
+      private
+      def build_sql(command)
+        arguments = [command.command_name]
+        command["table"] = table_name
+        command.arguments.each do |name, value|
+          next if value.blank?
+          arguments << name
+          arguments << value.to_s
         end
-      end
-
-      def title_digest(name, columns)
-        <<-SQL.strip_heredoc
-        'columns[#{name}].stage', 'output',
-        'columns[#{name}].type', 'ShortText',
-        'columns[#{name}].flags', 'COLUMN_SCALAR',
-        'columns[#{name}].value', 'highlight_html(#{columns.join("+")})',
-        SQL
-      end
-
-      def description_digest(name, columns)
-        <<-SQL.strip_heredoc
-        'columns[#{name}].stage', 'output',
-        'columns[#{name}].type', 'ShortText',
-        'columns[#{name}].flags', 'COLUMN_VECTOR',
-        'columns[#{name}].value', 'snippet_html(#{columns.join("+")}) || vector_new("")',
-        SQL
-      end
-
-      def calculated_updated_on(name, columns)
-        <<-SQL.strip_heredoc
-        'columns[#{name}].stage', 'filtered',
-        'columns[#{name}].type', 'Time',
-        'columns[#{name}].flags', 'COLUMN_SCALAR',
-        'columns[#{name}].value', 'max(#{columns.join(",")})',
-        SQL
+        placeholders = (["?"] * arguments.size).join(", ")
+        sql_template = "SELECT mroonga_command(#{placeholders})"
+        ActiveRecord::Base.sanitize_sql([sql_template, *arguments])
       end
     end
   end
