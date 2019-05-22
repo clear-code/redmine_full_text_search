@@ -120,7 +120,7 @@ module FullTextSearch
 
     def compute_target_search_types
       target_types = search_types.select do |type|
-        __send__(type)
+        __send__(type) == "1"
       end
       if target_types.empty?
         search_types
