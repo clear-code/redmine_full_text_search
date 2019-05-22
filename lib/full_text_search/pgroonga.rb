@@ -9,7 +9,7 @@ module FullTextSearch
         ActiveSupport::Notifications.instrument("groonga.search", sql: sql) do
           raw_response = connection.select_value(sql)
         end
-        Groonga::Client::Response.parse(command.command_name, raw_response)
+        Groonga::Client::Response.parse(command, raw_response)
       end
 
       private
@@ -22,12 +22,15 @@ module FullTextSearch
           command["filter"] = "pgroonga_tuple_is_alive(ctid)"
         end
         command.arguments.each do |name, value|
-          return if value.blank?
+          next if value.blank?
+          next if name == :table
           arguments << name
           arguments << value
         end
         placeholders = (["?"] * arguments.size).join(", ")
-        sql_template = "SELECT pgroonga_command(?, ARRAY[#{placeholders}])"
+        sql_template = "SELECT pgroonga_command(?, ARRAY["
+        sql_template << "'table', #{command["table"]}, "
+        sql_template << "#{placeholders}])"
         ActiveRecord::Base.sanitize_sql([sql_template,
                                          command.command_name,
                                          *arguments])
