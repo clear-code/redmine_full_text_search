@@ -206,9 +206,9 @@ module FullTextSearch
       end
     end
 
-    class WikiTest < self
+    class WikiPageTest < self
       def search(query)
-        get :index, params: {"q" => "cookbook gzipped", "wiki" => "1"}
+        get :index, params: {"q" => "cookbook gzipped", "wiki_pages" => "1"}
       end
 
       def test_search
