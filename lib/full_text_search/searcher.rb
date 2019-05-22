@@ -232,6 +232,7 @@ module FullTextSearch
         "original_type",
         "original_updated_on",
         "project_id",
+        "title",
         "title_digest",
       ]
     end
