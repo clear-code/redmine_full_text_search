@@ -39,7 +39,7 @@ module FullTextSearch
                          "flags" => "COLUMN_SCALAR",
                          "value" => calculated_updated_on_value)
       command = Groonga::Command::Select.new("select", arguments)
-      response = FullTextSearch::SearcherRecord.select(command)
+      response = SearcherRecord.select(command)
       raise Groonga::Client::Error, response.message unless response.success?
       SearchResult.new(response)
     end
