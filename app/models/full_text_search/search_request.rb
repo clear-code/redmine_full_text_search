@@ -48,14 +48,20 @@ module FullTextSearch
     alias_method :query, :q
 
     def all_words
-      @all_words.nil? ? true : @all_words.present?
+      @all_words.presence || "1"
     end
-    alias_method :all_words?, :all_words
+
+    def all_words?
+      all_words == "1"
+    end
 
     def titles_only
-      @titles_only.nil? ? false : @titles_only.present?
+      @titles_only.presence || "0"
     end
-    alias_method :titles_only?, :titles_only
+
+    def titles_only?
+      titles_only == "1"
+    end
 
     def attachments
       @attachments.presence || "1"
