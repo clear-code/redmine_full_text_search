@@ -31,9 +31,9 @@ module FullTextSearch
         sql_template = "SELECT pgroonga_command(?, ARRAY["
         sql_template << "'table', #{command["table"]}, "
         sql_template << "#{placeholders}])"
-        ActiveRecord::Base.sanitize_sql([sql_template,
-                                         command.command_name,
-                                         *arguments])
+        sanitize_sql([sql_template,
+                      command.command_name,
+                      *arguments])
       end
     end
   end

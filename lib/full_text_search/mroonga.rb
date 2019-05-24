@@ -28,7 +28,7 @@ module FullTextSearch
         end
         placeholders = (["?"] * arguments.size).join(", ")
         sql_template = "SELECT mroonga_command(#{placeholders})"
-        ActiveRecord::Base.sanitize_sql([sql_template, *arguments])
+        sanitize_sql([sql_template, *arguments])
       end
     end
   end
