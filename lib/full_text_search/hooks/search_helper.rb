@@ -2,6 +2,13 @@ module FullTextSearch
   module Hooks
     module SearchHelper
       include FullTextSearch::Hooks::SettingsHelper
+
+      unless ActionView::Helpers::FormHelper.method_defined?(:form_with)
+        def form_with(model: nil, **options, &block)
+          form_for(model, **options, &block)
+        end
+      end
+
       # Overwrite SearchHelper#render_results_by_type to add order_target and order_type
       def render_results_by_type(results_by_type)
         links = []

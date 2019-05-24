@@ -80,8 +80,12 @@ module FullTextSearch
       attachments == "only"
     end
 
+    def open_issues
+      @open_issues.presence || "0"
+    end
+
     def open_issues?
-      @open_issues.nil? ? false : @open_issues.present?
+      open_issues == "1"
     end
 
     def order_target

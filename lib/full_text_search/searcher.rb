@@ -18,8 +18,6 @@ module FullTextSearch
         "limit" => (@request.limit || 10).to_s,
         "drilldown" => "original_type",
       }
-      return SearchResult.new(empty_response) unless arguments["filter"]
-
       add_dynamic_column(arguments,
                          "title_digest",
                          "stage" => "output",
@@ -39,6 +37,7 @@ module FullTextSearch
                          "flags" => "COLUMN_SCALAR",
                          "value" => calculated_updated_on_value)
       command = Groonga::Command::Select.new("select", arguments)
+      arguments["filter"] = "false" unless arguments["filter"]
       response = SearcherRecord.select(command)
       raise Groonga::Client::Error, response.message unless response.success?
       SearchResult.new(response)
