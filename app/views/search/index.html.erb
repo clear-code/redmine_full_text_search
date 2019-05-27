@@ -1,110 +1,122 @@
+<% html_title(l(:label_search)) -%>
+
+<%- if display_score? %>
+  <% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
+  <% end %>
+<% end %>
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'search', :plugin => 'full_text_search' %>
+<% end %>
+
 <h2><%= l(:label_search) %></h2>
 
 <%= form_with(model: @search_request,
               method: :get,
               url: search_path,
               id: 'search-form') do |form| %>
-<div class="box">
-<%= form.label "search-input",
-               l(:description_search),
-               :class => "hidden-for-sighted" %>
-<p><%= form.text_field "q",
-                       size: 60,
-                       id: 'search-input',
-                       name: "q" %>
-<%= project_select_tag %>
-<label><%= form.check_box "titles_only", name: "titles_only" %>
-       <%= l(:label_search_titles_only) %></label>
-</p>
-
-<p id="search-types">
-<% @search_request.search_types.each do |t| %>
-<label><%= form.check_box t, name: t %> <%= link_to type_label(t), "#" %></label>
-<% end %>
-</p>
-
-<fieldset class="collapsible collapsed">
-  <legend onclick="toggleFieldset(this);"><%= l(:label_options) %></legend>
-  <div id="options-content" style="display:none;">
-    <p><label><%= form.check_box "open_issues", name: "open_issues" %>
-              <%= l(:label_search_open_issues_only) %></label></p>
-    <p>
-      <label><%= form.radio_button "attachments", "0", name: "attachments" %>
-             <%= l(:label_search_attachments_no) %></label>
-      <label><%= form.radio_button "attachments", "1", name: "attachments" %>
-             <%= l(:label_search_attachments_yes) %></label>
-      <label><%= form.radio_button "attachments", "only", name: "attachments" %>
-             <%= l(:label_search_attachments_only) %></label>
+  <div class="box">
+    <p class="search-input-box">
+      <%= form.label "search-input",
+                     l(:description_search),
+                     :class => "hidden-for-sighted" %>
+      <%= form.search_field "q",
+                            id: "search-input",
+                            name: "q" %>
+      <%= form.button type: "submit" do %>
+        <%= image_tag "magnifier.png", alt: l(:button_search) %>
+      <% end %>
     </p>
-    <fieldset class="full-text-search-order">
-      <legend><%= l(:label_full_text_search_result_order)%></legend>
-      <p>
-        <label>
-          <%= form.radio_button "order_target", "score", name: "order_target" %>
-          <%= l(:label_full_text_search_order_target_score) %>
-        </label>
-        <label>
-          <%= form.radio_button "order_target", "date", name: "order_target" %>
-          <%= l(:label_full_text_search_order_target_date) %>
-        </label>
-      </p>
-      <p>
-        <label>
-          <%= form.radio_button "order_type", "asc", name: "order_type" %>
-          <%= l(:label_full_text_search_order_type_asc) %>
-        </label>
-        <label>
-          <%= form.radio_button "order_type", "desc", name: "order_type" %>
-          <%= l(:label_full_text_search_order_type_desc) %>
-        </label>
-      </p>
+
+    <fieldset class="collapsible collapsed">
+      <legend onclick="toggleFieldset(this);"><%= l(:label_options) %></legend>
+      <div id="options-content" style="display:none;">
+        <p><%= project_select_tag %></p>
+        <p><label><%= form.check_box "titles_only", name: "titles_only" %>
+                  <%= l(:label_search_titles_only) %></label></p>
+        <p><label><%= form.check_box "open_issues", name: "open_issues" %>
+                  <%= l(:label_search_open_issues_only) %></label></p>
+        <p>
+          <label><%= form.radio_button "attachments", "0", name: "attachments" %>
+                 <%= l(:label_search_attachments_no) %></label>
+          <label><%= form.radio_button "attachments", "1", name: "attachments" %>
+                 <%= l(:label_search_attachments_yes) %></label>
+          <label><%= form.radio_button "attachments", "only", name: "attachments" %>
+                 <%= l(:label_search_attachments_only) %></label>
+        </p>
+        <fieldset class="full-text-search-order">
+          <legend><%= l(:label_full_text_search_result_order)%></legend>
+          <p>
+            <label>
+              <%= form.radio_button "order_target", "score", name: "order_target" %>
+              <%= l(:label_full_text_search_order_target_score) %>
+            </label>
+            <label>
+              <%= form.radio_button "order_target", "date", name: "order_target" %>
+              <%= l(:label_full_text_search_order_target_date) %>
+            </label>
+          </p>
+          <p>
+            <label>
+              <%= form.radio_button "order_type", "asc", name: "order_type" %>
+              <%= l(:label_full_text_search_order_type_asc) %>
+            </label>
+            <label>
+              <%= form.radio_button "order_type", "desc", name: "order_type" %>
+              <%= l(:label_full_text_search_order_type_desc) %>
+            </label>
+          </p>
+        </fieldset>
+      </div>
     </fieldset>
+    <%= form.hidden_field "options", id: "show-options", name: "options" %>
   </div>
-</fieldset>
-<%= form.hidden_field "options", id: "show-options", name: "options" %>
-
-</div>
-<p><%= form.submit l(:button_submit) %></p>
 <% end %>
 
-<% if @search_result %>
-  <% if display_score? %>
-    <div id="search-elapsed">
-      <p><%= "%.1f" % [@groonga_search_event.duration] %>ms</p>
-    </div>
-  <% end %>
-  <div id="search-results-counts">
-    <%= render_results_by_type(@search_result.count_by_type) unless @search_request.scope.size == 1 %>
-  </div>
-  <h3><%= l(:label_result_plural) %> (<%= @search_result.count %>)</h3>
-  <dl id="search-results">
-    <% @search_result.each do |e| %>
-      <dt class="<%= e.event_type %> icon icon-<%= e.event_type %>">
-        <%= content_tag('span', e.project, :class => 'project') unless @project == e.project %>
-        <%= link_to(e.event_title_digest, e.event_url, :data => { :rank => e.rank }) %>
-      </dt>
-      <dd><span class="description"><%= e.event_description_digest %></span>
-      <span class="author"><%= format_time(e.event_datetime) %></span></dd>
+<div id="search-result">
+  <div id="search-result-metadata">
+    <% if display_score? %>
+      <div id="search-elapsed">
+        <p><%= "%.1f" % [@groonga_search_event.duration] %>ms</p>
+      </div>
     <% end %>
-  </dl>
-<% end %>
+  </div>
 
-<% if @result_pages %>
-<span class="pagination"><%= pagination_links_full @result_pages, @search_result.count, :per_page_links => false %></span>
-<% end %>
+  <div id="search-result-content">
+    <div id="search-result-types" class="tabs">
+      <ul>
+        <li>
+          <%= link_to("#{l(:label_result_all)} (#{@search_result.count})",
+                      search_path(@search_request.to_params(types: :all)),
+                      class: @search_request.target?(:all) ? "selected" : "") %>
+        </li>
+        <% @search_request.search_types.each do |type| %>
+          <li>
+            <%= link_to("#{type_label(type)} (#{@search_result.drilldown(type)})",
+                        search_path(@search_request.to_params(types: [type])),
+                        class: @search_request.target?(type) ? "selected" : "") %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+    <dl id="search-results">
+      <% @search_result.each do |e| %>
+        <dt class="<%= e.event_type %> icon icon-<%= e.event_type %>">
+          <%= content_tag('span', e.project, :class => 'project') unless @project == e.project %>
+          <%= link_to(e.event_title_digest, e.event_url, :data => { :rank => e.rank }) %>
+        </dt>
+        <dd><span class="description"><%= e.event_description_digest %></span>
+        <span class="author"><%= format_time(e.event_datetime) %></span></dd>
+      <% end %>
+    </dl>
 
-<% html_title(l(:label_search)) -%>
+    <% if @result_pages %>
+    <span class="pagination"><%= pagination_links_full @result_pages, @search_result.count, :per_page_links => false %></span>
+    <% end %>
+  </div>
+</div>
 
 <%= javascript_tag do %>
-$("#search-types a").click(function(e){
-  e.preventDefault();
-  $("#search-types input[type=checkbox]").prop('checked', false);
-  $(this).siblings("input[type=checkbox]").prop('checked', true);
-  if ($("#search-input").val() != "") {
-    $("#search-form").submit();
-  }
-});
-
 $("#search-form").submit(function(){
   $("#show-options").val($("#options-content").is(":visible") ? '1' : '0');
 });
@@ -118,13 +130,4 @@ function showFieldset(el) {
 if ($("#show-options").val() == '1') {
   showFieldset($("#options-content"));
 }
-<% end %>
-
-<%- if display_score? %>
-  <% content_for :header_tags do %>
-    <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
-  <% end %>
-<% end %>
-<% content_for :header_tags do %>
-  <%= stylesheet_link_tag 'keyword', :plugin => 'full_text_search' %>
 <% end %>

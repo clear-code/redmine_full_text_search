@@ -12,6 +12,10 @@ module FullTextSearch
         Groonga::Client::Response.parse(command, raw_response)
       end
 
+      def time_offset
+        @time_offset ||= compute_time_offset
+      end
+
       private
       def build_sql(command)
         arguments = []
@@ -34,6 +38,10 @@ module FullTextSearch
         sanitize_sql([sql_template,
                       command.command_name,
                       *arguments])
+      end
+
+      def compute_time_offset
+        -Time.now.utc_offset
       end
     end
   end

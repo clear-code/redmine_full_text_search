@@ -1,11 +1,13 @@
-api.array :results, api_meta(:total_count => @search_result.count, :offset => @offset, :limit => @limit) do
+api.array :results, api_meta(:total_count => @search_result.count,
+                             :offset => @search_request.offset,
+                             :limit => @search_request.limit) do
   @search_result.each do |result|
     api.result do
-      api.id          result.id
-      api.title       result.event_title
+      api.id          result.event_id
+      api.title       result.event_title_digest
       api.type        result.event_type
       api.url         url_for(result.event_url(:only_path => false))
-      api.description result.event_description
+      api.description result.event_description_digest
       api.datetime    result.event_datetime
       api.rank        result.rank
     end

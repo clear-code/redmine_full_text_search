@@ -44,6 +44,7 @@ module FullTextSearch
       def query_params
         permitted_names = [
           :q,
+          :scope,
           :all_words,
           :titles_only,
           :attachments,

@@ -11,6 +11,7 @@ end
 
 Redmine::Search.map do |search|
   search.register :changes
+  search.register :files
 end
 
 jobs_dir = File.join(__dir__, "app", "jobs")

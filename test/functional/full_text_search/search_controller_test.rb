@@ -35,59 +35,127 @@ module FullTextSearch
       batch_runner.destroy
       batch_runner.synchronize
       execute_groonga_command("plugin_register functions/vector")
-      @request.session[:user_id] = User.admin.first.id
+      @user = User.admin.first
+      @request.session[:user_id] = @user.id
+    end
+
+    def get(action, params: {}, api: false)
+      if api
+        with_settings(rest_api_enabled: 1) do
+          super(action, params: params.merge(key: @user.api_key,
+                                             format: "json"))
+        end
+      else
+        super(action, params: params)
+      end
+    end
+
+    def item_url(item, only_path: false)
+      case item
+      when Attachment
+        attachment = item
+        named_attachment_url(id: attachment.id,
+                             filename: attachment.filename,
+                             only_path: only_path)
+      when Changeset
+        changeset = item
+        url_parameters = {
+          controller: "repositories",
+          action: "revision",
+          id: changeset.repository.project_id,
+          repository_id: changeset.repository.identifier_param,
+          rev: changeset.identifier,
+          only_path: only_path,
+        }
+        @controller.url_for(url_parameters)
+      when Issue
+        issue = item
+        issue_url(issue, only_path: only_path)
+      when Journal
+        journal = item
+        issue = journal.journalized
+        issue_url(issue, anchor: "change-#{journal.id}", only_path: only_path)
+      when Message
+        message = item
+        board_message_url(message.board, message, only_path: only_path)
+      when WikiPage
+        wiki_page = item
+        project_wiki_page_url(wiki_page.project.id,
+                              wiki_page.title,
+                              only_path: only_path)
+      else
+        raise "Unsupported item: #{item.inspect}"
+      end
+    end
+
+    def item_title(item)
+      case item
+      when Attachment
+        attachment = item
+        attachment.filename
+      when Changeset
+        changeset = item
+        "Revision #{changeset.revision}: #{changeset.comments}"
+      when Issue
+        issue = item
+        "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
+          "#{issue.subject}"
+      when Journal
+        journal = item
+        issue = journal.journalized
+        "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
+          "#{issue.subject}"
+      when Message
+        message = item
+        "#{message.board.name}: #{message.subject}"
+      when WikiPage
+        wiki_page = item
+        "Wiki: #{wiki_page.title}"
+      else
+        raise "Unsupported item: #{item.inspect}"
+      end
     end
 
     def format_items(items)
       items.collect do |item|
-        case item
-        when Attachment
-          attachment = item
-          [
-            attachment.filename,
-            named_attachment_path(id: attachment.id,
-                                  filename: attachment.filename),
-          ]
-        when Changeset
-          changeset = item
-          label = "Revision #{changeset.revision}: #{changeset.comments}"
-          path_parameters = {
-            controller: "repositories",
-            action: "revision",
-            id: changeset.repository.project_id,
-            repository_id: changeset.repository.identifier_param,
-            rev: changeset.identifier,
-          }
-          [label, @routes.path_for(path_parameters)]
-        when Issue
-          issue = item
-          label =
-            "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
-            "#{issue.subject}"
-          [label, issue_path(issue)]
-        when Journal
-          journal = item
-          issue = journal.journalized
-          label =
-            "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
-            "#{issue.subject}"
-          [label, issue_path(issue, anchor: "change-#{journal.id}")]
-        when Message
-          message = item
-          [
-            "#{message.board.name}: #{message.subject}",
-            board_message_path(message.board, message),
-          ]
-        when WikiPage
-          wiki_page = item
-          [
-            "Wiki: #{wiki_page.title}",
-            project_wiki_page_path(wiki_page.project.id, wiki_page.title),
-          ]
-        else
-          raise "Unsupported item: #{item.inspect}"
-        end
+        [
+          item_title(item),
+          item_url(item, only_path: true),
+        ]
       end
+    end
+
+    def format_api_results(items, total_count: nil)
+      results = items.collect do |item, detail|
+        datetime = nil
+        if item.respond_to?(:customized)
+          customized = item.customized
+          if customized.respond_to?(:updated_on)
+            datetime ||= customized.updated_on
+          end
+          if customized.respond_to?(:created_on)
+            datetime ||= customized.created_on
+          end
+        end
+        datetime ||= item.committed_on if item.respond_to?(:committed_on)
+        datetime ||= item.updated_on if item.respond_to?(:updated_on)
+        datetime ||= item.created_on if item.respond_to?(:created_on)
+        {
+          "id" => item.id,
+          "title" => detail[:title] || item_title(item),
+          "type" => detail[:type] || item.class.name.underscore.dasherize,
+          "url" => item_url(item),
+          "description" => detail[:description],
+          "datetime" => datetime&.iso8601,
+          "rank" => detail[:rank],
+        }
+      end
+      {
+        "results" => results,
+        "total_count" => total_count || items.size,
+        "offset" => 0,
+        "limit" => 25,
+      }
     end
 
     class OptionsTest < self
@@ -106,8 +174,8 @@ module FullTextSearch
         @attachment = Attachment.generate!(file: file)
       end
 
-      def search(query)
-        get :index, params: {"q" => query, "issues" => "1"}
+      def search(query, api: false)
+        get :index, params: {"q" => query, "issues" => "1"}, api: api
       end
 
       def test_search
@@ -120,11 +188,30 @@ module FullTextSearch
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
+
+      def test_api
+        search("upload", api: true)
+        attachments = [
+          [
+            @attachment,
+            {
+              title: @attachment.filename,
+              description: <<-DESCRIPTION,
+this is a text file for <span class="keyword">upload</span> tests\r
+with multiple lines\r
+              DESCRIPTION
+              rank: 5,
+            }
+          ],
+        ]
+        assert_equal(format_api_results(attachments),
+                     JSON.parse(response.body))
+      end
     end
 
     class ChangesetTest < self
-      def search(query)
-        get :index, params: {"q" => query, "changesets" => "1"}
+      def search(query, api: false)
+        get :index, params: {"q" => query, "changesets" => "1"}, api: api
       end
 
       def test_search
@@ -137,11 +224,31 @@ module FullTextSearch
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
+
+      def test_api
+        search("helloworld", api: true)
+        attachments = [
+          [
+            Changeset.find(105),
+            {
+              title: <<-TITLE.chomp,
+Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
+              TITLE
+              description: "",
+              rank: 102,
+            }
+          ],
+        ]
+        assert_equal(format_api_results(attachments),
+                     JSON.parse(response.body))
+      end
     end
 
     class CustomFieldTest < self
-      def search(query, params={})
-        get :index, params: {"q" => query, "issues" => "1"}.merge(params)
+      def search(query, params: params, api: false)
+        get :index,
+            params: {"q" => query, "issues" => "1"}.merge(params),
+            api: api
       end
 
       def generate_issue!(project, custom_field_values)
@@ -160,36 +267,108 @@ module FullTextSearch
         }
         issue1 = generate_issue!(project1, custom_field_values)
         issue2 = generate_issue!(project2, custom_field_values)
-        search("searchable", id: project1.id)
+        search("searchable", params: {id: project1.id})
         assert_select("#search-results") do
           assert_equal(format_items([issue1]),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
+
+      def test_api
+        searchable_custom_field = CustomField.where(searchable: true).first
+        tracker = searchable_custom_field.trackers.first
+        project1, project2, = tracker.projects
+        custom_field_values = {
+          searchable_custom_field.id => "Searchable",
+        }
+        issue1 = generate_issue!(project1, custom_field_values)
+        issue2 = generate_issue!(project2, custom_field_values)
+        search("searchable",
+               params: {id: project1.id},
+               api: true)
+        items = [
+          [
+            issue1,
+            {
+              description: %Q[<span class="keyword">Searchable</span>],
+              rank: 5,
+            }
+          ],
+        ]
+        assert_equal(format_api_results(items),
+                     JSON.parse(response.body))
+      end
     end
 
     class IssueTest < self
-      def search(query)
-        get :index, params: {"q" => query, "issues" => "1"}
+      def search(query, api: false)
+        get :index,
+            params: {"q" => query, "issues" => "1"},
+            api: api
       end
 
       def test_search
         search("print OR (private (subproject OR version))")
-        issues = [
+        items = [
           Issue.find(6),
           Issue.find(1),
           Journal.find(4),
         ]
         assert_select("#search-results") do
-          assert_equal(format_items(issues),
+          assert_equal(format_items(items),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
+      end
+
+      def test_api
+        search("print OR (private (subproject OR version))",
+               api: true)
+        items = [
+          [
+            Issue.find(6),
+            {
+              title: <<-TITLE.chomp,
+Bug #6 (New): Issue of a <span class="keyword">private</span> <span class="keyword">subproject</span>
+              TITLE
+              description: <<-DESCRIPTION.chomp,
+This is an issue of a <span class="keyword">private</span> <span class="keyword">subproject</span> of cookbook
+              DESCRIPTION
+              rank: 205,
+            },
+          ],
+          [
+            Issue.find(1),
+            {
+              title: <<-TITLE.chomp,
+Bug #1 (New): Cannot <span class="keyword">print</span> recipes
+              TITLE
+              description: <<-DESCRIPTION.chomp,
+Unable to <span class="keyword">print</span> recipes
+              DESCRIPTION
+              rank: 104,
+            },
+          ],
+          [
+            Journal.find(4),
+            {
+              type: "issue-note",
+              description: <<-DESCRIPTION.chomp,
+A comment with a <span class="keyword">private</span> <span class="keyword">version</span>.
+              DESCRIPTION
+              rank: 5,
+            },
+          ],
+        ]
+        assert_equal(format_api_results(items),
+                     JSON.parse(response.body))
       end
     end
 
     class MessageTest < self
-      def search(query)
-        get :index, params: {"q" => query, "forums" => "1"}
+      def search(query, api: api)
+        get :index,
+            params: {"q" => query, "forums" => "1"},
+            api: api
       end
 
       def test_search
@@ -204,11 +383,58 @@ module FullTextSearch
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
+
+      def test_api
+        items = [
+          [
+            Message.find(1),
+            {
+              title: <<-TITLE.chomp,
+Help: <span class="keyword">First</span> <span class="keyword">post</span>
+              TITLE
+              description: <<-DESCRIPTION.chomp,
+This is the very <span class="keyword">first</span> <span class="keyword">post</span>
+in the forum
+              DESCRIPTION
+              rank: 204,
+            },
+          ],
+          [
+            Message.find(3),
+            {
+              type: "reply",
+              title: <<-TITLE.chomp,
+Help: RE: <span class="keyword">First</span> <span class="keyword">post</span>
+              TITLE
+              description: "",
+              rank: 202,
+            },
+          ],
+          [
+            Message.find(2),
+            {
+              type: "reply",
+              title: <<-TITLE.chomp,
+Help: <span class="keyword">First</span> reply
+              TITLE
+              description: <<-DESCRIPTION.chomp,
+Reply to the <span class="keyword">first</span> <span class="keyword">post</span>
+              DESCRIPTION
+              rank: 104,
+            },
+          ],
+        ]
+        search("first post", api: true)
+        assert_equal(format_api_results(items),
+                     JSON.parse(response.body))
+      end
     end
 
     class WikiPageTest < self
-      def search(query)
-        get :index, params: {"q" => "cookbook gzipped", "wiki_pages" => "1"}
+      def search(query, api: api)
+        get :index,
+            params: {"q" => "cookbook gzipped", "wiki_pages" => "1"},
+            api: api
       end
 
       def test_search
@@ -220,6 +446,30 @@ module FullTextSearch
           assert_equal(format_items(messages),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
+      end
+
+      def test_api
+        items = [
+          [
+            WikiPage.find(1),
+            {
+              title: <<-TITLE.chomp,
+Wiki: <span class="keyword">CookBook</span>_documentation
+              TITLE
+              description: <<-DESCRIPTION.chomp,
+h1. <span class="keyword">CookBook</span> documentation
+
+{{child_pages}}
+
+Some updated [[documentation]] here with <span class="keyword">gzipped</span> history
+              DESCRIPTION
+              rank: 104,
+            },
+          ],
+        ]
+        search("first post", api: true)
+        assert_equal(format_api_results(items),
+                     JSON.parse(response.body))
       end
     end
   end

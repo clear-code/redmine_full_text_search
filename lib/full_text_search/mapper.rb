@@ -159,6 +159,14 @@ JOIN #{redmine_class.table_name}
       }
     end
 
+    def id
+      @record.original_id
+    end
+
+    def datetime
+      [@record.original_created_on, @record.original_updated_on].max
+    end
+
     def title_prefix
       ""
     end

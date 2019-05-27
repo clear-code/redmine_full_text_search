@@ -1,23 +1,22 @@
 #search-results dt a::after {
   content: " (" attr(data-rank) ")";
-  color: gray;
+  color: #bbbbbb;
   font-size: x-small;
 }
 
 .similar-issues td.subject::after {
   content: " (" attr(data-rank) ")";
-  color: gray;
+  color: #bbbbbb;
   font-size: x-small;
 }
 
 #search-elapsed {
-  color: gray;
+  color: #bbbbbb;
   font-size: x-small;
-  float: right;
-  padding-left: 1em;
+  text-align: right;
 }
 
 .similar-issues .elapsed {
-  color: gray;
+  color: #bbbbbb;
   font-size: x-small;
 }

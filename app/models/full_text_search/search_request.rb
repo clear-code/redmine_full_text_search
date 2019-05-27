@@ -7,6 +7,7 @@ module FullTextSearch
     attr_accessor :project
 
     attr_writer :q
+    attr_accessor :scope
     attr_writer :all_words
     attr_writer :titles_only
     attr_writer :attachments
@@ -29,8 +30,39 @@ module FullTextSearch
       super
     end
 
+    def to_params(types: nil)
+      params = {
+        "q" => q,
+        "scope" => scope,
+        "all_words" => all_words,
+        "titles_only" => titles_only,
+        "attachments" => attachments,
+        "open_issues" => open_issues,
+        "offset" => offset,
+        "limit" => limit,
+        "order_target" => order_target,
+        "order_type" => order_type,
+        "options" => options,
+      }
+      case types
+      when :all
+        search_types.each do |type|
+          params[type] = "1"
+        end
+      when nil
+        target_search_types.each do |type|
+          params[type] = "1"
+        end
+      else
+        types.each do |type|
+          params[type] = "1"
+        end
+      end
+      params
+    end
+
     def target_projects
-      case @scope
+      case scope
       when "all"
         nil
       when "my_projects"
@@ -97,15 +129,25 @@ module FullTextSearch
     end
 
     def options
-      @options.presence || "1"
+      @options.presence || "0"
     end
 
     def search_types
       @search_types ||= compute_search_types
     end
 
-    def scope
-      @scope ||= compute_target_search_types
+    def target_search_types
+      @target_search_types ||= compute_target_search_types
+    end
+
+    def target?(type)
+      case type
+      when :all
+        search_types == target_search_types
+      else
+        target_search_types.include?(type) and
+          (not target?(:all))
+      end
     end
 
     private

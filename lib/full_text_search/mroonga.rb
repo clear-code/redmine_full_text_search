@@ -17,6 +17,10 @@ module FullTextSearch
         response
       end
 
+      def time_offset
+        @time_offset ||= compute_time_offset
+      end
+
       private
       def build_sql(command)
         arguments = [command.command_name]
@@ -29,6 +33,10 @@ module FullTextSearch
         placeholders = (["?"] * arguments.size).join(", ")
         sql_template = "SELECT mroonga_command(#{placeholders})"
         sanitize_sql([sql_template, *arguments])
+      end
+
+      def compute_time_offset
+        -Time.now.utc_offset
       end
     end
   end

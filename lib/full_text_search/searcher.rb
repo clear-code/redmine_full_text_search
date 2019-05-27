@@ -37,6 +37,9 @@ module FullTextSearch
                          "flags" => "COLUMN_SCALAR",
                          "value" => calculated_updated_on_value)
       command = Groonga::Command::Select.new("select", arguments)
+      if arguments["query"].blank?
+        arguments["limit"] = "0"
+      end
       arguments["filter"] = "false" unless arguments["filter"]
       response = SearcherRecord.select(command)
       raise Groonga::Client::Error, response.message unless response.success?
@@ -121,8 +124,8 @@ module FullTextSearch
 
       user = @request.user
       conditions = []
-      @request.scope.each do |scope|
-        case scope
+      @request.target_search_types.each do |search_type|
+        case search_type
         when "projects"
           conditions << [
             "&&",
@@ -197,19 +200,20 @@ module FullTextSearch
             ]
           end
         else
-          target_ids = Project.allowed_to(user, :"view_#{scope}").pluck(:id)
+          target_ids =
+            Project.allowed_to(user, :"view_#{search_type}").pluck(:id)
           target_ids &= project_ids
           if target_ids.present?
             conditions << [
               "&&",
-              "original_type == '#{scope.classify}'",
+              "original_type == '#{search_type.classify}'",
               "in_values(project_id, #{target_ids.join(', ')})",
             ]
             if @request.attachments?
               conditions << [
                 "&&",
                 "original_type == 'Attachment'",
-                "container_type == '#{scope.classify}'",
+                "container_type == '#{search_type.classify}'",
                 "in_values(project_id, #{project_ids.join(', ')})",
               ]
             end
@@ -280,9 +284,6 @@ module FullTextSearch
   end
 
   class SearchResult
-    # [FullTextSearch::SearcherRecord]
-    attr_reader :records
-
     def initialize(response)
       @response = response
     end
@@ -320,8 +321,14 @@ module FullTextSearch
     def records
       return [] unless @response.success?
       @records ||= @response.records.map do |record|
-        Rails.logger.debug(title: record["title_digest"],
-                           description: record["description_digest"])
+        # Rails.logger.debug(title: record["title_digest"],
+        #                    description: record["description_digest"])
+        [
+          "original_created_on",
+          "original_updated_on",
+        ].each do |time_column|
+          record[time_column] += FullTextSearch::SearcherRecord.time_offset
+        end
         FullTextSearch::SearcherRecord.new(record)
       end
     end
@@ -333,6 +340,22 @@ module FullTextSearch
     def each
       records.each do |record|
         yield record
+      end
+    end
+
+    def drilldown(name)
+      case name
+      when "issues"
+        targets = [name.classify, "Journal"]
+      else
+        targets = [name.classify]
+      end
+      @response.drilldowns[0].records.inject(0) do |count, record|
+        if targets.include?(record["_key"])
+          count + record["_nsubrecs"]
+        else
+          count
+        end
       end
     end
   end

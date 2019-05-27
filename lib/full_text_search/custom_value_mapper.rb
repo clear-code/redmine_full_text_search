@@ -67,5 +67,13 @@ module FullTextSearch
     def url
       redmine_record.customized.event_url
     end
+
+    def id
+      redmine_record.customized_id
+    end
+
+    def datetime
+      redmine_record.customized.event_datetime
+    end
   end
 end

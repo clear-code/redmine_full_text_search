@@ -28,6 +28,10 @@ module FullTextSearch
   end
 
   class SearcherWikiPageMapper < SearcherMapper
+    def type
+      "wiki-page"
+    end
+
     def title_prefix
       "#{l(:label_wiki)}: "
     end

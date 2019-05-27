@@ -48,7 +48,7 @@ module FullTextSearch
     end
 
     def _datetime
-      [original_created_on, original_updated_on].max
+      mapper.datetime
     end
 
     def _title
@@ -71,6 +71,10 @@ module FullTextSearch
     def event_group
       # Not in use /search
       nil
+    end
+
+    def event_id
+      mapper.id
     end
 
     def event_title_digest
