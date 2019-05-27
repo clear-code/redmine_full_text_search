@@ -30,7 +30,10 @@ module FullTextSearch
       super
     end
 
-    def to_params(types: nil)
+    def to_params(types: nil,
+                  order_target: order_target,
+                  order_type: order_type,
+                  invert_order_type: nil)
       params = {
         "q" => q,
         "scope" => scope,
@@ -57,6 +60,10 @@ module FullTextSearch
         types.each do |type|
           params[type] = "1"
         end
+      end
+      if invert_order_type
+        params["order_type"] =
+          (params["order_type"] == "desc" ? "asc" : "desc")
       end
       params
     end

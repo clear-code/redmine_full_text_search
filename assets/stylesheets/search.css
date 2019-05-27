@@ -1,13 +1,3 @@
-#search-result {
-  display: grid;
-  grid-template-columns: 10em calc(100% - 10em);
-}
-
-#search-result-metadata {
-  border-right: 1px solid #bbbbbb;
-  padding-right: 3px;
-}
-
 .search-input-box {
   display: flex;
   justify-content: center;
@@ -34,6 +24,28 @@
 
 .search-input-box button:hover {
   background: #169;
+}
+
+#search-result {
+  display: grid;
+  grid-template-columns: 10em calc(100% - 10em);
+}
+
+#search-result-metadata {
+  border-right: 1px solid #bbbbbb;
+  padding-right: 3px;
+}
+
+#search-order ul {
+  display: inline-flex;
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+#search-order li {
+  padding: 0;
+  margin: 0;
 }
 
 .keyword {

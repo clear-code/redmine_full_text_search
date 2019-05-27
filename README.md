@@ -55,6 +55,14 @@ redmine:plugins:migrate`:
 
 The MIT License. See [LICENSE](LICENSE) for details.
 
+### Exceptions
+
+  * `asserts/stylesheets/fontawesome*/**/*`
+    * Author: [@fontawesome](https://fontawesome.com/)
+    * Fonts: SIL OFL 1.1 License
+    * Codes: MIT License
+    * See `asserts/stylesheets/fontawesome*/LICENSE.txt` for details
+
 ## Contributing
 
 1. Fork it ( http://github.com/clear-code/redmine_full_text_search/fork )

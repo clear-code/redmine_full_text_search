@@ -2,11 +2,14 @@
 
 <%- if display_score? %>
   <% content_for :header_tags do %>
-    <%= stylesheet_link_tag 'score', :plugin => 'full_text_search' %>
+    <%= stylesheet_link_tag "score", :plugin => "full_text_search" %>
   <% end %>
 <% end %>
 <% content_for :header_tags do %>
-  <%= stylesheet_link_tag 'search', :plugin => 'full_text_search' %>
+  <%= stylesheet_link_tag "search", :plugin => "full_text_search" %>
+  <% fontawesome_prefix = "fontawesome-free-5.8.2-web" %>
+  <%= stylesheet_link_tag "#{fontawesome_prefix}/css/all.css",
+                          :plugin => "full_text_search" %>
 <% end %>
 
 <h2><%= l(:label_search) %></h2>
@@ -14,7 +17,7 @@
 <%= form_with(model: @search_request,
               method: :get,
               url: search_path,
-              id: 'search-form') do |form| %>
+              id: "search-form") do |form| %>
   <div class="box">
     <p class="search-input-box">
       <%= form.label "search-input",
@@ -24,7 +27,7 @@
                             id: "search-input",
                             name: "q" %>
       <%= form.button type: "submit" do %>
-        <%= image_tag "magnifier.png", alt: l(:button_search) %>
+        <i class="fas fa-search"></i>
       <% end %>
     </p>
 
@@ -77,9 +80,39 @@
   <div id="search-result-metadata">
     <% if display_score? %>
       <div id="search-elapsed">
-        <p><%= "%.1f" % [@groonga_search_event.duration] %>ms</p>
+        <p>
+          <i class="fas fa-clock"></i>
+          <%= "%.1f" % [@groonga_search_event.duration] %>ms
+        </p>
       </div>
     <% end %>
+    <div id="search-order">
+      <h3>Order</h3>
+      <ul>
+        <li>
+          <%= link_to_unless(@search_request.order_target == "score",
+                             %Q[<i class="fas fa-star"></i>].html_safe,
+                             search_path(@search_request.to_params(order_target: "score"))) %>
+        </li>
+        <li>
+          <%= link_to_unless(@search_request.order_target == "date",
+                             %Q[<i class="fas fa-clock"></i>].html_safe,
+                             search_path(@search_request.to_params(order_target: "date"))) %>
+         </li>
+      </ul>
+      <ul>
+        <li>
+          <%= link_to_unless(@search_request.order_type == "asc",
+                             %Q[<i class="fas fa-sort-numeric-up"></i>].html_safe,
+                             search_path(@search_request.to_params(order_type: "asc"))) %>
+        </li>
+        <li>
+          <%= link_to_unless(@search_request.order_type == "desc",
+                             %Q[<i class="fas fa-sort-numeric-down"></i>].html_safe,
+                             search_path(@search_request.to_params(order_type: "desc"))) %>
+        </li>
+      </ul>
+    </div>
   </div>
 
   <div id="search-result-content">
@@ -102,7 +135,7 @@
     <dl id="search-results">
       <% @search_result.each do |e| %>
         <dt class="<%= e.event_type %> icon icon-<%= e.event_type %>">
-          <%= content_tag('span', e.project, :class => 'project') unless @project == e.project %>
+          <%= content_tag("span", e.project, :class => "project") unless @project == e.project %>
           <%= link_to(e.event_title_digest, e.event_url, :data => { :rank => e.rank }) %>
         </dt>
         <dd><span class="description"><%= e.event_description_digest %></span>
@@ -118,16 +151,16 @@
 
 <%= javascript_tag do %>
 $("#search-form").submit(function(){
-  $("#show-options").val($("#options-content").is(":visible") ? '1' : '0');
+  $("#show-options").val($("#options-content").is(":visible") ? "1" : "0");
 });
 
 function showFieldset(el) {
-  var fieldset = $(el).parents('fieldset').first();
-  fieldset.removeClass('collapsed');
-  fieldset.children('div').show();
+  var fieldset = $(el).parents("fieldset").first();
+  fieldset.removeClass("collapsed");
+  fieldset.children("div").show();
 }
 
-if ($("#show-options").val() == '1') {
+if ($("#show-options").val() == "1") {
   showFieldset($("#options-content"));
 }
 <% end %>
