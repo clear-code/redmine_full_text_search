@@ -26,6 +26,8 @@ module FullTextSearch
                   where(container_id: @repository.id,
                         container_type: "Repository").
                   order(original_id: :asc)
+      first_change = Change.find_by(path: "/subversion_test/.project")
+      last_change = Change.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt")
       assert_equal([
                      [
                        "/subversion_test/.project",
@@ -41,7 +43,7 @@ module FullTextSearch
                      {
                        "project_id" => @project.id,
                        "project_name" => @project.name,
-                       "original_id" => 2,
+                       "original_id" => first_change.id,
                        "original_type" => "Change",
                        "original_created_on" => parse_time("2007-09-10T16:54:52.203Z"),
                        "original_updated_on" => parse_time("2007-09-10T16:54:52.203Z"),
@@ -72,7 +74,7 @@ module FullTextSearch
                      {
                        "project_id" => @project.id,
                        "project_name" => @project.name,
-                       "original_id" => 20,
+                       "original_id" => last_change.id,
                        "original_type" => "Change",
                        "original_created_on" => parse_time("2010-06-20T09:13:43.065362Z"),
                        "original_updated_on" => parse_time("2010-06-20T09:13:43.065362Z"),
