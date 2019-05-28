@@ -9,6 +9,26 @@ module FullTextSearch
         end
       end
 
+      unless ActionView::Helpers::TagHelper.const_defined?(:TagBuilder)
+        class TagBuilder
+          def initialize(view_context)
+            @view_context = view_context
+          end
+
+          def method_missing(name, *args, &block)
+            @view_context.tag(name, *args, &block)
+          end
+        end
+
+        def tag(*args, &block)
+          if args.empty?
+            TagBuilder.new(self)
+          else
+            super
+          end
+        end
+      end
+
       # Overwrite SearchHelper#render_results_by_type to add order_target and order_type
       def render_results_by_type(results_by_type)
         links = []
