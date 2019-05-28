@@ -160,12 +160,12 @@ module FullTextSearch
     private
     def compute_search_types
       types = Redmine::Search.available_search_types.dup
-      _projects = projects
-      if _projects.is_a?(Project)
+      projects = target_projects
+      if projects.is_a?(Project)
         types.delete("projects")
         u = user
         types = types.select do |type|
-          u.allowed_to?(:"view_#{type}", _projects)
+          u.allowed_to?(:"view_#{type}", projects)
         end
       end
       types
