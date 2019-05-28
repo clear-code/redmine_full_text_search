@@ -107,7 +107,7 @@ module FullTextSearch
         action: "entry",
         id: @record.project_id,
         repository_id: change.changeset.repository.id,
-        revision: @record.identifier,
+        rev: @record.identifier,
         path: @record.filename,
       }
     end
