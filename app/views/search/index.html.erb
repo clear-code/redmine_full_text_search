@@ -16,7 +16,7 @@
 
 <%= form_with(model: @search_request,
               method: :get,
-              url: search_path,
+              url: url_for,
               id: "search-form") do |form| %>
   <div class="box">
     <p class="search-input-box">
@@ -93,13 +93,13 @@
           <%= link_to_unless(@search_request.order_target == "score",
                              tag.i(class: "fas fa-star",
                                    title: l(:label_full_text_search_order_target_score)),
-                             search_path(@search_request.to_params(order_target: "score"))) %>
+                             url_for(@search_request.to_params(order_target: "score"))) %>
         </li>
         <li>
           <%= link_to_unless(@search_request.order_target == "date",
                              tag.i(class: "fas fa-clock",
                                    title: l(:label_full_text_search_order_target_date)),
-                             search_path(@search_request.to_params(order_target: "date"))) %>
+                             url_for(@search_request.to_params(order_target: "date"))) %>
          </li>
       </ul>
       <ul>
@@ -107,13 +107,13 @@
           <%= link_to_unless(@search_request.order_type == "asc",
                              tag.i(class: "fas fa-sort-numeric-up",
                                    title: l(:label_full_text_search_order_type_asc)),
-                             search_path(@search_request.to_params(order_type: "asc"))) %>
+                             url_for(@search_request.to_params(order_type: "asc"))) %>
         </li>
         <li>
           <%= link_to_unless(@search_request.order_type == "desc",
                              tag.i(class: "fas fa-sort-numeric-down",
                                    title: l(:label_full_text_search_order_type_desc)),
-                             search_path(@search_request.to_params(order_type: "desc"))) %>
+                             url_for(@search_request.to_params(order_type: "desc"))) %>
         </li>
       </ul>
     </div>
@@ -124,13 +124,13 @@
       <ul>
         <li>
           <%= link_to("#{l(:label_result_all)} (#{@search_result.count})",
-                      search_path(@search_request.to_params(types: :all)),
+                      url_for(@search_request.to_params(types: :all)),
                       class: @search_request.target?(:all) ? "selected" : "") %>
         </li>
         <% @search_request.search_types.each do |type| %>
           <li>
             <%= link_to("#{type_label(type)} (#{@search_result.drilldown(type)})",
-                        search_path(@search_request.to_params(types: [type])),
+                        url_for(@search_request.to_params(types: [type])),
                         class: @search_request.target?(type) ? "selected" : "") %>
           </li>
         <% end %>
