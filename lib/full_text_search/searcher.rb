@@ -275,7 +275,7 @@ module FullTextSearch
     end
 
     def description_digest_value
-      "snippet_html(#{description_columns.join(' + ')}) || vector_new('')"
+      "snippet_html(#{description_columns.join(' + ')})"
     end
 
     def calculated_updated_on_value

@@ -7,6 +7,7 @@ This plugin provides following features:
 
 ## Supported databases
 
+* Groonga 9.0.1 or later
 * PostgreSQL with PGroonga 2.0.0 or later
 * MySQL(MariaDB) with Mroonga 7.05 or later
 
