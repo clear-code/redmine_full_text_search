@@ -9,7 +9,9 @@ module FullTextSearch
         ActiveSupport::Notifications.instrument("groonga.search", sql: sql) do
           raw_response = connection.select_value(sql)
         end
-        Groonga::Client::Response.parse(command, raw_response)
+        response = Groonga::Client::Response.parse(command, raw_response)
+        adjust_groonga_response!(response)
+        response
       end
 
       def time_offset
@@ -42,6 +44,29 @@ module FullTextSearch
 
       def compute_time_offset
         -Time.now.utc_offset
+      end
+
+      def adjust_groonga_response!(response)
+        response.records.each do |record|
+          original_type = record["original_type"]
+          next unless original_type
+          record["original_type"] = adjust_original_type(original_type)
+        end
+        response.drilldowns.each do |drilldown|
+          next unless drilldown.key == "original_type"
+          drilldown.records.each do |record|
+            record["_key"] = adjust_original_type(record["_key"])
+          end
+        end
+      end
+
+      def adjust_original_type(original_type)
+        case original_type
+        when "wikipage"
+          "WikiPage"
+        else
+          original_type.camelize
+        end
       end
     end
   end
