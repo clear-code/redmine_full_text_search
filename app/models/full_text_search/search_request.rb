@@ -165,7 +165,15 @@ module FullTextSearch
         types.delete("projects")
         u = user
         types = types.select do |type|
-          u.allowed_to?(:"view_#{type}", projects)
+          case type
+          when "changes"
+            allow_type = "changesets"
+          when "journals"
+            allow_type = "issues"
+          else
+            allow_type = type
+          end
+          u.allowed_to?(:"view_#{allow_type}", projects)
         end
       end
       types
