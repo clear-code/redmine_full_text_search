@@ -158,11 +158,63 @@ module FullTextSearch
       }
     end
 
-    class OptionsTest < self
-      def test_index
+    class UITest < self
+      def test_search_order_in_options
         get :index
         assert_select("#options-content") do
           assert_select(".full-text-search-order")
+        end
+      end
+
+      def test_search_order_links
+        get :index
+        assert_select("#search-order") do
+          links = css_select(@selected, "li").collect do |li|
+            href = (css_select(li, "a").first || {})["href"]
+            if href
+              uri = URI.parse(href)
+              search_path = uri.path
+              search_options = Rack::Utils.parse_query(uri.query)
+            else
+              search_path = nil
+              search_options = nil
+            end
+            [
+              css_select(li, "i").first["title"],
+              search_path,
+              search_options,
+            ]
+          end
+          common_search_options = {
+            "all_words" => "1",
+            "attachments" => "1",
+            "limit" => "10",
+            "offset" => "0",
+            "open_issues" => "0",
+            "options" => "0",
+            "q" => "",
+            "titles_only" => "0",
+          }
+          Redmine::Search.available_search_types.each do |type|
+            common_search_options[type] = "1"
+          end
+          assert_equal([
+                         ["score", nil, nil],
+                         [
+                           "updated at",
+                           @controller.search_path,
+                           common_search_options.merge("order_target" => "date",
+                                                       "order_type" => "desc"),
+                         ],
+                         [
+                           "asc",
+                           @controller.search_path,
+                           common_search_options.merge("order_target" => "score",
+                                                       "order_type" => "asc"),
+                         ],
+                         ["desc", nil, nil],
+                       ],
+                       links)
         end
       end
     end

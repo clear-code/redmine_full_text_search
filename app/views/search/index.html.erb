@@ -91,24 +91,28 @@
       <ul>
         <li>
           <%= link_to_unless(@search_request.order_target == "score",
-                             %Q[<i class="fas fa-star"></i>].html_safe,
+                             tag.i(class: "fas fa-star",
+                                   title: l(:label_full_text_search_order_target_score)),
                              search_path(@search_request.to_params(order_target: "score"))) %>
         </li>
         <li>
           <%= link_to_unless(@search_request.order_target == "date",
-                             %Q[<i class="fas fa-clock"></i>].html_safe,
+                             tag.i(class: "fas fa-clock",
+                                   title: l(:label_full_text_search_order_target_date)),
                              search_path(@search_request.to_params(order_target: "date"))) %>
          </li>
       </ul>
       <ul>
         <li>
           <%= link_to_unless(@search_request.order_type == "asc",
-                             %Q[<i class="fas fa-sort-numeric-up"></i>].html_safe,
+                             tag.i(class: "fas fa-sort-numeric-up",
+                                   title: l(:label_full_text_search_order_type_asc)),
                              search_path(@search_request.to_params(order_type: "asc"))) %>
         </li>
         <li>
           <%= link_to_unless(@search_request.order_type == "desc",
-                             %Q[<i class="fas fa-sort-numeric-down"></i>].html_safe,
+                             tag.i(class: "fas fa-sort-numeric-down",
+                                   title: l(:label_full_text_search_order_type_desc)),
                              search_path(@search_request.to_params(order_type: "desc"))) %>
         </li>
       </ul>

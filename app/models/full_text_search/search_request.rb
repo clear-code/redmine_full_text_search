@@ -31,8 +31,8 @@ module FullTextSearch
     end
 
     def to_params(types: nil,
-                  order_target: order_target,
-                  order_type: order_type,
+                  order_target: self.order_target,
+                  order_type: self.order_type,
                   invert_order_type: nil)
       params = {
         "q" => q,
