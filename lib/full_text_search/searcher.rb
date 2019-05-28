@@ -297,26 +297,6 @@ module FullTextSearch
       end
     end
 
-    def count_by_type
-      return {} unless @response.success?
-      @response.drilldowns.first.records.inject(Hash.new{|h, k| h[k] = 0 }) do |memo, r|
-        key = case r.values[0]
-              when "Journal"
-                "issues"
-              when "WikiContent"
-                "wiki_pages"
-              else
-                r.values[0].tableize
-              end
-        memo[key] += r.values[1]
-        memo
-      end
-    end
-
-    def records_by_type
-      @records_by_type ||= records.group_by(&:original_type)
-    end
-
     # @return [FullTextSearch::SearcherRecord]
     def records
       return [] unless @response.success?
