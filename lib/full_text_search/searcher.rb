@@ -36,11 +36,11 @@ module FullTextSearch
                          "type" => "Time",
                          "flags" => "COLUMN_SCALAR",
                          "value" => calculated_updated_on_value)
-      command = Groonga::Command::Select.new("select", arguments)
       if arguments["query"].blank?
         arguments["limit"] = "0"
       end
       arguments["filter"] = "false" unless arguments["filter"]
+      command = Groonga::Command::Select.new("select", arguments)
       response = SearcherRecord.select(command)
       raise Groonga::Client::Error, response.message unless response.success?
       SearchResult.new(response)
