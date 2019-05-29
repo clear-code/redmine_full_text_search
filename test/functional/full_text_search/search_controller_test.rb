@@ -224,6 +224,97 @@ module FullTextSearch
                        items)
         end
       end
+
+      def test_drilldowns
+        project = Project.first
+        get :index, params: {"id" => project.identifier}
+        assert_select("#search-drilldowns") do
+          items = css_select(@selected, "li").collect do |li|
+            href = (css_select(li, "a").first || {})["href"]
+            if href
+              uri = URI.parse(href)
+              search_path = uri.path
+              search_options = Rack::Utils.parse_query(uri.query)
+            else
+              search_path = nil
+              search_options = nil
+            end
+            [
+              li.text.strip,
+              search_path,
+              search_options,
+            ]
+          end
+          common_search_options = {
+            "all_words" => "1",
+            "attachments" => "1",
+            "limit" => "10",
+            "offset" => "0",
+            "open_issues" => "0",
+            "options" => "0",
+            "order_target" => "score",
+            "order_type" => "desc",
+            "q" => "",
+            "titles_only" => "0",
+          }
+          expected_search_path = "/projects/#{project.identifier}/search"
+          assert_equal([
+                         [
+                           "All (46)",
+                           expected_search_path,
+                           common_search_options.merge("changes" => "1",
+                                                       "changesets" => "1",
+                                                       "documents" => "1",
+                                                       "files" => "1",
+                                                       "issues" => "1",
+                                                       "messages" => "1",
+                                                       "news" => "1",
+                                                       "wiki_pages" => "1"),
+                         ],
+                         [
+                           "Issues (10)",
+                           expected_search_path,
+                           common_search_options.merge("issues" => "1"),
+                         ],
+                         [
+                           "News (0)",
+                           expected_search_path,
+                           common_search_options.merge("news" => "1"),
+                         ],
+                         [
+                           "Documents (0)",
+                           expected_search_path,
+                           common_search_options.merge("documents" => "1"),
+                         ],
+                         [
+                           "Changesets (10)",
+                           expected_search_path,
+                           common_search_options.merge("changesets" => "1"),
+                         ],
+                         [
+                           "Wiki pages (8)",
+                           expected_search_path,
+                           common_search_options.merge("wiki_pages" => "1"),
+                         ],
+                         [
+                           "Messages (6)",
+                           expected_search_path,
+                           common_search_options.merge("messages" => "1"),
+                         ],
+                         [
+                           "Changes (0)",
+                           expected_search_path,
+                           common_search_options.merge("changes" => "1"),
+                         ],
+                         [
+                           "Files (0)",
+                           expected_search_path,
+                           common_search_options.merge("files" => "1"),
+                         ],
+                       ],
+                       items)
+        end
+      end
     end
 
     class AttachmentTest < self
