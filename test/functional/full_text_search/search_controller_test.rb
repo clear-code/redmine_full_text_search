@@ -57,6 +57,19 @@ module FullTextSearch
         named_attachment_url(id: attachment.id,
                              filename: attachment.filename,
                              only_path: only_path)
+      when Change
+        change = item
+        changeset = change.changeset
+        url_parameters = {
+          controller: "repositories",
+          action: "entry",
+          id: changeset.repository.project_id,
+          repository_id: changeset.repository.identifier_param,
+          rev: changeset.identifier,
+          path: change.path.gsub(/\A\//, ""),
+          only_path: only_path,
+        }
+        @controller.url_for(url_parameters)
       when Changeset
         changeset = item
         url_parameters = {
@@ -93,6 +106,18 @@ module FullTextSearch
       when Attachment
         attachment = item
         attachment.filename
+      when Change
+        change = item
+        changeset = change.changeset
+        repository = changeset.repository
+        title = ""
+        if repository.identifier
+          title << "#{repository.identifier}:"
+        end
+        # TODO: Remove this garbage
+        title << changeset.revision.to_s
+        title << "#{change.path}@#{changeset.revision}"
+        title
       when Changeset
         changeset = item
         "Revision #{changeset.revision}: #{changeset.comments}"
@@ -138,6 +163,9 @@ module FullTextSearch
           end
         end
         datetime ||= item.committed_on if item.respond_to?(:committed_on)
+        if item.respond_to?(:changeset)
+          datetime ||= item.changeset.committed_on
+        end
         datetime ||= item.updated_on if item.respond_to?(:updated_on)
         datetime ||= item.created_on if item.respond_to?(:created_on)
         {
@@ -366,18 +394,18 @@ with multiple lines\r
 
       def test_search
         search("helloworld")
-        attachments = [
+        items = [
           Changeset.find(105),
         ]
         assert_select("#search-results") do
-          assert_equal(format_items(attachments),
+          assert_equal(format_items(items),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
 
       def test_api
         search("helloworld", api: true)
-        attachments = [
+        items = [
           [
             Changeset.find(105),
             {
@@ -389,7 +417,83 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
             }
           ],
         ]
-        assert_equal(format_api_results(attachments),
+        assert_equal(format_api_results(items),
+                     JSON.parse(response.body))
+      end
+    end
+
+    class ChangeTest < self
+      def setup
+        super
+        @project = Project.find(3)
+        url = self.class.subversion_repository_url
+        @repository = Repository::Subversion.create(:project => @project,
+                                                    :url => url)
+        @repository.fetch_changesets
+      end
+
+      def search(query, api: false)
+        get :index,
+            params: {
+              "id" => @project.identifier,
+              "q" => query,
+              "changes" => "1",
+            },
+            api: api
+      end
+
+      def test_search
+        search("redmine")
+        revision10 = @repository.changesets.find_by(revision: "10").filechanges
+        revision11 = @repository.changesets.find_by(revision: "11").filechanges
+        items = [
+          revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
+          revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_items(items),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+
+      def test_api
+        search("redmine", api: true)
+        revision10 = @repository.changesets.find_by(revision: "10").filechanges
+        revision11 = @repository.changesets.find_by(revision: "11").filechanges
+        items = [
+          [
+            revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
+            {
+              type: "file",
+              title: <<-TITLE.chomp,
+:11/subversion_test/[folder_with_brackets]/README.txt@11
+              TITLE
+              description: <<-DESCRIPTION,
+This file should be accessible for <span class="keyword">Redmine</span>, although its folder contains square
+brackets.
+              DESCRIPTION
+              rank: 3,
+            }
+          ],
+          [
+            revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
+            {
+              type: "file",
+              title: <<-TITLE.chomp,
+:10/subversion_test/folder/subfolder/journals_controller.rb@10
+              TITLE
+              description: <<-DESCRIPTION.chomp,
+# <span class="keyword">redMine</span> - project management software\r
+# Copyright (C) 2006-2008  Jean-Philippe Lang\r
+#\r
+# This program is free software; you can redistribute it and/or\r
+# modify it under the terms of the GNU Gener
+              DESCRIPTION
+              rank: 3,
+            },
+          ],
+        ]
+        assert_equal(format_api_results(items),
                      JSON.parse(response.body))
       end
     end

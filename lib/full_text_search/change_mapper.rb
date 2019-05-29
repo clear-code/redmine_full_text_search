@@ -89,7 +89,12 @@ module FullTextSearch
   class SearcherChangeMapper < SearcherMapper
     def title_prefix
       change = redmine_record
-      "#{change.changeset.repository.identifier}:"
+      repository = change.changeset.repository
+      if repository.identifier
+        "#{repository.identifier}:"
+      else
+        ""
+      end
     end
 
     def title_suffix
@@ -108,7 +113,7 @@ module FullTextSearch
         id: @record.project_id,
         repository_id: change.changeset.repository.id,
         rev: @record.identifier,
-        path: @record.filename,
+        path: @record.filename.gsub(/\A\//, ""),
       }
     end
   end
