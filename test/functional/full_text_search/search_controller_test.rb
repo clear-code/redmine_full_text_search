@@ -170,7 +170,7 @@ module FullTextSearch
         project = Project.first
         get :index, params: {"id" => project.identifier}
         assert_select("#search-order") do
-          links = css_select(@selected, "li").collect do |li|
+          items = css_select(@selected, "li").collect do |li|
             href = (css_select(li, "a").first || {})["href"]
             if href
               uri = URI.parse(href)
@@ -189,33 +189,39 @@ module FullTextSearch
           common_search_options = {
             "all_words" => "1",
             "attachments" => "1",
+            "changes" => "1",
+            "changesets" => "1",
+            "documents" => "1",
+            "files" => "1",
+            "issues" => "1",
             "limit" => "10",
+            "messages" => "1",
+            "news" => "1",
             "offset" => "0",
             "open_issues" => "0",
             "options" => "0",
             "q" => "",
             "titles_only" => "0",
+            "wiki_pages" => "1",
           }
-          Redmine::Search.available_search_types.each do |type|
-            common_search_options[type] = "1"
-          end
+          expected_search_path = "/projects/#{project.identifier}/search"
           assert_equal([
                          ["score", nil, nil],
                          [
                            "updated at",
-                           "/projects/#{project.identifier}/search",
+                           expected_search_path,
                            common_search_options.merge("order_target" => "date",
                                                        "order_type" => "desc"),
                          ],
                          [
                            "asc",
-                           "/projects/#{project.identifier}/search",
+                           expected_search_path,
                            common_search_options.merge("order_target" => "score",
                                                        "order_type" => "asc"),
                          ],
                          ["desc", nil, nil],
                        ],
-                       links)
+                       items)
         end
       end
     end
