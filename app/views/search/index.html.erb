@@ -48,7 +48,7 @@
                  <%= l(:label_search_attachments_only) %></label>
         </p>
         <fieldset class="full-text-search-order">
-          <legend><%= l(:label_full_text_search_result_order)%></legend>
+          <legend><%= l(:label_full_text_search_result_order) %></legend>
           <p>
             <label>
               <%= form.radio_button "order_target", "score", name: "order_target" %>
@@ -87,7 +87,7 @@
       </div>
     <% end %>
     <div id="search-order">
-      <h3>Order</h3>
+      <h3><%= l(:label_full_text_search_result_order) %></h3>
       <ul>
         <li>
           <%= link_to_unless(@search_request.order_target == "score",
