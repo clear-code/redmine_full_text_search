@@ -167,7 +167,8 @@ module FullTextSearch
       end
 
       def test_search_order_links
-        get :index
+        project = Project.first
+        get :index, params: {"id" => project.identifier}
         assert_select("#search-order") do
           links = css_select(@selected, "li").collect do |li|
             href = (css_select(li, "a").first || {})["href"]
@@ -202,13 +203,13 @@ module FullTextSearch
                          ["score", nil, nil],
                          [
                            "updated at",
-                           @controller.search_path,
+                           "/projects/#{project.identifier}/search",
                            common_search_options.merge("order_target" => "date",
                                                        "order_type" => "desc"),
                          ],
                          [
                            "asc",
-                           @controller.search_path,
+                           "/projects/#{project.identifier}/search",
                            common_search_options.merge("order_target" => "score",
                                                        "order_type" => "asc"),
                          ],
