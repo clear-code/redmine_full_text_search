@@ -5,6 +5,8 @@ set -exu
 options=(--rm -p3306:3306)
 if [ $# -ge 1 ]; then
   db_dir=$1
+  rm -rf ${db_dir}
+  mkdir -p ${db_dir}
   options+=("-v${db_dir}:/var/lib/mysql")
 fi
 
