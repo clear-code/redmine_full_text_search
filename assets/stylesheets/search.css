@@ -48,6 +48,16 @@
   margin: 0;
 }
 
+ol.search-snippets {
+  padding: 0.25em 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+ol.search-snippets li {
+  padding: 0.25em 0;
+}
+
 .keyword {
   background-color: #FCFD8D;
 }

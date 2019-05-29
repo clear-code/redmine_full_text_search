@@ -142,7 +142,12 @@
           <%= content_tag("span", e.project, :class => "project") unless @project == e.project %>
           <%= link_to(e.event_title_digest, e.event_url, :data => { :rank => e.rank }) %>
         </dt>
-        <dd><span class="description"><%= e.event_description_digest %></span>
+        <dd>
+          <ol class="search-snippets">
+            <% e.description_digest.each do |digest| %>
+              <li><%= digest.html_safe %></li>
+            <% end %>
+          </ol>
         <span class="author"><%= format_time(e.event_datetime) %></span></dd>
       <% end %>
     </dl>
