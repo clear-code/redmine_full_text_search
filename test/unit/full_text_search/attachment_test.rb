@@ -2,8 +2,7 @@ require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
   class AttachmentTest < ActiveSupport::TestCase
-    make_my_diffs_pretty!
-
+    include PrettyInspectable
     include NullValues
 
     fixtures :enumerations
@@ -70,7 +69,7 @@ module FullTextSearch
   end
 
   class AttachmentExtractTest < ActiveSupport::TestCase
-    make_my_diffs_pretty!
+    include PrettyInspectable
 
     fixtures :enumerations
     fixtures :issue_statuses

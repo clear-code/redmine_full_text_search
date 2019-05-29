@@ -2,9 +2,9 @@ require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
   class SearchControllerTest < Redmine::ControllerTest
-    include GroongaCommandExecutable
+    include PrettyInspectable
 
-    make_my_diffs_pretty!
+    include GroongaCommandExecutable
 
     tests SearchController
 

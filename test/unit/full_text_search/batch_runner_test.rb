@@ -2,7 +2,7 @@ require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
   class BatchRunnerTest < ActiveSupport::TestCase
-    make_my_diffs_pretty!
+    include PrettyInspectable
 
     fixtures :enumerations
     fixtures :issue_statuses

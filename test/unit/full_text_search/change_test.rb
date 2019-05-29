@@ -2,8 +2,7 @@ require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
   class ChangeTest < ActiveSupport::TestCase
-    make_my_diffs_pretty!
-
+    include PrettyInspectable
     include NullValues
     include TimeValue
 
