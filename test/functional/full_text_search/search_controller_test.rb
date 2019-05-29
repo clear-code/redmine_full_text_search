@@ -304,7 +304,7 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
     end
 
     class CustomFieldTest < self
-      def search(query, params: params, api: false)
+      def search(query, params: {}, api: false)
         get :index,
             params: {"q" => query, "issues" => "1"}.merge(params),
             api: api
@@ -424,7 +424,7 @@ A comment with a <span class="keyword">private</span> <span class="keyword">vers
     end
 
     class MessageTest < self
-      def search(query, api: api)
+      def search(query, api: false)
         get :index,
             params: {"q" => query, "forums" => "1"},
             api: api
@@ -490,7 +490,7 @@ Reply to the <span class="keyword">first</span> <span class="keyword">post</span
     end
 
     class WikiPageTest < self
-      def search(query, api: api)
+      def search(query, api: false)
         get :index,
             params: {"q" => "cookbook gzipped", "wiki_pages" => "1"},
             api: api
