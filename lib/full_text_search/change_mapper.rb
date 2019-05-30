@@ -111,7 +111,7 @@ module FullTextSearch
         controller: "repositories",
         action: "entry",
         id: @record.project_id,
-        repository_id: change.changeset.repository.id,
+        repository_id: change.changeset.repository.identifier_param,
         rev: @record.identifier,
         path: @record.filename.gsub(/\A\//, ""),
       }
