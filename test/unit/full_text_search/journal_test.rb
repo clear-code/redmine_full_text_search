@@ -14,54 +14,40 @@ module FullTextSearch
     fixtures :users
 
     def test_save
-      journal = Journal.generate!
+      journal = Journal.generate!(notes: "Hello!")
       journal.reload
-      records = SearcherRecord.where(original_id: journal.id,
-                                     original_type: journal.class.name)
+      targets = Target.where(source_id: journal.id,
+                             source_type_id: Type.journal.id)
+      issue = journal.journalized
       assert_equal([
                      {
-                       "project_id" => journal.issue.project_id,
-                       "project_name" => journal.issue.project.name,
-                       "original_id" => journal.id,
-                       "original_type" => journal.class.name,
-                       "original_created_on" => journal.created_on,
-                       "original_updated_on" => null_datetime,
-                       "name" => null_string,
-                       "description" => null_string,
-                       "identifier" => null_string,
-                       "status" => null_number,
+                       "project_id" => issue.project_id,
+                       "source_id" => journal.id,
+                       "source_type_id" => Type.journal.id,
+                       "last_modified_at" => journal.created_on,
                        "title" => null_string,
-                       "summary" => null_string,
-                       "tracker_id" => null_number,
-                       "subject" => null_string,
-                       "author_id" => journal.user_id,
-                       "is_private" => null_boolean,
-                       "status_id" => journal.journalized.status_id,
-                       "issue_id" => journal.journalized_id,
-                       "comments" => null_string,
-                       "short_comments" => null_string,
-                       "long_comments" => null_string,
-                       "content" => null_string,
-                       "notes" => null_string,
-                       "private_notes" => journal.private_notes,
-                       "text" => null_string,
-                       "value" => null_string,
+                       "tag_ids" => [
+                         Tag.user(journal.user_id).id,
+                         Tag.tracker(issue.tracker_id).id,
+                         Tag.issue_status(issue.status_id).id,
+                       ],
+                       "is_private" => journal.private_notes,
+                       "content" => journal.notes,
                        "custom_field_id" => null_number,
-                       "container_id" => null_number,
-                       "container_type" => null_string,
-                       "filename" => null_string,
+                       "container_id" => issue.id,
+                       "container_type_id" => Type.issue.id,
                      }
                    ],
-                   records.all.collect {|record| record.attributes.except("id")})
+                   targets.collect {|target| target.attributes.except("id")})
     end
 
     def test_destroy
       journal = Journal.generate!
-      records = SearcherRecord.where(original_id: journal.id,
-                                     original_type: journal.class.name)
-      assert_equal(1, records.size)
+      targets = Target.where(source_id: journal.id,
+                             source_type_id: Type.journal.id)
+      assert_equal(1, targets.size)
       journal.destroy!
-      assert_equal([], records.reload.to_a)
+      assert_equal([], targets.reload.to_a)
     end
   end
 end

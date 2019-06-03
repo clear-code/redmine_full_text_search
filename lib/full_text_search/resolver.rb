@@ -14,9 +14,10 @@ module FullTextSearch
 
     def resolve(key)
       case key
-      when SearcherRecord
-        mapper = @name_to_mapper[normalize_name(key.original_type)]
-        mapper.searcher_mapper(key)
+      when Target
+        name = Type.find(key.source_type_id).name
+        mapper = @name_to_mapper[normalize_name(name)]
+        mapper.fts_mapper(key)
       when Class
         if key <= Mapper
           @mapper_to_redmine[key]
@@ -29,7 +30,7 @@ module FullTextSearch
       when String
         @name_to_mapper[normalize_name(key)]
       else
-        message = "must be SearcherRecord, Redmine model class, "
+        message = "must be FullTextSearch::Target, Redmine model class, "
         message << "Redmine model instance, String or "
         message << "FullTextSearch::Mapper: #{key.inspect}"
         raise ArgumentError, message

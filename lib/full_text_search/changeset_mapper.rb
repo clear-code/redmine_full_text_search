@@ -5,35 +5,35 @@ module FullTextSearch
         RedmineChangesetMapper
       end
 
-      def searcher_mapper_class
-        SearcherChangesetMapper
+      def fts_mapper_class
+        FtsChangesetMapper
       end
     end
   end
   resolver.register(Changeset, ChangesetMapper)
 
   class RedmineChangesetMapper < RedmineMapper
-    def upsert_searcher_record(options={})
+    def upsert_fts_target(options={})
       repository = @record.repository
-      searcher_record = find_searcher_record
+      fts_target = find_fts_target
       if repository.nil?
-        searcher_record.destroy! if searcher_record.persisted?
+        fts_target.destroy! if fts_target.persisted?
         return
       end
-      searcher_record.original_id = @record.id
-      searcher_record.original_type = @record.class.name
-      searcher_record.project_id = repository.project_id
-      searcher_record.project_name = repository.project.name
-      searcher_record.author_id = @record.user&.id
-      searcher_record.comments = @record.comments
-      searcher_record.short_comments = @record.short_comments&.strip
-      searcher_record.long_comments = @record.long_comments&.strip
-      searcher_record.original_created_on = @record.committed_on
-      searcher_record.save!
+      fts_target.source_id = @record.id
+      fts_target.source_type_id = Type[@record.class].id
+      fts_target.project_id = repository.project_id
+      if @record.user
+        fts_target.tag_ids = [Tag.user(@record.user.id).id]
+      end
+      fts_target.title = @record.short_comments&.strip
+      fts_target.content = @record.long_comments&.strip
+      fts_target.last_modified_at = @record.committed_on
+      fts_target.save!
     end
   end
 
-  class SearcherChangesetMapper < SearcherMapper
+  class FtsChangesetMapper < FtsMapper
     def title_prefix
       changeset = redmine_record
       repository = changeset.repository
@@ -43,18 +43,6 @@ module FullTextSearch
         repository = ""
       end
       "#{l(:label_revision)} #{changeset.format_identifier}#{repository}: "
-    end
-
-    def title
-      if @record.short_comments.present?
-        "#{title_prefix}#{@record.short_comments}"
-      else
-        title_prefix.chomp(": ")
-      end
-    end
-
-    def description
-      @record.long_comments.presence || @record.comments
     end
 
     def url

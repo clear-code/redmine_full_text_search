@@ -19,52 +19,40 @@ module FullTextSearch
       content = "this is a text file for upload tests\r\nwith multiple lines\r\n"
       attachment = Attachment.generate!(file: file)
       attachment.reload
-      records = SearcherRecord.where(original_id: attachment.id,
-                                     original_type: attachment.class.name)
+      issue = attachment.container
+      targets = Target.where(source_id: attachment.id,
+                             source_type_id: Type.attachment.id)
       assert_equal([
                      {
-                       "project_id" => attachment.container.project_id,
-                       "project_name" => attachment.container.project.name,
-                       "original_id" => attachment.id,
-                       "original_type" => attachment.class.name,
-                       "original_created_on" => attachment.created_on,
-                       "original_updated_on" => null_datetime,
-                       "name" => null_string,
-                       "description" => attachment.description || null_string,
-                       "identifier" => null_string,
-                       "status" => null_number,
-                       "title" => null_string,
-                       "summary" => null_string,
-                       "tracker_id" => null_number,
-                       "subject" => null_string,
-                       "author_id" => null_number,
-                       "is_private" => attachment.container.is_private,
-                       "status_id" => attachment.container.status_id,
-                       "issue_id" => attachment.container.id,
-                       "comments" => null_string,
-                       "short_comments" => null_string,
-                       "long_comments" => null_string,
-                       "content" => content,
-                       "notes" => null_string,
-                       "private_notes" => null_boolean,
-                       "text" => null_string,
-                       "value" => null_string,
+                       "project_id" => issue.project_id,
+                       "source_id" => attachment.id,
+                       "source_type_id" => Type.attachment.id,
+                       "last_modified_at" => attachment.created_on,
+                       "title" => filename,
+                       "is_private" => issue.is_private,
+                       "content" => [
+                         attachment.description,
+                         content,
+                       ].compact.join("\n"),
+                       "container_id" => issue.id,
+                       "container_type_id" => Type.issue.id,
                        "custom_field_id" => null_number,
-                       "container_id" => attachment.container.id,
-                       "container_type" => attachment.container_type,
-                       "filename" => filename,
+                       "tag_ids" => [
+                         Tag.issue_status(issue.status_id).id,
+                         Tag.extension("txt").id,
+                       ],
                      }
                    ],
-                   records.all.collect {|record| record.attributes.except("id")})
+                   targets.collect {|target| target.attributes.except("id")})
     end
 
     def test_destroy
       attachment = Attachment.generate!
-      records = SearcherRecord.where(original_id: attachment.id,
-                                     original_type: attachment.class.name)
-      assert_equal(1, records.size)
+      targets = Target.where(source_id: attachment.id,
+                             source_type_id: Type.attachment.id)
+      assert_equal(1, targets.size)
       attachment.destroy!
-      assert_equal([], records.reload.to_a)
+      assert_equal([], targets.reload.to_a)
     end
   end
 
@@ -148,7 +136,7 @@ module FullTextSearch
     def format_log_message(message, context, error_message=nil)
       formatted_message = "[full-text-search][text-extract] "
       formatted_message << "#{message}: "
-      formatted_message << "SearcherRecord: #{context[:searcher_record].id}: "
+      formatted_message << "FullTextSearch::Target: #{context[:fts_target].id}: "
       formatted_message << "Attachment: #{context[:attachment].id}: "
       formatted_message << "path: <#{context[:path]}>: "
       formatted_message << "content-type: <#{context[:content_type]}>"
@@ -167,7 +155,7 @@ module FullTextSearch
       path = attachment.diskfile
       context = {
         attachment: attachment,
-        searcher_record: attachment.to_searcher_record,
+        fts_target: attachment.to_fts_target,
         path: path,
         content_type: content_type,
       }
@@ -200,10 +188,10 @@ module FullTextSearch
           attachment = Attachment.generate!(file: file)
         end
       end
-      searcher_record = attachment.to_searcher_record
+      target = attachment.to_fts_target
       context = {
         attachment: attachment,
-        searcher_record: searcher_record,
+        fts_target: target,
         path: attachment.diskfile,
         content_type: "text/plain",
       }
@@ -223,7 +211,7 @@ module FullTextSearch
                      ],
                    ],
                    [
-                     searcher_record.content,
+                     target.content,
                      messages,
                    ])
     end
@@ -254,8 +242,8 @@ module FullTextSearch
                       "server_url" => @server_url,
                     }) do
         attachment = Attachment.generate!(file: file)
-        searcher_record = attachment.to_searcher_record
-        assert_equal("one page", searcher_record.content)
+        target = attachment.to_fts_target
+        assert_equal("one page", target.content)
       end
     end
   end

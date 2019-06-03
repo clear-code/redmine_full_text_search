@@ -5,39 +5,33 @@ module FullTextSearch
         RedmineWikiPageMapper
       end
 
-      def searcher_mapper_class
-        SearcherWikiPageMapper
+      def fts_mapper_class
+        FtsWikiPageMapper
       end
     end
   end
   resolver.register(WikiPage, WikiPageMapper)
 
   class RedmineWikiPageMapper < RedmineMapper
-    def upsert_searcher_record(options={})
-      searcher_record = find_searcher_record
-      searcher_record.original_id = @record.id
-      searcher_record.original_type = @record.class.name
-      searcher_record.project_id = @record.wiki.project_id
-      searcher_record.project_name = @record.wiki.project.name
-      searcher_record.title = @record.title
-      searcher_record.text = @record.text
-      searcher_record.original_created_on = @record.created_on
-      searcher_record.original_updated_on = @record.updated_on
-      searcher_record.save!
+    def upsert_fts_target(options={})
+      fts_target = find_fts_target
+      fts_target.source_id = @record.id
+      fts_target.source_type_id = Type[@record.class].id
+      fts_target.project_id = @record.wiki.project_id
+      fts_target.title = @record.title
+      fts_target.content = @record.text
+      fts_target.last_modified_at = @record.updated_on
+      fts_target.save!
     end
   end
 
-  class SearcherWikiPageMapper < SearcherMapper
+  class FtsWikiPageMapper < FtsMapper
     def type
       "wiki-page"
     end
 
     def title_prefix
       "#{l(:label_wiki)}: "
-    end
-
-    def description
-      @record.text
     end
 
     def url

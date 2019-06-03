@@ -2,7 +2,7 @@ module FullTextSearch
   module Hooks
     module ControllerSearchIndex
       def index
-        @search_request = SearchRequest.new(query_params)
+        @search_request = Request.new(query_params)
         @search_request.user = User.current
         @search_request.project = @project
 
@@ -28,9 +28,9 @@ module FullTextSearch
         ActiveSupport::Notifications.subscribe("groonga.search") do |*args|
           @groonga_search_event = ActiveSupport::Notifications::Event.new(*args)
         end
-        searcher = FullTextSearch::Searcher.new(@search_request)
-        @search_result = searcher.search
-        @result_pages = Redmine::Pagination::Paginator.new(@search_result.count,
+        searcher = Searcher.new(@search_request)
+        @result_set = searcher.search
+        @result_pages = Redmine::Pagination::Paginator.new(@result_set.count,
                                                            @search_request.limit,
                                                            params["page"])
 

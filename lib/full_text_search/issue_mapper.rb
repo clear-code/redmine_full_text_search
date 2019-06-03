@@ -5,34 +5,38 @@ module FullTextSearch
         RedmineIssueMapper
       end
 
-      def searcher_mapper_class
-        SearcherIssueMapper
+      def fts_mapper_class
+        FtsIssueMapper
       end
     end
   end
   resolver.register(Issue, IssueMapper)
 
   class RedmineIssueMapper < RedmineMapper
-    def upsert_searcher_record(options={})
-      searcher_record = find_searcher_record
-      searcher_record.original_id = @record.id
-      searcher_record.original_type = @record.class.name
-      searcher_record.project_id = @record.project_id
-      searcher_record.project_name = @record.project.name
-      searcher_record.tracker_id = @record.tracker_id
-      searcher_record.issue_id = @record.id
-      searcher_record.subject = @record.subject
-      searcher_record.description = @record.description
-      searcher_record.author_id = @record.author_id
-      searcher_record.is_private = @record.is_private
-      searcher_record.status_id = @record.status_id
-      searcher_record.original_created_on = @record.created_on
-      searcher_record.original_updated_on = @record.updated_on
-      searcher_record.save!
+    def upsert_fts_target(options={})
+      fts_target = find_fts_target
+      fts_target.source_id = @record.id
+      fts_target.source_type_id = Type[@record.class].id
+      fts_target.project_id = @record.project_id
+      tag_ids = []
+      tag_ids << Tag.tracker(@record.tracker_id).id if @record.tracker_id
+      fts_target.title = @record.subject
+      fts_target.content = @record.description
+      tag_ids << Tag.user(@record.author_id).id if @record.author_id
+      fts_target.is_private = @record.is_private
+      tag_ids << Tag.issue_status(@record.status_id).id if @record.status_id
+      fts_target.tag_ids = tag_ids
+      fts_target.last_modified_at = @record.updated_on
+      fts_target.save!
+
+      @record.journals.each do |journal|
+        JournalMapper.redmine_mapper(journal).upsert_fts_target(options)
+      end
+      # @record.custom_values
     end
   end
 
-  class SearcherIssueMapper < SearcherMapper
+  class FtsIssueMapper < FtsMapper
     def type
       issue = redmine_record
       if issue.closed?
@@ -44,18 +48,14 @@ module FullTextSearch
 
     def title_prefix
       issue = redmine_record
-      "#{issue.tracker.name} \##{@record.original_id} (#{issue.status}): "
-    end
-
-    def title
-      "#{title_prefix}#{@record.subject}"
+      "#{issue.tracker.name} \##{@record.source_id} (#{issue.status}): "
     end
 
     def url
       {
         controller: "issues",
         action: "show",
-        id: @record.original_id,
+        id: @record.source_id,
       }
     end
   end

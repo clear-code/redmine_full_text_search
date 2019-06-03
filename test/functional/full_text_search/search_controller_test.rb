@@ -111,11 +111,7 @@ module FullTextSearch
         changeset = change.changeset
         repository = changeset.repository
         title = ""
-        if repository.identifier
-          title << "#{repository.identifier}:"
-        end
-        # TODO: Remove this garbage
-        title << changeset.revision.to_s
+        title << "#{repository.identifier}:" unless repository.identifier.blank?
         title << "#{change.path}@#{changeset.revision}"
         title
       when Changeset
@@ -128,7 +124,8 @@ module FullTextSearch
       when Journal
         journal = item
         issue = journal.journalized
-        "#{issue.tracker.name} \##{issue.id} (#{issue.status.name}): " +
+        "#{issue.tracker.name} \##{issue.id}\#change-#{journal.id} " +
+          "(#{issue.status.name}): " +
           "#{issue.subject}"
       when Message
         message = item
@@ -466,7 +463,7 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
             {
               type: "file",
               title: <<-TITLE.chomp,
-:11/subversion_test/[folder_with_brackets]/README.txt@11
+/subversion_test/[folder_with_brackets]/README.txt@11
               TITLE
               description: <<-DESCRIPTION,
 This file should be accessible for <span class="keyword">Redmine</span>, although its folder contains square
@@ -480,7 +477,7 @@ brackets.
             {
               type: "file",
               title: <<-TITLE.chomp,
-:10/subversion_test/folder/subfolder/journals_controller.rb@10
+/subversion_test/folder/subfolder/journals_controller.rb@10
               TITLE
               description: <<-DESCRIPTION.chomp,
 # <span class="keyword">redMine</span> - project management software\r

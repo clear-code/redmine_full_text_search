@@ -14,10 +14,13 @@ Redmine::Search.map do |search|
   search.register :files
 end
 
-jobs_dir = File.join(__dir__, "app", "jobs")
-ActiveSupport::Dependencies.autoload_paths += [jobs_dir]
+autoload_paths = [
+  File.join(__dir__, "app", "jobs"),
+  File.join(__dir__, "app", "types"),
+]
+ActiveSupport::Dependencies.autoload_paths += autoload_paths
 if Rails.application.config.eager_load
-  Rails.application.config.eager_load_paths += [jobs_dir]
+  Rails.application.config.eager_load_paths += autoload_paths
 end
 
 require_relative "config/initializers/chupa_text"
@@ -62,4 +65,8 @@ Rails.configuration.to_prepare do
   SearchController.helper(FullTextSearch::Hooks::SearchHelper)
   SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
   IssuesController.helper(FullTextSearch::Hooks::SimilarIssuesHelper)
+
+  FullTextSearch::Tag
+  FullTextSearch::TagType
+  FullTextSearch::Type
 end

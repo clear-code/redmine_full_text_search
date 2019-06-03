@@ -9,9 +9,7 @@ module FullTextSearch
         ActiveSupport::Notifications.instrument("groonga.search", sql: sql) do
           raw_response = connection.select_value(sql)
         end
-        response = Groonga::Client::Response.parse(command, raw_response)
-        adjust_groonga_response!(response)
-        response
+        Groonga::Client::Response.parse(command, raw_response)
       end
 
       def time_offset
@@ -43,29 +41,22 @@ module FullTextSearch
       end
 
       def compute_time_offset
-        -Time.now.utc_offset
-      end
-
-      def adjust_groonga_response!(response)
-        response.records.each do |record|
-          original_type = record["original_type"]
-          next unless original_type
-          record["original_type"] = adjust_original_type(original_type)
-        end
-        response.drilldowns.each do |drilldown|
-          next unless drilldown.key == "original_type"
-          drilldown.records.each do |record|
-            record["_key"] = adjust_original_type(record["_key"])
-          end
-        end
-      end
-
-      def adjust_original_type(original_type)
-        case original_type
-        when "wikipage"
-          "WikiPage"
+        utc_offset = connection.select_value(<<-SQL)
+SELECT utc_offset
+  FROM pg_timezone_names
+ WHERE name = current_setting('timezone')
+        SQL
+        case utc_offset
+        when /\A(-)?(\d+):(\d+):(\d+)\z/
+          minus = $1
+          hours = Integer($2, 10)
+          minutes = Integer($3, 10)
+          seconds = Integer($4, 10)
+          offset = (hours * 60 * 60) + (minutes * 60) + seconds
+          offset = -offset if minus == "-"
+          offset - Time.now.utc_offset
         else
-          original_type.camelize
+          raise "Invalid time offset value: #{utc_offset.inspect}"
         end
       end
     end

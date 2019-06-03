@@ -18,22 +18,22 @@ module FullTextSearch
 
     def test_synchronize_new
       issue = Issue.generate!
-      searcher_record = SearcherRecord.where(original_type: issue.class.name,
-                                             original_id: issue.id).first
-      searcher_record.destroy!
+      target = Target.where(source_type_id: Type.issue.id,
+                            source_id: issue.id).first
+      target.destroy!
       runner = BatchRunner.new
-      assert_difference("SearcherRecord.count") do
+      assert_difference("Target.count") do
         runner.synchronize
       end
     end
 
     def test_synchronize_orphan
       issue = Issue.generate!
-      searcher_record = SearcherRecord.where(original_type: issue.class.name,
-                                             original_id: issue.id).first
+      target = Target.where(source_type_id: Type.issue.id,
+                            source_id: issue.id).first
       issue.delete
       runner = BatchRunner.new
-      assert_difference("SearcherRecord.count", -1) do
+      assert_difference("Target.count", -1) do
         runner.synchronize
       end
     end
@@ -41,21 +41,21 @@ module FullTextSearch
     def test_synchronize_outdated
       issue = Issue.generate!
       issue.reload
-      searcher_record = SearcherRecord.where(original_type: issue.class.name,
-                                             original_id: issue.id).first
-      searcher_record.original_updated_on -= 1
-      searcher_record.save!
+      target = Target.where(source_type_id: Type.issue.id,
+                            source_id: issue.id).first
+      target.last_modified_at -= 1
+      target.save!
       runner = BatchRunner.new
-      n_searcher_records = SearcherRecord.count
+      n_targets = Target.count
       runner.synchronize
-      searcher_record.reload
+      target.reload
       assert_equal([
-                     n_searcher_records,
+                     n_targets,
                      issue.updated_on,
                    ],
                    [
-                     SearcherRecord.count,
-                     searcher_record.original_updated_on,
+                     Target.count,
+                     target.last_modified_at,
                    ])
     end
   end

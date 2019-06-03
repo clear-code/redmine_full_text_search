@@ -153,6 +153,14 @@ module NullValues
       nil
     end
   end
+
+  def null_number_array
+    if mroonga?
+      []
+    else
+      nil
+    end
+  end
 end
 
 module TimeValue

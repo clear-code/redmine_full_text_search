@@ -5,53 +5,50 @@ module FullTextSearch
         RedmineCustomValueMapper
       end
 
-      def searcher_mapper_class
-        SearcherCustomValueMapper
+      def fts_mapper_class
+        FtsCustomValueMapper
       end
     end
   end
   resolver.register(CustomValue, CustomValueMapper)
 
   class RedmineCustomValueMapper < RedmineMapper
-    def upsert_searcher_record(options={})
-      searcher_record = find_searcher_record
+    def upsert_fts_target(options={})
+      fts_target = find_fts_target
 
       unless @record.custom_field.searchable
-        searcher_record.destroy! if searcher_record.persisted?
+        fts_target.destroy! if fts_target.persisted?
         return
       end
 
       customized = @record.customized
       unless customized
-        searcher_record.destroy! if searcher_record.persisted?
+        fts_target.destroy! if fts_target.persisted?
         return
       end
 
       # searchable CustomValue belongs to issue or project
-      searcher_record.original_id = @record.id
-      searcher_record.original_type = @record.class.name
-      searcher_record.value = @record.value
-      searcher_record.custom_field_id = @record.custom_field_id
+      fts_target.source_id = @record.id
+      fts_target.source_type_id = Type[@record.class].id
+      fts_target.content = @record.value
+      fts_target.custom_field_id = @record.custom_field_id
       case @record.customized_type
       when "Project"
-        searcher_record.project_id = customized.id
-        searcher_record.project_name = customized.name
+        fts_target.project_id = customized.id
       when "Issue"
-        searcher_record.project_id = customized.project_id
-        searcher_record.project_name = customized.project.name
-        searcher_record.issue_id = customized.id
-        # How to reflect new visibility when issue is changed to
-        # private after custom value is created?
-        searcher_record.is_private = customized.is_private
+        fts_target.project_id = customized.project_id
+        fts_target.is_private = customized.is_private
       else
-        searcher_record.destroy! if searcher_record.persisted?
+        fts_target.destroy! if fts_target.persisted?
         return
       end
-      searcher_record.save!
+      fts_target.container_id = customized.id
+      fts_target.container_type_id = Type[customized].id
+      fts_target.save!
     end
   end
 
-  class SearcherCustomValueMapper < SearcherMapper
+  class FtsCustomValueMapper < FtsMapper
     def type
       redmine_record.customized.event_type
     end

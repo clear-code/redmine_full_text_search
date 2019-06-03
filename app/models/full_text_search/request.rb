@@ -1,5 +1,5 @@
 module FullTextSearch
-  class SearchRequest
+  class Request
     include ActiveModel::Model
     extend ActiveModel::Naming
 

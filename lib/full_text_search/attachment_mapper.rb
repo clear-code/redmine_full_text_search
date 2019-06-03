@@ -5,70 +5,66 @@ module FullTextSearch
         RedmineAttachmentMapper
       end
 
-      def searcher_mapper_class
-        SearcherAttachmentMapper
+      def fts_mapper_class
+        FtsAttachmentMapper
       end
     end
   end
   resolver.register(Attachment, AttachmentMapper)
 
   class RedmineAttachmentMapper < RedmineMapper
-    def upsert_searcher_record(options={})
+    def upsert_fts_target(options={})
       # container is not specified when initial upload
       return if @record.container_type.nil?
 
-      searcher_record = find_searcher_record
-      searcher_record.original_id = @record.id
-      searcher_record.original_type = @record.class.name
-      searcher_record.container_id = @record.container_id
-      searcher_record.container_type = @record.container_type
-      searcher_record.filename = @record.filename
-      searcher_record.description = @record.description
-      searcher_record.original_created_on = @record.created_on
+      fts_target = find_fts_target
+      fts_target.source_id = @record.id
+      fts_target.source_type_id = Type[@record.class].id
+      fts_target.title = @record.filename
+      fts_target.content = @record.description
+      fts_target.last_modified_at = @record.created_on
+      tag_ids = []
       case @record.container_type
       when "Project"
-        searcher_record.project_id = @record.container.id
-        searcher_record.project_name = @record.container.name
+        fts_target.project_id = @record.container_id
       when "Message"
-        searcher_record.project_id = @record.container.board.project_id
-        searcher_record.project_name = @record.container.board.project.name
+        fts_target.project_id = @record.container.board.project_id
       when "WikiPage"
         wiki_page = @record.container
-        searcher_record.project_id = wiki_page.wiki.project_id
-        searcher_record.project_name = wiki_page.wiki.project.name
+        fts_target.project_id = wiki_page.wiki.project_id
       when "Issue"
         issue = @record.container
-        searcher_record.issue_id = issue.id
-        searcher_record.project_id = issue.project_id
-        searcher_record.project_name = issue.project.name
-        searcher_record.status_id = issue.status_id
-        searcher_record.is_private = issue.is_private
+        fts_target.project_id = issue.project_id
+        fts_target.is_private = issue.is_private
+        tag_ids << Tag.issue_status(issue.status_id).id
       else
         return unless @record.container.respond_to?(:project_id)
-        searcher_record.project_id = @record.container.project_id
-        searcher_record.project_name = @record.container.project.name
+        fts_target.project_id = @record.container.project_id
       end
-      searcher_record.save!
+      fts_target.container_id = @record.container_id
+      fts_target.container_type_id = Type[@record.container_type].id
+      fts_target.tag_ids = tag_ids + extract_tag_ids_from_path(@record.filename)
+      fts_target.save!
       case options[:extract_text]
       when :immediate
         extract_text
       when :none
         # Do nothing
       else
-        ExtractTextJob.perform_later(searcher_record.id)
+        ExtractTextJob.perform_later(fts_target.id)
       end
     end
 
     def extract_text
       return unless @record.readable?
 
-      searcher_record = find_searcher_record
-      return unless searcher_record.persisted?
+      fts_target = find_fts_target
+      return unless fts_target.persisted?
 
       before_memory_usage = memory_usage
       start_time = Time.now
       context = {
-        searcher_record: searcher_record,
+        fts_target: fts_target,
         content: nil,
         path: @record.diskfile,
         content_type: @record.content_type,
@@ -105,8 +101,12 @@ module FullTextSearch
       Rails.logger.info do
         format_log_message("Extracted", context)
       end
-      searcher_record.content = context[:content]
-      searcher_record.save!
+      contents = [
+        @record.description.presence,
+        context[:content].presence,
+      ]
+      fts_target.content = contents.compact.join("\n")
+      fts_target.save!
     end
 
     private
@@ -139,7 +139,7 @@ module FullTextSearch
 
     def format_log_message(message, context, error=nil)
       formatted_message = "[full-text-search][text-extract] #{message}: "
-      formatted_message << "SearcherRecord: #{context[:searcher_record].id}: "
+      formatted_message << "FullTextSearch::Target: #{context[:fts_target].id}: "
       formatted_message << "Attachment: #{@record.id}: "
       formatted_message << "path: <#{context[:path]}>: "
       formatted_message << "content-type: <#{context[:content_type]}>"
@@ -177,7 +177,7 @@ module FullTextSearch
     end
   end
 
-  class SearcherAttachmentMapper < SearcherMapper
+  class FtsAttachmentMapper < FtsMapper
     def title
       @record.filename
     end
@@ -186,8 +186,8 @@ module FullTextSearch
       {
         controller: "attachments",
         action: "show",
-        id: @record.original_id,
-        filename: @record.filename,
+        id: @record.source_id,
+        filename: @record.title,
       }
     end
   end

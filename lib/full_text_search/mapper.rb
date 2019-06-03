@@ -6,8 +6,8 @@ module FullTextSearch
         redmine_class.class_eval do
           after_commit mapper_class, on: [:create, :update]
           after_destroy mapper_class
-          define_method(:to_searcher_record) do
-            mapper_class.redmine_mapper(self).find_searcher_record
+          define_method(:to_fts_target) do
+            mapper_class.redmine_mapper(self).find_fts_target
           end
         end
       end
@@ -15,10 +15,10 @@ module FullTextSearch
       def after_commit(record)
         begin
           mapper = redmine_mapper(record)
-          mapper.upsert_searcher_record
+          mapper.upsert_fts_target
         rescue => error
           Rails.logger.error do
-            message = "[full-text-search] Failed to upsert searcher record: "
+            message = "[full-text-search] Failed to upsert FTS target: "
             message << "#{error.class}: #{error.message}\n"
             message << error.backtrace.join("\n")
             message
@@ -28,7 +28,7 @@ module FullTextSearch
 
       def after_destroy(record)
         mapper = redmine_mapper(record)
-        mapper.destroy_searcher_record
+        mapper.destroy_fts_target
       end
 
       def redmine_class
@@ -39,20 +39,20 @@ module FullTextSearch
         redmine_mapper_class.not_mapped(redmine_class)
       end
 
-      def orphan_searcher_records
-        searcher_mapper_class.orphan(redmine_class)
+      def orphan_fts_targets
+        fts_mapper_class.orphan(redmine_class)
       end
 
-      def outdated_searcher_records
-        searcher_mapper_class.outdated(redmine_class)
+      def outdated_fts_targets
+        fts_mapper_class.outdated(redmine_class)
       end
 
       def redmine_mapper(record)
         redmine_mapper_class.new(self, record)
       end
 
-      def searcher_mapper(record)
-        searcher_mapper_class.new(self, record)
+      def fts_mapper(record)
+        fts_mapper_class.new(self, record)
       end
     end
   end
@@ -60,12 +60,12 @@ module FullTextSearch
   class RedmineMapper
     class << self
       def not_mapped(redmine_class)
-        searcher_records =
-          SearcherRecord
-            .where(original_type: redmine_class.name)
-            .select(:original_id)
+        targets =
+          Target
+            .where(source_type_id: Type[redmine_class].id)
+            .select(:source_id)
         redmine_class
-          .where.not(id: searcher_records)
+          .where.not(id: targets)
           .order(id: :asc)
       end
     end
@@ -75,53 +75,59 @@ module FullTextSearch
       @record = record
     end
 
-    def find_searcher_record
-      SearcherRecord.find_or_initialize_by(searcher_record_keys)
+    def find_fts_target
+      Target.find_or_initialize_by(fts_target_keys)
     end
 
-    def destroy_searcher_record
-      SearcherRecord.where(searcher_record_keys).destroy_all
+    def destroy_fts_target
+      Target.where(fts_target_keys).destroy_all
     end
 
     private
-    def searcher_record_keys
+    def fts_target_keys
       {
-        original_id: @record.id,
-        original_type: @record.class.name,
+        source_id: @record.id,
+        source_type_id: Type.__send__(@record.class.name.underscore).id,
       }
+    end
+
+    def extract_tag_ids_from_path(path)
+      extension = File.extname(path).delete_prefix(".")
+      return [] if extension.empty?
+      [Tag.extension(extension).id]
     end
   end
 
-  class SearcherMapper
+  class FtsMapper
     include Rails.application.routes.url_helpers
     include Redmine::I18n
 
     class << self
       def orphan(redmine_class)
-        SearcherRecord
-          .where(original_type: redmine_class.name)
+        Target
+          .where(source_type_id: Type[redmine_class].id)
           .joins(<<-SQL)
 LEFT OUTER JOIN #{redmine_class.table_name}
   ON #{redmine_class.table_name}.id =
-     #{SearcherRecord.table_name}.original_id
+     #{Target.table_name}.source_id
           SQL
           .where(redmine_class.table_name => {id: nil})
       end
 
       def outdated(redmine_class)
         unless redmine_class.column_names.include?("updated_on")
-          return SearcherRecord.none
+          return Target.none
         end
 
-        SearcherRecord
-          .where(original_type: redmine_class.name)
+        Target
+          .where(source_type_id: Type[redmine_class].id)
           .joins(<<-SQL)
 JOIN #{redmine_class.table_name}
   ON #{redmine_class.table_name}.id =
-     #{SearcherRecord.table_name}.original_id
+     #{Target.table_name}.source_id
           SQL
           .where(<<-SQL)
-#{SearcherRecord.table_name}.original_updated_on <
+#{Target.table_name}.last_modified_at <
 #{redmine_class.table_name}.updated_on
           SQL
       end
@@ -134,7 +140,7 @@ JOIN #{redmine_class.table_name}
 
     def redmine_record
       @redmine_record ||=
-        FullTextSearch.resolver.resolve(@mapper).find(@record.original_id)
+        FullTextSearch.resolver.resolve(@mapper).find(@record.source_id)
     end
 
     def redmine_mapper
@@ -142,7 +148,7 @@ JOIN #{redmine_class.table_name}
     end
 
     def type
-      @record.original_type.underscore.dasherize
+      Type.find(@record.source_type_id).name.underscore.dasherize
     end
 
     def title
@@ -150,7 +156,7 @@ JOIN #{redmine_class.table_name}
     end
 
     def description
-      @record.description
+      @record.content
     end
 
     def url
@@ -160,11 +166,11 @@ JOIN #{redmine_class.table_name}
     end
 
     def id
-      @record.original_id
+      @record.source_id
     end
 
     def datetime
-      [@record.original_created_on, @record.original_updated_on].max
+      @record.last_modified_at
     end
 
     def title_prefix

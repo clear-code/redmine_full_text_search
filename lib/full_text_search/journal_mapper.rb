@@ -5,32 +5,37 @@ module FullTextSearch
         RedmineJournalMapper
       end
 
-      def searcher_mapper_class
-        SearcherJournalMapper
+      def fts_mapper_class
+        FtsJournalMapper
       end
     end
   end
   resolver.register(Journal, JournalMapper)
 
   class RedmineJournalMapper < RedmineMapper
-    def upsert_searcher_record(options={})
+    def upsert_fts_target(options={})
       # journal belongs to an issue for now.
-      searcher_record = find_searcher_record
-      searcher_record.original_id = @record.id
-      searcher_record.original_type = @record.class.name
-      searcher_record.project_id = @record.journalized.project_id
-      searcher_record.project_name = @record.journalized.project.name
-      searcher_record.issue_id = @record.journalized_id
-      searcher_record.notes = @record.notes
-      searcher_record.author_id = @record.user_id
-      searcher_record.private_notes = @record.private_notes
-      searcher_record.status_id = @record.journalized.status_id
-      searcher_record.original_created_on = @record.created_on
-      searcher_record.save!
+      issue = @record.issue
+
+      fts_target = find_fts_target
+      fts_target.source_id = @record.id
+      fts_target.source_type_id = Type[@record.class].id
+      fts_target.project_id = issue.project_id
+      fts_target.container_id = issue.id
+      fts_target.container_type_id = Type.issue.id
+      fts_target.content = @record.notes
+      tag_ids = []
+      tag_ids << Tag.user(@record.user_id).id if @record.user_id
+      fts_target.is_private = (issue.is_private or @record.private_notes)
+      tag_ids << Tag.tracker(issue.tracker_id).id if issue.tracker_id
+      tag_ids << Tag.issue_status(issue.status_id).id if issue.status_id
+      fts_target.tag_ids = tag_ids
+      fts_target.last_modified_at = @record.created_on
+      fts_target.save!
     end
   end
 
-  class SearcherJournalMapper < SearcherMapper
+  class FtsJournalMapper < FtsMapper
     def type
       journal = redmine_record
       new_status = journal.new_status
@@ -48,17 +53,16 @@ module FullTextSearch
     def title_prefix
       journal = redmine_record
       issue = journal.issue
-      "#{issue.tracker.name} \##{issue.id} (#{issue.status}): "
+      prefix = "#{issue.tracker.name} "
+      prefix << "\##{issue.id}\#change-#{journal.id} "
+      prefix << "(#{issue.status}): "
+      prefix
     end
 
     def title
       journal = redmine_record
       issue = journal.issue
-      "#{title_prefix}#{issue.subject}"
-    end
-
-    def description
-      @record.notes
+      "#{title_prefix}#{issue.subject}#{title_suffix}"
     end
 
     def url

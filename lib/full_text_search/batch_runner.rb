@@ -6,19 +6,19 @@ module FullTextSearch
 
     def destroy
       destroy_bar = create_progress_bar("Destroy",
-                                        total: SearcherRecord.count)
-      destroy_bar.iterate(SearcherRecord.find_each) do |record|
+                                        total: Target.count)
+      destroy_bar.iterate(Target.find_each) do |record|
         record.destroy
       end
       destroy_bar.finish
     end
 
     def synchronize(extract_text: nil)
-      synchronize_searcher_records(extract_text: extract_text)
+      synchronize_fts_targets(extract_text: extract_text)
     end
 
     def extract_text(ids: nil)
-      attachments = SearcherRecord.where(original_type: "Attachment")
+      attachments = Target.where(source_type_id: Type.attachment.id)
       attachments = attachments.where(id: ids) if ids
       bar = create_progress_bar.new("Extract",
                                     total: attachments.count)
@@ -30,7 +30,7 @@ module FullTextSearch
     end
 
     private
-    def synchronize_searcher_records(extract_text: nil)
+    def synchronize_fts_targets(extract_text: :immdeiate)
       all_bar = create_multi_progress_bar("All")
       bars = {}
 
@@ -42,49 +42,50 @@ module FullTextSearch
                                   label,
                                   total: new_redmine_records.count)
 
-        orphan_searcher_records = mapper_class.orphan_searcher_records
+        orphan_fts_targets = mapper_class.orphan_fts_targets
         label = "#{redmine_class.name}:Orphan"
         bars[label] =
           create_sub_progress_bar(all_bar,
                                   label,
-                                  total: orphan_searcher_records.count)
+                                  total: orphan_fts_targets.count)
 
-        outdated_searcher_records = mapper_class.outdated_searcher_records
+        outdated_fts_targets = mapper_class.outdated_fts_targets
         label = "#{redmine_class.name}:Outdated"
         bars[label] =
           create_sub_progress_bar(all_bar,
                                   label,
-                                  total: outdated_searcher_records.count)
+                                  total: outdated_fts_targets.count)
       end
 
+      all_bar.start
       FullTextSearch.resolver.each do |redmine_class, mapper_class|
         new_redmine_records = mapper_class.not_mapped_redmine_records
         bar = bars["#{redmine_class.name}:New"]
         bar.start
         new_redmine_records.find_each do |record|
           mapper = mapper_class.redmine_mapper(record)
-          mapper.upsert_searcher_record(extract_text: extract_text)
+          mapper.upsert_fts_target(extract_text: extract_text)
           bar.advance
         end
         bar.finish
 
-        orphan_searcher_records = mapper_class.orphan_searcher_records
+        orphan_fts_targets = mapper_class.orphan_fts_targets
         bar = bars["#{redmine_class.name}:Orphan"]
         bar.start
-        orphan_searcher_records.select(:id).find_each do |record|
+        orphan_fts_targets.select(:id).find_each do |record|
           record.destroy
           bar.advance
         end
         bar.finish
 
-        outdated_searcher_records = mapper_class.outdated_searcher_records
+        outdated_fts_targets = mapper_class.outdated_fts_targets
         bar = bars["#{redmine_class.name}:Outdated"]
         bar.start
-        outdated_searcher_records.select(:id,
-                                         :original_id,
-                                         :original_type).find_each do |record|
-          mapper = mapper_class.redmine_mapper(record.original_record)
-          mapper.upsert_searcher_record(extract_text: extract_text)
+        outdated_fts_targets.select(:id,
+                                    :source_id,
+                                    :source_type_id).find_each do |record|
+          mapper = mapper_class.redmine_mapper(record.source_record)
+          mapper.upsert_fts_target(extract_text: extract_text)
           bar.advance
         end
         bar.finish

@@ -5,8 +5,8 @@ module FullTextSearch
         RedmineChangeMapper
       end
 
-      def searcher_mapper_class
-        SearcherChangeMapper
+      def fts_mapper_class
+        FtsChangeMapper
       end
     end
   end
@@ -15,25 +15,25 @@ module FullTextSearch
   class RedmineChangeMapper < RedmineMapper
     class << self
       def not_mapped(redmine_class)
-        searcher_records =
-          SearcherRecord
-            .where(original_type: redmine_class.name)
-            .select(:original_id)
-        targets = redmine_class.where.not(id: searcher_records)
-        last_original_id =
-          searcher_records
-            .order(original_id: :desc)
+        fts_targets =
+          Target
+            .where(source_type_id: Type[redmine_class].id)
+            .select(:source_id)
+        targets = redmine_class.where.not(id: fts_targets)
+        last_source_id =
+          fts_targets
+            .order(source_id: :desc)
             .limit(1)
-            .pluck(:original_id)
+            .pluck(:source_id)
             .first
-        if last_original_id
-          targets = targets.where(id: (last_original_id + 1)..Float::INFINITY)
+        if last_source_id
+          targets = targets.where(id: (last_source_id + 1)..Float::INFINITY)
         end
         targets.order(id: :asc)
       end
     end
 
-    def upsert_searcher_record(options={})
+    def upsert_fts_target(options={})
       case @record.action
       when "A", "M"
         changeset = @record.changeset
@@ -41,21 +41,19 @@ module FullTextSearch
         identifier = changeset.identifier
         entry = repository.entry(@record.path, identifier)
         return unless entry.is_file?
-        searcher_record = find_searcher_record
-        searcher_record.original_id = @record.id
-        searcher_record.original_type = @record.class.name
-        searcher_record.container_id = repository.id
-        searcher_record.container_type = "Repository"
-        searcher_record.project_id = repository.project_id
-        searcher_record.project_name = repository.project.name
-        searcher_record.identifier = identifier
+        fts_target = find_fts_target
+        fts_target.source_id = @record.id
+        fts_target.source_type_id = Type[@record.class].id
+        fts_target.container_id = repository.id
+        fts_target.container_type_id = Type.repository.id
+        fts_target.project_id = repository.project_id
         extractor = TextExtractor.new
         repository.scm.cat_io(entry.path, identifier) do |input|
           begin
             # TODO: Check property for content type
-            searcher_record.content = extractor.extract(Pathname(entry.path),
-                                                        input,
-                                                        nil)
+            fts_target.content = extractor.extract(Pathname(entry.path),
+                                                   input,
+                                                   nil)
           rescue => error
             Rails.logger.error do
               "[full-text-search][text-extract][change] " +
@@ -64,41 +62,42 @@ module FullTextSearch
             end
           end
         end
-        searcher_record.original_created_on = changeset.committed_on
-        searcher_record.original_updated_on = changeset.committed_on
-        SearcherRecord.where(original_type: searcher_record.original_type,
-                             container_id: searcher_record.container_id,
-                             container_type: searcher_record.container_type,
-                             filename: searcher_record.filename).destroy_all
-        searcher_record.save!
+        fts_target.last_modified_at = changeset.committed_on
+        fts_target.tag_ids = extract_tag_ids_from_path(fts_target.title)
+        Target.where(source_type_id: fts_target.source_type_id,
+                     container_id: fts_target.container_id,
+                     container_type_id: fts_target.container_type_id,
+                     title: fts_target.title).destroy_all
+        fts_target.save!
       when "D"
-        destroy_searcher_record
+        destroy_fts_target
       end
     end
 
     private
-    def searcher_record_keys
+    def fts_target_keys
       {
-        original_id: @record.id,
-        original_type: @record.class.name,
-        filename: @record.path,
+        source_id: @record.id,
+        source_type_id: Type[@record.class].id,
+        title: @record.path,
       }
     end
   end
 
-  class SearcherChangeMapper < SearcherMapper
+  class FtsChangeMapper < FtsMapper
     def title_prefix
       change = redmine_record
       repository = change.changeset.repository
-      if repository.identifier
-        "#{repository.identifier}:"
-      else
+      if repository.identifier.blank?
         ""
+      else
+        "#{repository.identifier}:"
       end
     end
 
     def title_suffix
-      "@#{@record.identifier}"
+      change = redmine_record
+      "@#{change.changeset.identifier}"
     end
 
     def type
@@ -107,13 +106,14 @@ module FullTextSearch
 
     def url
       change = redmine_record
+      changeset = change.changeset
       {
         controller: "repositories",
         action: "entry",
         id: @record.project_id,
-        repository_id: change.changeset.repository.identifier_param,
-        rev: @record.identifier,
-        path: @record.filename.gsub(/\A\//, ""),
+        repository_id: changeset.repository.identifier_param,
+        rev: changeset.identifier,
+        path: change.path.gsub(/\A\//, ""),
       }
     end
   end

@@ -123,13 +123,13 @@
     <div id="search-drilldowns" class="tabs">
       <ul>
         <li>
-          <%= link_to("#{l(:label_result_all)} (#{@search_result.count})",
+          <%= link_to("#{l(:label_result_all)} (#{@result_set.count})",
                       url_for(@search_request.to_params(types: :all)),
                       class: @search_request.target?(:all) ? "selected" : "") %>
         </li>
         <% @search_request.search_types.each do |type| %>
           <li>
-            <%= link_to("#{type_label(type)} (#{@search_result.drilldown(type)})",
+            <%= link_to("#{type_label(type)} (#{@result_set.source_drilldown(type)})",
                         url_for(@search_request.to_params(types: [type])),
                         class: @search_request.target?(type) ? "selected" : "") %>
           </li>
@@ -137,15 +137,17 @@
       </ul>
     </div>
     <dl id="search-results">
-      <% @search_result.each do |e| %>
+      <% @result_set.each do |e| %>
         <dt class="<%= e.event_type %> icon icon-<%= e.event_type %>">
           <%= content_tag("span", e.project, :class => "project") unless @project == e.project %>
-          <%= link_to(e.event_title_digest, e.event_url, :data => { :rank => e.rank }) %>
+          <%= link_to(e.event_highlighted_title,
+                      e.event_url,
+                      :data => {:rank => e.rank}) %>
         </dt>
         <dd>
           <ol class="search-snippets">
-            <% e.description_digest.each do |digest| %>
-              <li><%= digest.html_safe %></li>
+            <% e.event_content_snippets.each do |snippet| %>
+              <li><%= snippet %></li>
             <% end %>
           </ol>
         <span class="author"><%= format_time(e.event_datetime) %></span></dd>
@@ -153,7 +155,7 @@
     </dl>
 
     <% if @result_pages %>
-    <span class="pagination"><%= pagination_links_full @result_pages, @search_result.count, :per_page_links => false %></span>
+    <span class="pagination"><%= pagination_links_full @result_pages, @result_set.count, :per_page_links => false %></span>
     <% end %>
   </div>
 </div>

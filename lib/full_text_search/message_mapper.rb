@@ -5,29 +5,27 @@ module FullTextSearch
         RedmineMessageMapper
       end
 
-      def searcher_mapper_class
-        SearcherMessageMapper
+      def fts_mapper_class
+        FtsMessageMapper
       end
     end
   end
   resolver.register(Message, MessageMapper)
 
   class RedmineMessageMapper < RedmineMapper
-    def upsert_searcher_record(options={})
-      searcher_record = find_searcher_record
-      searcher_record.original_id = @record.id
-      searcher_record.original_type = @record.class.name
-      searcher_record.project_id = @record.board.project_id
-      searcher_record.project_name = @record.board.project.name
-      searcher_record.subject = @record.subject
-      searcher_record.content = @record.content
-      searcher_record.original_created_on = @record.created_on
-      searcher_record.original_updated_on = @record.updated_on
-      searcher_record.save!
+    def upsert_fts_target(options={})
+      fts_target = find_fts_target
+      fts_target.source_id = @record.id
+      fts_target.source_type_id = Type[@record.class].id
+      fts_target.project_id = @record.board.project_id
+      fts_target.title = @record.subject
+      fts_target.content = @record.content
+      fts_target.last_modified_at = @record.updated_on
+      fts_target.save!
     end
   end
 
-  class SearcherMessageMapper < SearcherMapper
+  class FtsMessageMapper < FtsMapper
     def type
       message = redmine_record
       if message.parent_id.nil?
@@ -40,14 +38,6 @@ module FullTextSearch
     def title_prefix
       message = redmine_record
       "#{message.board.name}: "
-    end
-
-    def title
-      "#{title_prefix}#{@record.subject}"
-    end
-
-    def description
-      @record.content
     end
 
     def url

@@ -1,15 +1,15 @@
-api.array :results, api_meta(:total_count => @search_result.count,
+api.array :results, api_meta(:total_count => @result_set.count,
                              :offset => @search_request.offset,
                              :limit => @search_request.limit) do
-  @search_result.each do |result|
+  @result_set.each do |record|
     api.result do
-      api.id          result.event_id
-      api.title       result.event_title_digest
-      api.type        result.event_type
-      api.url         url_for(result.event_url(:only_path => false))
-      api.description result.event_description_digest
-      api.datetime    result.event_datetime
-      api.rank        result.rank
+      api.id          record.event_id
+      api.title       record.event_highlighted_title
+      api.type        record.event_type
+      api.url         url_for(record.event_url(:only_path => false))
+      api.description record.event_content_snippets.join("\n")
+      api.datetime    record.event_datetime
+      api.rank        record.rank
     end
   end
 end

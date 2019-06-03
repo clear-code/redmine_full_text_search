@@ -16,66 +16,43 @@ module FullTextSearch
         "sort_keys" => sort_keys.join(", "),
         "offset" => (@request.offset || 0).to_s,
         "limit" => (@request.limit || 10).to_s,
-        "drilldown" => "original_type",
       }
       add_dynamic_column(arguments,
-                         "title_digest",
+                         "highlighted_title",
                          "stage" => "output",
                          "type" => "ShortText",
                          "flags" => "COLUMN_SCALAR",
-                         "value" => title_digest_value)
+                         "value" => "highlight_html(title)")
       add_dynamic_column(arguments,
-                         "description_digest",
+                         "content_snippets",
                          "stage" => "output",
                          "type" => "ShortText",
                          "flags" => "COLUMN_VECTOR",
-                         "value" => description_digest_value)
-      add_dynamic_column(arguments,
-                         "calculated_updated_on",
-                         "stage" => "filtered",
-                         "type" => "Time",
-                         "flags" => "COLUMN_SCALAR",
-                         "value" => calculated_updated_on_value)
+                         "value" => "snippet_html(content)")
+      add_drilldown(arguments,
+                    "source_type",
+                    "keys" => "source_type_id",
+                    "limit" => "-1")
+      add_drilldown(arguments,
+                    "tag",
+                    "keys" => "tag_ids",
+                    "limit" => "-1")
       if arguments["query"].blank?
         arguments["limit"] = "0"
       end
       arguments["filter"] = "false" unless arguments["filter"]
       command = Groonga::Command::Select.new("select", arguments)
-      response = SearcherRecord.select(command)
+      response = Target.select(command)
       raise Groonga::Client::Error, response.message unless response.success?
-      SearchResult.new(response)
+      ResultSet.new(response)
     end
 
     private
-    def title_columns
-      [
-        "name",
-        "identifier",
-        "title",
-        "subject",
-        "filename",
-        "short_comments",
-      ]
-    end
-
-    def description_columns
-      [
-        "content",
-        "description",
-        "long_comments",
-        "notes",
-        "summary",
-        "text",
-        "value",
-      ]
-    end
-
     def match_columns
       if @request.titles_only?
-        title_columns
+        ["title"]
       else
-        title_columns.collect {|column| "#{column} * 100"} +
-          description_columns.collect {|column| "scorer_tf_at_most(#{column}, 5)"}
+        ["title * 100", "scorer_tf_at_most(content, 5)"]
       end
     end
 
@@ -114,8 +91,11 @@ module FullTextSearch
 
     def open_issues_condition
       return nil unless @request.open_issues?
-      @status_ids ||= IssueStatus.where(is_closed: false).pluck(:id)
-      "in_values(status_id, #{@status_ids.join(', ')})"
+      status_ids = IssueStatus.where(is_closed: false).pluck(:id)
+      tag_ids = status_ids.collect do |status_id|
+        Tag.issue_status(status_id).id
+      end
+      "in_values(tag_ids, #{tag_ids.join(', ')})"
     end
 
     def filter
@@ -129,14 +109,14 @@ module FullTextSearch
         when "projects"
           conditions << [
             "&&",
-            "original_type == 'Project'",
-            "in_values(original_id, #{project_ids.join(', ')})",
+            "source_type_id == #{Type.project.id}",
+            "in_values(project_id, #{project_ids.join(', ')})",
           ]
           if @search_attachment
             conditions << [
               "&&",
-              "original_type == 'Attachment'",
-              "container_type == 'Project'",
+              "source_type_id == #{Type.attachment.id}",
+              "container_type_id == #{Type.project.id}",
               "in_values(project_id, #{project_ids.join(', ')})",
             ]
           end
@@ -144,7 +124,7 @@ module FullTextSearch
           if target_ids.present?
             conditions << [
               "&&",
-              "original_type == 'CustomValue'",
+              "source_type_id == #{Type.custom_value.id}",
               "in_values(custom_field_id, #{target_ids.join(', ')})",
             ]
           end
@@ -154,7 +134,7 @@ module FullTextSearch
           if target_ids.present?
             conditions << [
               "&&",
-              "original_type == 'Issue'",
+              "source_type_id == #{Type.issue.id}",
               "is_private == false",
               "in_values(project_id, #{target_ids.join(', ')})",
               open_issues_condition,
@@ -162,8 +142,8 @@ module FullTextSearch
             if @request.attachments?
               conditions << [
                 "&&",
-                "original_type == 'Attachment'",
-                "container_type == 'Issue'",
+                "source_type_id == #{Type.attachment.id}",
+                "container_type_id == #{Type.issue.id}",
                 "is_private == false",
                 "in_values(project_id, #{project_ids.join(', ')})",
                 open_issues_condition,
@@ -171,8 +151,8 @@ module FullTextSearch
             end
             conditions << [
               "&&",
-              "original_type == 'Journal'",
-              "private_notes == false",
+              "source_type_id == #{Type.journal.id}",
+              "is_private == false",
               "in_values(project_id, #{target_ids.join(', ')})",
               open_issues_condition,
             ]
@@ -182,8 +162,8 @@ module FullTextSearch
           if target_ids.present?
             conditions << [
               "&&",
-              "original_type == 'Journal'",
-              "private_notes == true",
+              "source_type_id == #{Type.journal.id}",
+              "is_private == true",
               "in_values(project_id, #{target_ids.join(', ')})",
               open_issues_condition,
             ]
@@ -192,7 +172,7 @@ module FullTextSearch
           if target_ids.present?
             conditions << [
               "&&",
-              "original_type == 'CustomValue'",
+              "source_type_id == #{Type.custom_value.id}",
               "is_private == false",
               "in_values(project_id, #{project_ids.join(', ')})",
               "in_values(custom_field_id, #{target_ids.join(', ')})",
@@ -204,16 +184,17 @@ module FullTextSearch
             Project.allowed_to(user, :"view_#{search_type}").pluck(:id)
           target_ids &= project_ids
           if target_ids.present?
+            type = Type[search_type]
             conditions << [
               "&&",
-              "original_type == '#{search_type.classify}'",
+              "source_type_id == #{type.id}",
               "in_values(project_id, #{target_ids.join(', ')})",
             ]
             if @request.attachments?
               conditions << [
                 "&&",
-                "original_type == 'Attachment'",
-                "container_type == '#{search_type.classify}'",
+                "source_type_id == #{Type.attachment.id}",
+                "container_type_id == #{type.id}",
                 "in_values(project_id, #{project_ids.join(', ')})",
               ]
             end
@@ -226,17 +207,14 @@ module FullTextSearch
     def output_columns
       [
         "_score",
-        "description_digest",
-        "filename",
+        "content_snippets",
         "id",
-        "identifier",
-        "original_created_on",
-        "original_id",
-        "original_type",
-        "original_updated_on",
+        "last_modified_at",
         "project_id",
+        "source_id",
+        "source_type_id",
         "title",
-        "title_digest",
+        "highlighted_title",
       ]
     end
 
@@ -249,17 +227,13 @@ module FullTextSearch
       case @request.order_target
       when "date"
         [
-          "#{direction}calculated_updated_on",
-          "#{direction}original_updated_on",
-          "#{direction}original_created_on",
+          "#{direction}last_modified_at",
         ]
       else
         # TODO: -_score is useful?
         [
           "#{direction}_score",
-          "-calculated_updated_on",
-          "-original_updated_on",
-          "-original_created_on",
+          "-last_modified_at",
         ]
       end
     end
@@ -270,20 +244,14 @@ module FullTextSearch
       end
     end
 
-    def title_digest_value
-      "highlight_html(#{title_columns.join(' + ')})"
-    end
-
-    def description_digest_value
-      "snippet_html(#{description_columns.join(' + ')})"
-    end
-
-    def calculated_updated_on_value
-      "max(original_created_on, original_updated_on)"
+    def add_drilldown(arguments, label, options)
+      options.each do |name, value|
+        arguments["drilldowns[#{label}].#{name}"] = value
+      end
     end
   end
 
-  class SearchResult
+  class ResultSet
     def initialize(response)
       @response = response
     end
@@ -297,19 +265,18 @@ module FullTextSearch
       end
     end
 
-    # @return [FullTextSearch::SearcherRecord]
+    # @return Array<FullTextSearch::Target>
     def records
       return [] unless @response.success?
       @records ||= @response.records.map do |record|
         # Rails.logger.debug(title: record["title_digest"],
         #                    description: record["description_digest"])
-        [
-          "original_created_on",
-          "original_updated_on",
-        ].each do |time_column|
-          record[time_column] += FullTextSearch::SearcherRecord.time_offset
+        record["last_modified_at"] += Target.time_offset
+        record["highlighted_title"] = record["highlighted_title"].html_safe
+        record["content_snippets"] = record["content_snippets"].collect do |snippet|
+          snippet.html_safe
         end
-        FullTextSearch::SearcherRecord.new(record)
+        Target.new(record)
       end
     end
 
@@ -323,14 +290,13 @@ module FullTextSearch
       end
     end
 
-    def drilldown(name)
+    def source_drilldown(name)
+      targets = [Type[name].id]
       case name
       when "issues"
-        targets = [name.classify, "Journal"]
-      else
-        targets = [name.classify]
+        targets << Type.journal.id
       end
-      @response.drilldowns[0].records.inject(0) do |count, record|
+      @response.drilldowns["source_type"].records.inject(0) do |count, record|
         if targets.include?(record["_key"])
           count + record["_nsubrecs"]
         else
