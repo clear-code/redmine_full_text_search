@@ -40,6 +40,7 @@ module FullTextSearch
         repository = changeset.repository
         identifier = changeset.identifier
         entry = repository.entry(@record.path, identifier)
+        return if entry.nil?
         return unless entry.is_file?
         fts_target = find_fts_target
         fts_target.source_id = @record.id
