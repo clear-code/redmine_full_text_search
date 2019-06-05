@@ -20,8 +20,8 @@ module FullTextSearch
     def extract_text(ids: nil)
       attachments = Target.where(source_type_id: Type.attachment.id)
       attachments = attachments.where(id: ids) if ids
-      bar = create_progress_bar.new("Extract",
-                                    total: attachments.count)
+      bar = create_progress_bar("Extract",
+                                total: attachments.count)
       attachments.find_each do |record|
         record.mapper.redmine_mapper.extract_text
         bar.advance
