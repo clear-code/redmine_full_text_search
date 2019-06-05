@@ -25,7 +25,7 @@ namespace :full_text_search do
   desc "Synchronize"
   task :synchronize => :environment do
     batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
-    batch_runner.synchronize(extract_text: :immediate)
+    batch_runner.synchronize(extract_text: :none)
   end
 
   namespace :attachment do
