@@ -37,6 +37,7 @@ module FullTextSearch
       execute_groonga_command("plugin_register functions/vector")
       @user = User.admin.first
       @request.session[:user_id] = @user.id
+      @search_id = "2.9"
     end
 
     def get(action, params: {}, api: false)
@@ -46,16 +47,21 @@ module FullTextSearch
                                              format: "json"))
         end
       else
-        super(action, params: params)
+        super(action, params: params.merge(search_id: @search_id))
       end
     end
 
-    def item_url(item, only_path: false)
+    def item_url(item,
+                 search_id: nil,
+                 search_n: nil,
+                 only_path: false)
       case item
       when Attachment
         attachment = item
         named_attachment_url(id: attachment.id,
                              filename: attachment.filename,
+                             search_id: search_id,
+                             search_n: search_n,
                              only_path: only_path)
       when Change
         change = item
@@ -67,6 +73,8 @@ module FullTextSearch
           repository_id: changeset.repository.identifier_param,
           rev: changeset.identifier,
           path: change.path.gsub(/\A\//, ""),
+          search_id: search_id,
+          search_n: search_n,
           only_path: only_path,
         }
         @controller.url_for(url_parameters)
@@ -78,23 +86,38 @@ module FullTextSearch
           id: changeset.repository.project_id,
           repository_id: changeset.repository.identifier_param,
           rev: changeset.identifier,
+          search_id: search_id,
+          search_n: search_n,
           only_path: only_path,
         }
         @controller.url_for(url_parameters)
       when Issue
         issue = item
-        issue_url(issue, only_path: only_path)
+        issue_url(issue,
+                  search_id: search_id,
+                  search_n: search_n,
+                  only_path: only_path)
       when Journal
         journal = item
         issue = journal.journalized
-        issue_url(issue, anchor: "change-#{journal.id}", only_path: only_path)
+        issue_url(issue,
+                  search_id: search_id,
+                  search_n: search_n,
+                  anchor: "change-#{journal.id}",
+                  only_path: only_path)
       when Message
         message = item
-        board_message_url(message.board, message, only_path: only_path)
+        board_message_url(message.board,
+                          message,
+                          search_id: search_id,
+                          search_n: search_n,
+                          only_path: only_path)
       when WikiPage
         wiki_page = item
         project_wiki_page_url(wiki_page.project.id,
                               wiki_page.title,
+                              search_id: search_id,
+                              search_n: search_n,
                               only_path: only_path)
       else
         raise "Unsupported item: #{item.inspect}"
@@ -139,10 +162,13 @@ module FullTextSearch
     end
 
     def format_items(items)
-      items.collect do |item|
+      items.collect.with_index do |item, i|
         [
           item_title(item),
-          item_url(item, only_path: true),
+          item_url(item,
+                   search_id: @search_id,
+                   search_n: i,
+                   only_path: true),
         ]
       end
     end
@@ -228,6 +254,7 @@ module FullTextSearch
             "q" => "",
             "titles_only" => "0",
             "wiki_pages" => "1",
+            "search_id" => @search_id,
           }
           expected_search_path = "/projects/#{project.identifier}/search"
           assert_equal([
@@ -281,6 +308,7 @@ module FullTextSearch
             "order_type" => "desc",
             "q" => "",
             "titles_only" => "0",
+            "search_id" => @search_id,
           }
           expected_search_path = "/projects/#{project.identifier}/search"
           assert_equal([
