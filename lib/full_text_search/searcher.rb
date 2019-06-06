@@ -36,7 +36,8 @@ module FullTextSearch
       add_drilldown(arguments,
                     "tag",
                     "keys" => "tag_ids",
-                    "limit" => "-1")
+                    "limit" => "-1",
+                    "sort_keys" => "-_nsubrecs")
       if arguments["query"].blank?
         arguments["limit"] = "0"
       end
@@ -103,17 +104,17 @@ module FullTextSearch
       return nil if project_ids.empty?
 
       user = @request.user
-      conditions = []
+      sub_conditions = []
       @request.target_search_types.each do |search_type|
         case search_type
         when "projects"
-          conditions << [
+          sub_conditions << [
             "&&",
             "source_type_id == #{Type.project.id}",
             "in_values(project_id, #{project_ids.join(', ')})",
           ]
           if @search_attachment
-            conditions << [
+            sub_conditions << [
               "&&",
               "source_type_id == #{Type.attachment.id}",
               "container_type_id == #{Type.project.id}",
@@ -122,7 +123,7 @@ module FullTextSearch
           end
           target_ids = CustomField.visible(user).pluck(:id)
           if target_ids.present?
-            conditions << [
+            sub_conditions << [
               "&&",
               "source_type_id == #{Type.custom_value.id}",
               "in_values(custom_field_id, #{target_ids.join(', ')})",
@@ -132,7 +133,7 @@ module FullTextSearch
           target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
           target_ids &= project_ids
           if target_ids.present?
-            conditions << [
+            sub_conditions << [
               "&&",
               "source_type_id == #{Type.issue.id}",
               "is_private == false",
@@ -140,7 +141,7 @@ module FullTextSearch
               open_issues_condition,
             ]
             if @request.attachments?
-              conditions << [
+              sub_conditions << [
                 "&&",
                 "source_type_id == #{Type.attachment.id}",
                 "container_type_id == #{Type.issue.id}",
@@ -149,7 +150,7 @@ module FullTextSearch
                 open_issues_condition,
               ]
             end
-            conditions << [
+            sub_conditions << [
               "&&",
               "source_type_id == #{Type.journal.id}",
               "is_private == false",
@@ -160,7 +161,7 @@ module FullTextSearch
           target_ids = Project.allowed_to(user, :view_private_notes).pluck(:id)
           target_ids &= project_ids
           if target_ids.present?
-            conditions << [
+            sub_conditions << [
               "&&",
               "source_type_id == #{Type.journal.id}",
               "is_private == true",
@@ -170,7 +171,7 @@ module FullTextSearch
           end
           target_ids = CustomField.visible(user).pluck(:id)
           if target_ids.present?
-            conditions << [
+            sub_conditions << [
               "&&",
               "source_type_id == #{Type.custom_value.id}",
               "is_private == false",
@@ -185,13 +186,13 @@ module FullTextSearch
           target_ids &= project_ids
           if target_ids.present?
             type = Type[search_type]
-            conditions << [
+            sub_conditions << [
               "&&",
               "source_type_id == #{type.id}",
               "in_values(project_id, #{target_ids.join(', ')})",
             ]
             if @request.attachments?
-              conditions << [
+              sub_conditions << [
                 "&&",
                 "source_type_id == #{Type.attachment.id}",
                 "container_type_id == #{type.id}",
@@ -201,7 +202,18 @@ module FullTextSearch
           end
         end
       end
-      build_condition("||", conditions)
+      conditions = []
+      # TODO: Optimize project_id search
+      # conditions << "in_values(project_id, #{project_ids.join(', ')})"
+      unless @request.tags.blank?
+        tag_conditions = ["&&"]
+        @request.tags.each do |tag_id|
+          tag_conditions << "in_values(tag_ids, #{Integer(tag_id, 10)})"
+        end
+        conditions << tag_conditions
+      end
+      conditions << ["||", *sub_conditions]
+      build_condition("&&", conditions)
     end
 
     def output_columns
@@ -215,6 +227,7 @@ module FullTextSearch
         "source_type_id",
         "title",
         "highlighted_title",
+        "tag_ids",
       ]
     end
 
@@ -302,6 +315,24 @@ module FullTextSearch
         else
           count
         end
+      end
+    end
+
+    def tag_drilldown
+      @response.drilldowns["tag"].records.collect do |record|
+        {
+          tag: Tag.find(record["_key"]),
+          n_records: record["_nsubrecs"],
+        }
+      end
+    end
+
+    def tag_drilldowns
+      grouped_tag_drilldown = tag_drilldown.group_by do |drilldown|
+        drilldown[:tag].type_id
+      end
+      grouped_tag_drilldown.collect do |type_id, drilldown|
+        [TagType.find(type_id), drilldown]
       end
     end
   end

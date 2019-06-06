@@ -18,6 +18,7 @@ module FullTextSearch
     attr_writer :order_target
     attr_writer :order_type
     attr_writer :options
+    attr_accessor :tags
 
     Redmine::Search.available_search_types.each do |type|
       attr_accessor type
@@ -30,10 +31,7 @@ module FullTextSearch
       super
     end
 
-    def to_params(types: nil,
-                  order_target: self.order_target,
-                  order_type: self.order_type,
-                  invert_order_type: nil)
+    def to_params(custom_params={})
       params = {
         "q" => q,
         "scope" => scope,
@@ -43,28 +41,13 @@ module FullTextSearch
         "open_issues" => open_issues,
         "offset" => offset,
         "limit" => limit,
-        "order_target" => order_target,
-        "order_type" => order_type,
+        "order_target" => custom_params[:order_target] || order_target,
+        "order_type" => custom_params[:order_type] || order_type,
         "options" => options,
       }
-      case types
-      when :all
-        search_types.each do |type|
-          params[type] = "1"
-        end
-      when nil
-        target_search_types.each do |type|
-          params[type] = "1"
-        end
-      else
-        types.each do |type|
-          params[type] = "1"
-        end
-      end
-      if invert_order_type
-        params["order_type"] =
-          (params["order_type"] == "desc" ? "asc" : "desc")
-      end
+      to_params_types(params, custom_params)
+      to_params_order_type(params, custom_params)
+      to_params_tags(params, custom_params)
       params
     end
 
@@ -157,6 +140,12 @@ module FullTextSearch
       end
     end
 
+    def tag_drilldown?(tag_type_id)
+      each_tag.any? do |tag|
+        tag.type_id == tag_type_id
+      end
+    end
+
     private
     def compute_search_types
       types = Redmine::Search.available_search_types.dup
@@ -187,6 +176,51 @@ module FullTextSearch
         search_types
       else
         target_types
+      end
+    end
+
+    def to_params_types(params, custom_params)
+      types = custom_params[:types]
+      case types
+      when :all
+        search_types.each do |type|
+          params[type] = "1"
+        end
+      when nil
+        target_search_types.each do |type|
+          params[type] = "1"
+        end
+      else
+        types.each do |type|
+          params[type] = "1"
+        end
+      end
+    end
+
+    def to_params_order_type(params, custom_params)
+      if custom_params[:invert_order_type]
+        params["order_type"] =
+          (params["order_type"] == "desc" ? "asc" : "desc")
+      end
+    end
+
+    def to_params_tags(params, custom_params)
+      custom_tags = custom_params[:tags] || []
+      deselect_tag_type = custom_params[:deselect_tag_type]
+      tags = []
+      each_tag do |tag|
+        tag_type_id = tag.type_id
+        next if tag_type_id == deselect_tag_type
+        next if custom_tags.any? {|custom_tag| custom_tag.type_id == tag_type_id}
+        tags << tag
+      end
+      params["tags"] = (tags + custom_tags).collect(&:id)
+    end
+
+    def each_tag
+      return to_enum(__method__) unless block_given?
+      (tags || []).each do |tag_id|
+        yield(Tag.find(Integer(tag_id, 10)))
       end
     end
   end

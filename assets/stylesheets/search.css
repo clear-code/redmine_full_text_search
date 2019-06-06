@@ -48,6 +48,21 @@
   margin: 0;
 }
 
+.search-drilldown {
+  margin-top: 1em;
+}
+
+.search-drilldown ul {
+  padding: 0;
+  padding-left: 1em;
+  margin: 0;
+}
+
+.search-drilldown ul li {
+  padding: 0;
+  margin: 0;
+}
+
 ol.search-snippets {
   padding: 0.25em 0;
   margin: 0;

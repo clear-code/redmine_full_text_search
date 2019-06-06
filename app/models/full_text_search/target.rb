@@ -115,6 +115,10 @@ module FullTextSearch
         end
     end
 
+    def tags
+      Tag.where(id: tag_ids || [])
+    end
+
     private
     def h(string)
       CGI.escape_html(string)

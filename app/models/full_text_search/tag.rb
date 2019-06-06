@@ -27,5 +27,23 @@ module FullTextSearch
                           name: user_id.to_s)
       end
     end
+
+    def value
+      @value ||= compute_value
+    end
+
+    private
+    def compute_value
+      case type_id
+      when TagType.issue_status.id
+        IssueStatus.find(name.to_i)
+      when TagType.tracker.id
+        Tracker.find(name.to_i)
+      when TagType.user.id
+        User.find(name.to_i)
+      else
+        name
+      end
+    end
   end
 end

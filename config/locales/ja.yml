@@ -11,3 +11,8 @@ ja:
   label_full_text_search_external_command_max_memory: 外部コマンドの最大使用可能メモリー
   label_full_text_search_server_url: ChupaTextサーバーのURL
   label_similar_issues: 類似チケット
+  label_extension: 拡張子
+  label:
+    full_text_search:
+      drilldown:
+        deselect: 解除

@@ -117,10 +117,30 @@
         </li>
       </ul>
     </div>
+
+    <% @result_set.tag_drilldowns.each do |type, drilldown| %>
+    <div class="search-drilldown">
+      <h3><%= l(:"label_#{type.name.underscore}") %></h3>
+      <ul>
+        <% drilldown.each do |record| %>
+        <li>
+          <%= link_to("#{record[:tag].value} (#{record[:n_records]})",
+                      url_for(@search_request.to_params(tags: [record[:tag]]))) %>
+        </li>
+        <% end %>
+        <% if @search_request.tag_drilldown?(type.id) %>
+        <li>
+          <%= link_to(l(:"label.full_text_search.drilldown.deselect"),
+                      url_for(@search_request.to_params(deselect_tag_type: type.id))) %>
+        </li>
+        <% end %>
+      </ul>
+    </div>
+    <% end %>
   </div>
 
   <div id="search-result-content">
-    <div id="search-drilldowns" class="tabs">
+    <div id="search-source-types" class="tabs">
       <ul>
         <li>
           <%= link_to("#{l(:label_result_all)} (#{@result_set.count})",

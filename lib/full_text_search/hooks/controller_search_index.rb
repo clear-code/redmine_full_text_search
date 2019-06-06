@@ -57,7 +57,8 @@ module FullTextSearch
         Redmine::Search.available_search_types.each do |type|
           permitted_names << type.to_sym
         end
-        params.permit(*permitted_names)
+        params.permit(*permitted_names,
+                      tags: [])
       end
     end
   end
