@@ -48,21 +48,6 @@ module FullTextSearch
         fts_target.container_id = repository.id
         fts_target.container_type_id = Type.repository.id
         fts_target.project_id = repository.project_id
-        extractor = TextExtractor.new
-        repository.scm.cat_io(entry.path, identifier) do |input|
-          begin
-            # TODO: Check property for content type
-            fts_target.content = extractor.extract(Pathname(entry.path),
-                                                   input,
-                                                   nil)
-          rescue => error
-            Rails.logger.error do
-              "[full-text-search][text-extract][change] " +
-                "Failed to extract text: #{error.class}: #{error.message}\n" +
-                error.backtrace.join("\n")
-            end
-          end
-        end
         fts_target.last_modified_at = changeset.committed_on
         fts_target.tag_ids = extract_tag_ids_from_path(fts_target.title)
         Target.where(source_type_id: fts_target.source_type_id,
@@ -70,9 +55,38 @@ module FullTextSearch
                      container_type_id: fts_target.container_type_id,
                      title: fts_target.title).destroy_all
         fts_target.save!
+        extract_content(fts_target, options)
       when "D"
         destroy_fts_target
       end
+    end
+
+    def extract_text
+      changeset = @record.changeset
+      repository = changeset.repository
+      identifier = changeset.identifier
+      entry = repository.entry(@record.path, identifier)
+      return if entry.nil?
+      return unless entry.is_file?
+
+      fts_target = find_fts_target
+      return unless fts_target.persisted?
+
+      # TODO: Check property for content type
+      content_type = nil
+      metadata = [
+        ["path", @record.path],
+        # ["content-type", content_type],
+      ]
+      content = run_text_extractor(fts_target, metadata) do |extractor|
+        repository.scm.cat_io(entry.path, identifier) do |input|
+          fts_target.content = extractor.extract(Pathname(entry.path),
+                                                 input,
+                                                 content_type)
+        end
+      end
+      fts_target.content = content
+      fts_target.save!
     end
 
     private

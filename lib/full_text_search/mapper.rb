@@ -15,7 +15,7 @@ module FullTextSearch
       def after_commit(record)
         begin
           mapper = redmine_mapper(record)
-          mapper.upsert_fts_target
+          mapper.upsert_fts_target(extract_text: :later)
         rescue => error
           Rails.logger.error do
             message = "[full-text-search] Failed to upsert FTS target: "
@@ -95,6 +95,112 @@ module FullTextSearch
       extension = File.extname(path).delete_prefix(".")
       return [] if extension.empty?
       [Tag.extension(extension).id]
+    end
+
+    def extract_content(fts_target, options)
+      case options[:extract_text]
+      when :immediate
+        extract_text
+      when :later
+        ExtractTextJob.perform_later(fts_target.id)
+      end
+    end
+
+    def run_text_extractor(fts_target, metadata)
+      before_memory_usage = memory_usage
+      start_time = Time.now
+      context = {
+        fts_target: fts_target,
+        content: nil,
+        memory_usage: before_memory_usage,
+        metadata: metadata,
+      }
+      Rails.logger.info do
+        format_log_message("Extracting...", context)
+      end
+      begin
+        extractor = TextExtractor.new
+        context[:content] = yield(extractor)
+      rescue => error
+        Rails.logger.error do
+          format_log_message("Failed to extract text",
+                             context,
+                             error)
+        end
+        return nil
+      rescue NoMemoryError => error
+        Rails.logger.error do
+          format_log_message("Failed to extract text by no memory",
+                             context,
+                             error)
+        end
+        return nil
+      end
+      context[:elapsed_time] = Time.now - start_time
+      after_memory_usage = memory_usage
+      context[:memory_usage_diff] = after_memory_usage - before_memory_usage
+      context[:memory_usage] = after_memory_usage
+      Rails.logger.info do
+        format_log_message("Extracted", context)
+      end
+      context[:content]
+    end
+
+    def memory_usage
+      status_path = "/proc/self/status"
+      if File.exist?(status_path)
+        File.open(status_path) do |status|
+          status.each_line do |line|
+            case line
+            when /\AVmRSS:\s+(\d+) kB/
+              return Integer($1, 10) * 1024
+            end
+          end
+        end
+      end
+      0
+    end
+
+    def format_log_message(message, context, error=nil)
+      formatted_message = "[full-text-search][text-extract] #{message}: "
+      formatted_message << "FullTextSearch::Target: #{context[:fts_target].id}: "
+      formatted_message << "#{@record.class.name}: #{@record.id}"
+      if context[:metadata]
+        context[:metadata].each do |label, value|
+          formatted_message << ": #{label}: <#{value}>"
+        end
+      end
+      elapsed_time = context[:elapsed_time]
+      if elapsed_time
+        if elapsed_time < 1
+          formatted_elapsed_time = "%.2fms" % (elapsed_time * 1000)
+        elsif elapsed_time < 60
+          formatted_elapsed_time = "%.2fs" % elapsed_time
+        elsif elapsed_time < (60 * 60)
+          formatted_elapsed_time = "%.2fm" % (elapsed_time / 60)
+        else
+          formatted_elapsed_time = "%.2fh" % (elapsed_time / 60 / 60)
+        end
+        formatted_message << ": elapsed time: <#{formatted_elapsed_time}>"
+      end
+      memory_usage = context[:memory_usage]
+      if memory_usage > 0
+        formatted_memory_usage =
+          "%.2fGiB" % (memory_usage / 1024.0 / 1024.0 / 1024.0)
+        formatted_message << ": memory usage: <#{formatted_memory_usage}>"
+        memory_usage_diff = context[:memory_usage_diff]
+        if memory_usage_diff
+          formatted_memory_usage_diff =
+            "%.2fMiB" % (memory_usage_diff / 1024.0 / 1024.0)
+          formatted_message << ": memory usage diff: "
+          formatted_message << "<#{formatted_memory_usage_diff}>"
+        end
+      end
+      if error
+        formatted_message << ": #{error.class}: #{error.message}\n"
+        formatted_message << error.backtrace.join("\n")
+      end
+      formatted_message
     end
   end
 
