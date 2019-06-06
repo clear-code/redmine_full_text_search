@@ -38,6 +38,7 @@ module FullTextSearch
       when "A", "M"
         changeset = @record.changeset
         repository = changeset.repository
+        return if repository.nil?
         identifier = changeset.identifier
         entry = repository.entry(@record.path, identifier)
         return if entry.nil?
@@ -64,6 +65,7 @@ module FullTextSearch
     def extract_text
       changeset = @record.changeset
       repository = changeset.repository
+      return if repository.nil?
       identifier = changeset.identifier
       entry = repository.entry(@record.path, identifier)
       return if entry.nil?
