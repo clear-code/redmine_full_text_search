@@ -87,7 +87,7 @@ module FullTextSearch
     def fts_target_keys
       {
         source_id: @record.id,
-        source_type_id: Type.__send__(@record.class.name.underscore).id,
+        source_type_id: Type[@record.class].id,
       }
     end
 
