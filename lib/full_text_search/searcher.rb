@@ -265,6 +265,8 @@ module FullTextSearch
   end
 
   class ResultSet
+    include Enumerable
+
     def initialize(response)
       @response = response
     end
@@ -276,6 +278,10 @@ module FullTextSearch
       else
         0
       end
+    end
+
+    def elapsed_time
+      @response.elapsed_time
     end
 
     # @return Array<FullTextSearch::Target>

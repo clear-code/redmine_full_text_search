@@ -25,11 +25,15 @@ module FullTextSearch
           return
         end
 
-        ActiveSupport::Notifications.subscribe("groonga.search") do |*args|
-          @groonga_search_event = ActiveSupport::Notifications::Event.new(*args)
-        end
         searcher = Searcher.new(@search_request)
         @result_set = searcher.search
+        context = @search_request.to_params
+        context = context.merge("user_id" => @search_request.user.id,
+                                "n_hits" => @result_set.count,
+                                "elapsed_time" => @result_set.elapsed_time,
+                                "timestamp" => Time.zone.now.iso8601)
+        log = "[full-text-search][search] #{context.to_json}"
+        Rails.logger.info(log)
         @result_pages = Redmine::Pagination::Paginator.new(@result_set.count,
                                                            @search_request.limit,
                                                            params["page"])
@@ -43,6 +47,7 @@ module FullTextSearch
       private
       def query_params
         permitted_names = [
+          :search_id,
           :q,
           :scope,
           :all_words,

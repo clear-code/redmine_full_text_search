@@ -3,6 +3,8 @@ module FullTextSearch
     include ActiveModel::Model
     extend ActiveModel::Naming
 
+    attr_accessor :search_id
+
     attr_accessor :user
     attr_accessor :project
 
@@ -29,10 +31,12 @@ module FullTextSearch
         __send__("#{type}=", 1)
       end
       super
+      @search_id ||= Time.zone.now.to_f.to_s
     end
 
     def to_params(custom_params={})
       params = {
+        "search_id" => search_id,
         "q" => q,
         "scope" => scope,
         "all_words" => all_words,

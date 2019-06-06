@@ -5,12 +5,11 @@ module FullTextSearch
     module ClassMethods
       def select(command)
         sql = build_sql(command)
-        raw_response = nil
-        ActiveSupport::Notifications.instrument("groonga.search", sql: sql) do
-          raw_response = connection.select_value(sql)
-        end
+        now = Time.zone.now.to_f
+        raw_response = connection.select_value(sql)
+        elapsed_time = Time.zone.now.to_f - now
         response_class = Groonga::Client::Response.find(command.command_name)
-        header = [0, 0, 0]
+        header = [0, now, elapsed_time]
         body = JSON.parse(raw_response)
         response = response_class.new(command, header, body)
         response.raw = "[#{header.to_json}, #{raw_response}]"

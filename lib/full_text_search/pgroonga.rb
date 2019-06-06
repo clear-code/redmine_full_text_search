@@ -5,10 +5,7 @@ module FullTextSearch
     module ClassMethods
       def select(command)
         sql = build_sql(command)
-        raw_response = nil
-        ActiveSupport::Notifications.instrument("groonga.search", sql: sql) do
-          raw_response = connection.select_value(sql)
-        end
+        raw_response = connection.select_value(sql)
         Groonga::Client::Response.parse(command, raw_response)
       end
 
