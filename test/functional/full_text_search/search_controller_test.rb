@@ -253,7 +253,7 @@ module FullTextSearch
       def test_drilldowns
         project = Project.first
         get :index, params: {"id" => project.identifier}
-        assert_select("#search-drilldowns") do
+        assert_select("#search-source-types") do
           items = css_select(@selected, "li").collect do |li|
             href = (css_select(li, "a").first || {})["href"]
             if href
