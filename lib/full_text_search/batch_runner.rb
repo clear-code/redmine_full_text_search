@@ -34,7 +34,7 @@ module FullTextSearch
       all_bar = create_multi_progress_bar("All")
       bars = {}
 
-      FullTextSearch.resolver.reverse_each do |redmine_class, mapper_class|
+      FullTextSearch.resolver.each.reverse_each do |redmine_class, mapper_class|
         new_redmine_records = mapper_class.not_mapped_redmine_records
         label = "#{redmine_class.name}:New"
         bars[label] =
@@ -58,7 +58,7 @@ module FullTextSearch
       end
 
       all_bar.start
-      FullTextSearch.resolver.reverse_each do |redmine_class, mapper_class|
+      FullTextSearch.resolver.each.reverse_each do |redmine_class, mapper_class|
         new_redmine_records = mapper_class.not_mapped_redmine_records
         bar = bars["#{redmine_class.name}:New"]
         bar.start
