@@ -29,7 +29,7 @@ module FullTextSearch
         @result_set = searcher.search
         context = @search_request.to_params
         context = context.merge("user_id" => @search_request.user.id,
-                                "project_id" => @search_request.project.id,
+                                "project_id" => @search_request.project&.id,
                                 "n_hits" => @result_set.count,
                                 "elapsed_time" => @result_set.elapsed_time,
                                 "timestamp" => Time.zone.now.iso8601)
