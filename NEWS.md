@@ -1,5 +1,19 @@
 # Redmine FullTextSearch
 
+## 1.0.0 - 2019-06-10
+
+The first major release!
+
+### Improvements
+
+  * Reconstructed search UI.
+
+  * Added support for full text search against repository contents.
+
+  * Required Groonga 9.0.1 or later.
+
+  * Required PGroonga 2.2.0 or later.
+
 ## 0.8.1 - 2019-03-29
 
 Wiki related bug fix release of 0.8.1.
