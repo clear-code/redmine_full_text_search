@@ -1,10 +1,10 @@
 Redmine::Plugin.register :full_text_search do
   name 'Full Text Search plugin'
-  author 'Kenji Okimoto'
+  author 'ClearCode Inc.'
   description 'This plugin provides full text search for Redmine'
   version '1.0.1'
   url 'https://github.com/clear-code/redmine_full_text_search'
-  author_url 'https://github.com/okkez'
+  author_url 'https://github.com/clear-code'
   directory __dir__
   settings partial: "settings/full_text_search"
 end
