@@ -81,7 +81,7 @@ module FullTextSearch
     end
 
     def server_url
-      @raw["server_url"]
+      @raw["server_url"].presence
     end
   end
 end
