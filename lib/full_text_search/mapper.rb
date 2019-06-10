@@ -54,6 +54,10 @@ module FullTextSearch
       def fts_mapper(record)
         fts_mapper_class.new(self, record)
       end
+
+      def need_text_extraction?
+        redmine_mapper_class.need_text_extraction?
+      end
     end
   end
 
@@ -67,6 +71,10 @@ module FullTextSearch
         redmine_class
           .where.not(id: targets)
           .order(id: :asc)
+      end
+
+      def need_text_extraction?
+        method_defined?(:extract_text)
       end
     end
 
