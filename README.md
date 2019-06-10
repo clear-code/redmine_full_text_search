@@ -55,6 +55,7 @@ application.
 ```text
 $ cd redmine
 $ git clone https://github.com/clear-code/redmine_full_text_search.git plugins/full_text_search
+$ bundle install
 $ RAILS_ENV=production bin/rails redmine:plugins:migrate
 ```
 
