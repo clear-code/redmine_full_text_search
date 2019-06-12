@@ -67,7 +67,13 @@ class CreateFtsTargets < migration
       t.boolean :is_private
       t.timestamp :last_modified_at
       t.text :title
-      t.text :content, limit: 16.megabytes
+      if Redmine::Database.mysql?
+        t.text :content,
+               limit: 16.megabytes,
+               comment: "FLAGS 'COLUMN_SCALAR|COMPRESS_ZSTD'"
+      else
+        t.text :content
+      end
       if Redmine::Database.mysql?
         t.text :tag_ids,
                comment: "FLAGS 'COLUMN_VECTOR', GROONGA_TYPE 'Int32'"
@@ -83,7 +89,9 @@ class CreateFtsTargets < migration
         t.index :is_private
         t.index :last_modified_at
         t.index :title, type: "fulltext"
-        t.index :content, type: "fulltext"
+        t.index :content,
+                type: "fulltext",
+                comment: "INDEX_FLAGS 'WITH_POSITION|INDEX_LARGE'"
         t.index :tag_ids,
                 type: "fulltext",
                 comment: "LEXICON 'fts_tags', INDEX_FLAGS ''"
