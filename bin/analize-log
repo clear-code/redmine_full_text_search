@@ -88,6 +88,7 @@ option_parser.on("--slow-elapsed-time-threshold=THRESHOLD",
                  "(#{format_time(options.slow_elapsed_time_threshold)})") do |threshold|
   options.slow_elapsed_time_threshold = parse_time(threshold)
 end
+option_parser.parse!(ARGV)
 
 ARGF.each_line do |line|
   line = line.chomp
