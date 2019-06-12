@@ -16,6 +16,7 @@ module FullTextSearch
     def upsert_fts_target(options={})
       # journal belongs to an issue for now.
       issue = @record.issue
+      return if issue.nil?
 
       fts_target = find_fts_target
       fts_target.source_id = @record.id
