@@ -34,6 +34,7 @@ module FullTextSearch
         fts_target.project_id = wiki_page.wiki.project_id
       when "Issue"
         issue = @record.container
+        return if issue.nil?
         fts_target.project_id = issue.project_id
         fts_target.is_private = issue.is_private
         tag_ids << Tag.issue_status(issue.status_id).id
