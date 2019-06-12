@@ -53,6 +53,7 @@ class CreateFtsTargets < migration
 
   def change
     if Redmine::Database.mysql?
+      # TODO: Check Mroonga 9.03 or later
       options = "ENGINE=Mroonga"
     else
       options = nil
