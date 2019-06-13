@@ -7,7 +7,7 @@ en:
   label_full_text_search_order_type_desc: desc
   label_full_text_search_display_score: Display score
   label_full_text_search_attachment_max_text_size: Max text size extracted from attachments
-  label_full_text_search_external_command_timeout: Timeout in seconds for executing an external command
+  label_full_text_search_text_extraction_timeout: Timeout in seconds for text extraction
   label_full_text_search_external_command_max_memory: Max memory usage for executing an external command
   label_full_text_search_server_url: ChupaText server URL
   label_similar_issues: Similar issues

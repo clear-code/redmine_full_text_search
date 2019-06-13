@@ -129,29 +129,32 @@ module FullTextSearch
       begin
         extractor = TextExtractor.new
         context[:content] = yield(extractor)
+      rescue Timeout::Error => error
+        context[:error] = error
+        context[:error_message] = "Timed out text extraction"
       rescue => error
-        Rails.logger.error do
-          format_log_message("Failed to extract text",
-                             context,
-                             error)
-        end
-        return nil
+        context[:error] = error
+        context[:error_message] = "Failed to extract text"
       rescue NoMemoryError => error
-        Rails.logger.error do
-          format_log_message("Failed to extract text by no memory",
-                             context,
-                             error)
-        end
-        return nil
+        context[:error] = error
+        context[:error_message] = "Failed to extract text by no memory"
       end
       context[:elapsed_time] = Time.now - start_time
       after_memory_usage = memory_usage
       context[:memory_usage_diff] = after_memory_usage - before_memory_usage
       context[:memory_usage] = after_memory_usage
-      Rails.logger.info do
-        format_log_message("Extracted", context)
+      if context[:error]
+        Rails.logger.error do
+          format_log_message(context[:error_message],
+                             context)
+        end
+        nil
+      else
+        Rails.logger.info do
+          format_log_message("Extracted", context)
+        end
+        context[:content]
       end
-      context[:content]
     end
 
     def memory_usage
@@ -169,7 +172,7 @@ module FullTextSearch
       0
     end
 
-    def format_log_message(message, context, error=nil)
+    def format_log_message(message, context)
       formatted_message = "[full-text-search][text-extract] #{message}: "
       formatted_message << "FullTextSearch::Target: #{context[:fts_target].id}: "
       formatted_message << "#{@record.class.name}: #{@record.id}"
@@ -204,6 +207,7 @@ module FullTextSearch
           formatted_message << "<#{formatted_memory_usage_diff}>"
         end
       end
+      error = context[:error]
       if error
         formatted_message << ": #{error.class}: #{error.message}\n"
         formatted_message << error.backtrace.join("\n")

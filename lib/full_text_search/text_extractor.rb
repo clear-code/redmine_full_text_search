@@ -1,3 +1,5 @@
+require "timeout"
+
 module FullTextSearch
   class TextExtractor
     class << self
@@ -24,15 +26,17 @@ module FullTextSearch
       begin
         data.mime_type = content_type
         data.max_body_size = @max_size
-        self.class.extractor.extract(data) do |extracted|
-          body = extracted.body
-          extracted.release
-          next if body.empty?
-          text << "\n" unless text.empty?
-          text << body
-          if text.bytesize >= @max_size
-            text = text.byteslice(0, @max_size)
-            break
+        Timeout.timeout(@timeout) do
+          self.class.extractor.extract(data) do |extracted|
+            body = extracted.body
+            extracted.release
+            next if body.empty?
+            text << "\n" unless text.empty?
+            text << body
+            if text.bytesize >= @max_size
+              text = text.byteslice(0, @max_size)
+              break
+            end
           end
         end
       ensure
@@ -45,10 +49,9 @@ module FullTextSearch
     private
     def apply_settings
       settings = Setting.plugin_full_text_search
-      ChupaText::ExternalCommand.default_timeout =
-        settings.external_command_timeout
-      ChupaText::ExternalCommand.default_limit_cpu =
-        settings.external_command_timeout
+      @timeout = settings.text_extraction_timeout
+      ChupaText::ExternalCommand.default_timeout = @timeout
+      ChupaText::ExternalCommand.default_limit_cpu = @timeout
       ChupaText::ExternalCommand.default_limit_as =
         settings.external_command_max_memory
       ChupaText::Decomposers::HTTPServer.default_url =

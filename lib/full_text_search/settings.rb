@@ -40,14 +40,14 @@ module FullTextSearch
       end
     end
 
-    DEFAULT_EXTERNAL_COMMAND_TIMEOUT = 180
-    def external_command_timeout
-      timeout = @raw.fetch("external_command_timeout",
-                           DEFAULT_EXTERNAL_COMMAND_TIMEOUT)
+    DEFAULT_TEXT_EXTRACTION_TIMEOUT = 180
+    def text_extraction_timeout
+      timeout = @raw.fetch("text_extraction_timeout",
+                           DEFAULT_TEXT_EXTRACTION_TIMEOUT)
       begin
         Float(timeout)
       rescue ArgumentError
-        DEFAULT_EXTERNAL_COMMAND_TIMEOUT
+        DEFAULT_TEXT_EXTRACTION_TIMEOUT
       end
     end
 
