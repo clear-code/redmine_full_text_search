@@ -102,10 +102,12 @@ SHOW VARIABLES LIKE 'mroonga_version';
         t.index :custom_field_id
         t.index :is_private
         t.index :last_modified_at
-        t.index :title, type: "fulltext"
+        t.index :title,
+                type: "fulltext",
+                comment: "NORMALIZER 'NormalizerNFKC121'"
         t.index :content,
                 type: "fulltext",
-                comment: "INDEX_FLAGS 'WITH_POSITION|INDEX_LARGE'"
+                comment: "NORMALIZER 'NormalizerNFKC121', INDEX_FLAGS 'WITH_POSITION|INDEX_LARGE'"
         t.index :tag_ids,
                 type: "fulltext",
                 comment: "LEXICON 'fts_tags', INDEX_FLAGS ''"
