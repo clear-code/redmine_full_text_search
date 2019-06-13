@@ -1,5 +1,21 @@
 # Redmine FullTextSearch
 
+## 1.0.1 - 2019-06-13
+
+### Improvements
+
+  * `indexing`: Added more unexpected case check.
+
+  * `indexing`: Reduced synchronize targets.
+
+  * `analyze-log`: Added support for reporting summary.
+
+  * `mroonga`: Changed to use Zstandard.
+
+  * `mroonga`: Changed to use `NormalizerNFKC121`.
+
+  * `indexing`: Improved support for text extraction timeout.
+
 ## 1.0.0 - 2019-06-10
 
 The first major release!
