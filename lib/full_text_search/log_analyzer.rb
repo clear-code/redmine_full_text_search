@@ -320,7 +320,7 @@ module FullTextSearch
     def report
       puts("Summary:")
       sorted = @extension_statistics.sort_by do |extension, statistics|
-        -statistics.n_records
+        -statistics.total.to_f
       end
       sorted.each_with_index do |(extension, statistics), i|
         puts("  #{i}: #{extension}")
