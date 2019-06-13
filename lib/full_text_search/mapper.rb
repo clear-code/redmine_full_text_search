@@ -129,9 +129,6 @@ module FullTextSearch
       begin
         extractor = TextExtractor.new
         context[:content] = yield(extractor)
-      rescue Timeout::Error => error
-        context[:error] = error
-        context[:error_message] = "Timed out text extraction"
       rescue => error
         context[:error] = error
         context[:error_message] = "Failed to extract text"

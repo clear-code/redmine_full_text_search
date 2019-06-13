@@ -1,5 +1,3 @@
-require "timeout"
-
 module FullTextSearch
   class TextExtractor
     class << self
@@ -25,18 +23,17 @@ module FullTextSearch
       text = ""
       begin
         data.mime_type = content_type
+        data.timeout = @timeout
         data.max_body_size = @max_size
-        Timeout.timeout(@timeout) do
-          self.class.extractor.extract(data) do |extracted|
-            body = extracted.body
-            extracted.release
-            next if body.empty?
-            text << "\n" unless text.empty?
-            text << body
-            if text.bytesize >= @max_size
-              text = text.byteslice(0, @max_size)
-              break
-            end
+        self.class.extractor.extract(data) do |extracted|
+          body = extracted.body
+          extracted.release
+          next if body.empty?
+          text << "\n" unless text.empty?
+          text << body
+          if text.bytesize >= @max_size
+            text = text.byteslice(0, @max_size)
+            break
           end
         end
       ensure
