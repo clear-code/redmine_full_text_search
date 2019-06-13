@@ -51,9 +51,22 @@ class CreateFtsTargets < migration
     ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::SchemaCreation.prepend(MysqlSchemaCreationCommentable)
   end
 
+  def comparable_version(version)
+    version.split(".").collect {|component| Integer(component, 10)}
+  end
+
   def change
     if Redmine::Database.mysql?
-      # TODO: Check Mroonga 9.03 or later
+      mroonga_version = connection.select_rows(<<-SQL)[0][1]
+SHOW VARIABLES LIKE 'mroonga_version';
+      SQL
+      required_mroonga_version = "9.03"
+      if (comparable_version(mroonga_version) <=>
+          comparable_version(required_mroonga_version)) < 0
+        message = "Mroonga #{required_mroonga_version} or later is required: " +
+                  mroonga_version
+        raise message
+      end
       options = "ENGINE=Mroonga"
     else
       options = nil
