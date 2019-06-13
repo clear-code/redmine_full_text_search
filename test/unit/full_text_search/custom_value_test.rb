@@ -99,5 +99,26 @@ module FullTextSearch
       custom_value.destroy!
       assert_equal([], targets.reload.to_a)
     end
+
+    def test_not_mapped
+      CustomValue.destroy_all
+      issue = Issue.find(1)
+
+      not_searchable_custom_field = IssueCustomField.generate!(searchable: false)
+      not_searchable_custom_value =
+        not_searchable_custom_field.custom_values.create!(value: "Hello",
+                                                          customized: issue)
+      searchable_custom_field = IssueCustomField.generate!(searchable: true)
+      searchable_custom_value =
+        searchable_custom_field.custom_values.create!(value: "Hello",
+                                                      customized: issue)
+
+      Target.where(source_type_id: Type.custom_value.id).destroy_all
+
+      assert_equal([
+                     searchable_custom_value,
+                   ],
+                   CustomValueMapper.not_mapped_redmine_records.all)
+    end
   end
 end

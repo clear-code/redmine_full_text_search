@@ -13,6 +13,14 @@ module FullTextSearch
   resolver.register(CustomValue, CustomValueMapper)
 
   class RedmineCustomValueMapper < RedmineMapper
+    class << self
+      def not_mapped(redmine_class)
+        super
+          .joins(:custom_field)
+          .where("custom_fields.searchable")
+      end
+    end
+
     def upsert_fts_target(options={})
       fts_target = find_fts_target
 
