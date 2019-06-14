@@ -15,29 +15,11 @@ module FullTextSearch
   class RedmineChangeMapper < RedmineMapper
     class << self
       def not_mapped(redmine_class)
-        fts_targets =
-          Target
-            .where(source_type_id: Type[redmine_class].id)
-            .select(:source_id)
-        if fts_targets.exists?
-          targets = redmine_class.where.not(id: fts_targets)
-          last_source_id =
-            fts_targets
-              .order(source_id: :desc)
-              .limit(1)
-              .pluck(:source_id)
-              .first
-          if last_source_id
-            targets = targets.where(id: (last_source_id + 1)..Float::INFINITY)
-          end
-          targets.order(id: :asc)
-        else
-          source_ids = redmine_class
-            .joins(changeset: [:repository])
-            .group("repositories.id, changes.path")
-            .select("MAX(changes.id) as id")
-          redmine_class.where(id: source_ids).order(id: :asc)
-        end
+        source_ids = redmine_class
+                       .joins(changeset: [:repository])
+                       .group("repositories.id, changes.path")
+                       .select("MAX(changes.id) as id")
+        super.where(id: source_ids)
       end
     end
 
