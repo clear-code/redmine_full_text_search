@@ -44,7 +44,9 @@ module FullTextSearch
       end
       fts_target.container_id = @record.container_id
       fts_target.container_type_id = Type[@record.container_type].id
-      fts_target.tag_ids = tag_ids + extract_tag_ids_from_path(@record.filename)
+      tag_ids.concat(extract_tag_ids_from_path(@record.filename))
+      fts_target.tag_ids = tag_ids
+      prepare_text_extraction(fts_target)
       fts_target.save!
       extract_content(fts_target, options)
     end
@@ -64,11 +66,9 @@ module FullTextSearch
       content = run_text_extractor(fts_target, metadata) do |extractor|
         extractor.extract(path, nil, content_type)
       end
-      contents = [
-        @record.description.presence,
-        content.presence,
-      ]
-      fts_target.content = contents.compact.join("\n")
+      set_extracted_content(fts_target,
+                            content,
+                            [@record.description.presence])
       fts_target.save!
     end
 

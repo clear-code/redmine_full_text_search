@@ -98,6 +98,17 @@ module FullTextSearch
       }
     end
 
+    def prepare_text_extraction(fts_target)
+      fts_target.tag_ids += [Tag.text_extraction_yet.id]
+    end
+
+    def set_extracted_content(fts_target, content, prepended_contents=[])
+      fts_target.tag_ids -= Tag.text_extraction_ids
+      fts_target.tag_ids += [Tag.text_extraction_error.id] if content.nil?
+      contents = prepended_contents + [content.presence]
+      fts_target.content = contents.compact.join("\n")
+    end
+
     def extract_tag_ids_from_path(path)
       extension = File.extname(path).delete_prefix(".")
       return [] if extension.empty?

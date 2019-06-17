@@ -15,6 +15,25 @@ module FullTextSearch
                           name: issue_status_id.to_s)
       end
 
+      def text_extraction(status)
+        type = TagType.text_extraction
+        find_or_create_by(type_id: type.id,
+                          name: status)
+      end
+
+      def text_extraction_error
+        text_extraction("error")
+      end
+
+      def text_extraction_yet
+        text_extraction("yet")
+      end
+
+      def text_extraction_ids
+        type = TagType.text_extraction
+        where(type_id: type.id).select(:id).collect(&:id)
+      end
+
       def tracker(tracker_id)
         type = TagType.tracker
         find_or_create_by(type_id: type.id,

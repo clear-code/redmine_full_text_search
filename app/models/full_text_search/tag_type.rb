@@ -11,6 +11,10 @@ module FullTextSearch
         find_or_create_by(name: "issue-status")
       end
 
+      def text_extraction
+        find_or_create_by(name: "text-extraction")
+      end
+
       def tracker
         find_or_create_by(name: "tracker")
       end

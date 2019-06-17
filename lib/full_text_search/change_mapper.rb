@@ -42,6 +42,7 @@ module FullTextSearch
         fts_target.project_id = repository.project_id
         fts_target.last_modified_at = changeset.committed_on
         fts_target.tag_ids = extract_tag_ids_from_path(fts_target.title)
+        prepare_text_extraction(fts_target)
         Target.where(source_type_id: fts_target.source_type_id,
                      container_id: fts_target.container_id,
                      container_type_id: fts_target.container_type_id,
@@ -79,7 +80,7 @@ module FullTextSearch
                             content_type)
         end
       end
-      fts_target.content = content
+      set_extracted_content(fts_target, content)
       fts_target.save!
     end
 

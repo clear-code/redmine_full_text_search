@@ -12,6 +12,7 @@ en:
   label_full_text_search_server_url: ChupaText server URL
   label_similar_issues: Similar issues
   label_extension: Extension
+  label_text_extraction: Text extraction
   label:
     full_text_search:
       drilldown:

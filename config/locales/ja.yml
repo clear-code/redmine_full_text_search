@@ -12,6 +12,7 @@ ja:
   label_full_text_search_server_url: ChupaTextサーバーのURL
   label_similar_issues: 類似チケット
   label_extension: 拡張子
+  label_text_extraction: テキスト抽出
   label:
     full_text_search:
       drilldown:
