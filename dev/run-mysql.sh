@@ -4,10 +4,13 @@ set -exu
 
 options=(--rm -p3306:3306)
 if [ $# -ge 1 ]; then
-  db_dir=$1
-  rm -rf ${db_dir}
-  mkdir -p ${db_dir}
-  options+=("-v${db_dir}:/var/lib/mysql")
+  db_base_dir=$1
+  rm -rf ${db_base_dir}
+  mkdir -p ${db_base_dir}/log
+  chmod +t ${db_base_dir}/log
+  chmod go+wx ${db_base_dir}/log
+  options+=("-v${db_base_dir}/mysql:/var/lib/mysql")
+  options+=("-v${db_base_dir}/log:/var/log")
 fi
 
 db_conf_dir=/tmp/redmine-full-text-search/my.cnf.d
