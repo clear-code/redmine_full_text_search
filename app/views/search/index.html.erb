@@ -123,7 +123,7 @@
     <div class="search-drilldown">
       <h3><%= l(:"label_#{type.name.underscore}") %></h3>
       <ul>
-        <% drilldown.each do |record| %>
+        <% drilldown[0, 10].each do |record| %>
         <li>
           <%= link_to("#{record[:tag].value} (#{record[:n_records]})",
                       url_for(@search_request.to_params(tags: [record[:tag]]))) %>
