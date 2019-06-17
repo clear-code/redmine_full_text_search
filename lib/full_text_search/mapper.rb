@@ -70,7 +70,6 @@ module FullTextSearch
             .select(:source_id)
         redmine_class
           .where.not(id: targets)
-          .order(id: :asc)
       end
 
       def need_text_extraction?
