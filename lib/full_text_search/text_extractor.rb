@@ -22,6 +22,7 @@ module FullTextSearch
       end
       text = ""
       begin
+        data.need_screenshot = false
         data.mime_type = content_type
         data.timeout = @timeout
         data.max_body_size = @max_size
