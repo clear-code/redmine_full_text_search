@@ -264,6 +264,7 @@ module FullTextSearch
         line = line.chomp
         original_line = line
         line = line.scrub unless line.valid_encoding?
+        line = line.gsub(/\A[ActiveJob\] \[.+?\] \[.+?\] /, "")
         case line
         when /\A\[full-text-search\]/
           content = $POSTMATCH
