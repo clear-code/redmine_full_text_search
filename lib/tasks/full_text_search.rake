@@ -22,11 +22,22 @@ namespace :full_text_search do
     batch_runner.destroy
   end
 
+  wait_queue = lambda do
+    queue_adapter = ActiveJob::Base.queue_adapter
+    case queue_adapter
+    when ActiveJob::QueueAdapters::AsyncAdapter
+      while queue_adapter.length > 0
+        sleep(1)
+      end
+    end
+  end
+
   desc "Synchronize"
   task :synchronize => :environment do
     extract_text = ENV["EXTRACT_TEXT"] || "immediate"
     batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
     batch_runner.synchronize(extract_text: extract_text.to_sym)
+    wait_queue.call
   end
 
   namespace :attachment do
@@ -37,6 +48,7 @@ namespace :full_text_search do
       options[:ids] = [Integer(id, 10)] if id.present?
       batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
       batch_runner.extract_text(**options)
+      wait_queue.call
     end
   end
 end
