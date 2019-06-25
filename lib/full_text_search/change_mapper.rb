@@ -14,11 +14,16 @@ module FullTextSearch
 
   class RedmineChangeMapper < RedmineMapper
     class << self
-      def not_mapped(redmine_class)
-        source_ids = redmine_class
-                       .joins(changeset: [:repository])
-                       .group("repositories.id, changes.path")
-                       .select("MAX(changes.id) as id")
+      def with_project(redmine_class)
+        redmine_class.joins(changeset: {repository: :project})
+      end
+
+      def not_mapped(redmine_class, options={})
+        source_ids =
+          redmine_class
+            .joins(changeset: [:repository])
+            .group("repositories.id, changes.path")
+            .select("MAX(changes.id) as id")
         super.where(id: source_ids)
       end
     end

@@ -14,7 +14,20 @@ module FullTextSearch
 
   class RedmineCustomValueMapper < RedmineMapper
     class << self
-      def not_mapped(redmine_class)
+      def with_project(redmine_class)
+        redmine_class
+          .joins(<<-JOIN)
+LEFT OUTER JOIN issues
+  ON customized_type = 'Issue' AND issues.id = customized_id
+          JOIN
+          .joins(<<-JOIN)
+JOIN projects
+  ON (customized_type = 'Project' AND projects.id = customized_id) OR
+     (customized_type = 'Issue' AND projects.id = issues.project_id)
+          JOIN
+      end
+
+      def not_mapped(redmine_class, options)
         super
           .joins(:custom_field)
           .where("custom_fields.searchable")
@@ -24,7 +37,7 @@ module FullTextSearch
     def upsert_fts_target(options={})
       fts_target = find_fts_target
 
-      unless @record.custom_field.searchable
+      unless @record.custom_field.searchable?
         fts_target.destroy! if fts_target.persisted?
         return
       end
@@ -41,11 +54,11 @@ module FullTextSearch
       fts_target.content = @record.value
       fts_target.custom_field_id = @record.custom_field_id
       case @record.customized_type
-      when "Project"
-        fts_target.project_id = customized.id
       when "Issue"
         fts_target.project_id = customized.project_id
         fts_target.is_private = customized.is_private
+      when "Project"
+        fts_target.project_id = customized.id
       else
         fts_target.destroy! if fts_target.persisted?
         return

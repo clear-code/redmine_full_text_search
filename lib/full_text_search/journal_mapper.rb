@@ -13,6 +13,20 @@ module FullTextSearch
   resolver.register(Journal, JournalMapper)
 
   class RedmineJournalMapper < RedmineMapper
+    class << self
+      def with_project(redmine_class)
+        redmine_class
+          .joins(<<-JOIN)
+JOIN issues
+  ON journalized_type = 'Issue' AND issues.id = journalized_id
+          JOIN
+          .joins(<<-JOIN)
+JOIN projects
+  ON projects.id = issues.project_id
+          JOIN
+      end
+    end
+
     def upsert_fts_target(options={})
       # journal belongs to an issue for now.
       issue = @record.issue

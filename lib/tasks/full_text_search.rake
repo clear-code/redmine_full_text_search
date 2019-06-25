@@ -37,8 +37,10 @@ namespace :full_text_search do
   desc "Synchronize"
   task :synchronize => :environment do
     extract_text = ENV["EXTRACT_TEXT"] || "immediate"
+    project = ENV["PROJECT"]
     batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
-    batch_runner.synchronize(extract_text: extract_text.to_sym)
+    batch_runner.synchronize(project: project,
+                             extract_text: extract_text.to_sym)
     wait_queue.call
   end
 

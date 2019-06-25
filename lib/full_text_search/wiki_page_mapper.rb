@@ -13,6 +13,12 @@ module FullTextSearch
   resolver.register(WikiPage, WikiPageMapper)
 
   class RedmineWikiPageMapper < RedmineMapper
+    class << self
+      def with_project(redmine_class)
+        redmine_class.joins(wiki: :project)
+      end
+    end
+
     def upsert_fts_target(options={})
       fts_target = find_fts_target
       fts_target.source_id = @record.id

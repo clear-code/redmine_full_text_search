@@ -15,12 +15,14 @@ module FullTextSearch
     fixtures :custom_fields_projects
     fixtures :custom_fields_trackers
     fixtures :custom_values
+    fixtures :documents
     fixtures :enabled_modules
     fixtures :enumerations
     fixtures :issue_statuses
     fixtures :issues
     fixtures :journals
     fixtures :messages
+    fixtures :news
     fixtures :projects
     fixtures :projects_trackers
     fixtures :repositories
@@ -313,7 +315,7 @@ module FullTextSearch
           expected_search_path = "/projects/#{project.identifier}/search"
           assert_equal([
                          [
-                           "All (46)",
+                           "All (50)",
                            expected_search_path,
                            common_search_options.merge("changes" => "1",
                                                        "changesets" => "1",
@@ -330,12 +332,12 @@ module FullTextSearch
                            common_search_options.merge("issues" => "1"),
                          ],
                          [
-                           "News (0)",
+                           "News (2)",
                            expected_search_path,
                            common_search_options.merge("news" => "1"),
                          ],
                          [
-                           "Documents (0)",
+                           "Documents (2)",
                            expected_search_path,
                            common_search_options.merge("documents" => "1"),
                          ],

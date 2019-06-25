@@ -13,6 +13,12 @@ module FullTextSearch
   resolver.register(Changeset, ChangesetMapper)
 
   class RedmineChangesetMapper < RedmineMapper
+    class << self
+      def with_project(redmine_class)
+        redmine_class.joins(repository: :project)
+      end
+    end
+
     def upsert_fts_target(options={})
       repository = @record.repository
       fts_target = find_fts_target

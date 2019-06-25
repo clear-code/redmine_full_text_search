@@ -13,6 +13,12 @@ module FullTextSearch
   resolver.register(Project, ProjectMapper)
 
   class RedmineProjectMapper < RedmineMapper
+    class << self
+      def with_project(redmine_class)
+        redmine_class
+      end
+    end
+
     def upsert_fts_target(options={})
       fts_target = find_fts_target
       fts_target.source_id = @record.id

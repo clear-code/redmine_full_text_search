@@ -35,16 +35,16 @@ module FullTextSearch
         FullTextSearch.resolver.resolve(self)
       end
 
-      def not_mapped_redmine_records
-        redmine_mapper_class.not_mapped(redmine_class)
+      def not_mapped_redmine_records(options={})
+        redmine_mapper_class.not_mapped(redmine_class, options)
       end
 
-      def orphan_fts_targets
-        fts_mapper_class.orphan(redmine_class)
+      def orphan_fts_targets(options={})
+        fts_mapper_class.orphan(redmine_class, options)
       end
 
-      def outdated_fts_targets
-        fts_mapper_class.outdated(redmine_class)
+      def outdated_fts_targets(options={})
+        fts_mapper_class.outdated(redmine_class, options)
       end
 
       def redmine_mapper(record)
@@ -63,17 +63,43 @@ module FullTextSearch
 
   class RedmineMapper
     class << self
-      def not_mapped(redmine_class)
+      def with_project(redmine_class)
+        redmine_class.joins(:project)
+      end
+
+      def not_mapped(redmine_class, options={})
         targets =
           Target
             .where(source_type_id: Type[redmine_class].id)
             .select(:source_id)
-        redmine_class
-          .where.not(id: targets)
+        records =
+          with_project(redmine_class)
+            .where.not(id: targets)
+        project = resolve_project(options[:project])
+        if project
+          records
+            .where(project.project_condition(true))
+        else
+          records
+            .where(projects: {status: not_archived_project_statuses})
+        end
       end
 
       def need_text_extraction?
         method_defined?(:extract_text)
+      end
+
+      private
+      def resolve_project(project)
+        if project
+          Project.find(project)
+        else
+          nil
+        end
+      end
+
+      def not_archived_project_statuses
+        [Project::STATUS_ACTIVE, Project::STATUS_CLOSED]
       end
     end
 
@@ -228,18 +254,32 @@ module FullTextSearch
     include Redmine::I18n
 
     class << self
-      def orphan(redmine_class)
-        Target
-          .where(source_type_id: Type[redmine_class].id)
-          .joins(<<-SQL)
+      def orphan(redmine_class, options={})
+        targets =
+          Target
+            .where(source_type_id: Type[redmine_class].id)
+            .joins(<<-JOIN)
 LEFT OUTER JOIN #{redmine_class.table_name}
   ON #{redmine_class.table_name}.id =
      #{Target.table_name}.source_id
-          SQL
-          .where(redmine_class.table_name => {id: nil})
+            JOIN
+        no_source_targets =
+          targets.where(redmine_class.table_name => {id: nil})
+        redmine_mapper_class =
+          FullTextSearch.resolver.resolve(redmine_class).redmine_mapper_class
+        archived_projects =
+          Project
+            .where(status: Project::STATUS_ARCHIVED)
+        archived_sources =
+          redmine_mapper_class
+            .with_project(redmine_class)
+            .where(projects: {id: archived_projects})
+        archived_source_targets =
+          targets.where(redmine_class.table_name => {id: archived_sources})
+        no_source_targets.or(archived_source_targets)
       end
 
-      def outdated(redmine_class)
+      def outdated(redmine_class, options={})
         unless redmine_class.column_names.include?("updated_on")
           return Target.none
         end

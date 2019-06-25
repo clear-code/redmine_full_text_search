@@ -13,8 +13,10 @@ module FullTextSearch
       destroy_bar.finish
     end
 
-    def synchronize(extract_text: nil)
-      synchronize_fts_targets(extract_text: extract_text)
+    def synchronize(project: nil,
+                    extract_text: nil)
+      synchronize_fts_targets(project: project,
+                              extract_text: extract_text)
     end
 
     def extract_text(ids: nil)
@@ -30,7 +32,8 @@ module FullTextSearch
     end
 
     private
-    def synchronize_fts_targets(extract_text: :immdeiate)
+    def synchronize_fts_targets(project: nil,
+                                extract_text: :immdeiate)
       all_bar = create_multi_progress_bar("All")
       bars = {}
 
