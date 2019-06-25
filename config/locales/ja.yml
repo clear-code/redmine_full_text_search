@@ -6,6 +6,7 @@ ja:
   label_full_text_search_order_type_asc: 昇順
   label_full_text_search_order_type_desc: 降順
   label_full_text_search_display_score: スコアを表示
+  label_full_text_search_display_similar_issues: 類似チケットを表示
   label_full_text_search_attachment_max_text_size: 添付ファイルから抽出する最大テキストサイズ
   label_full_text_search_text_extraction_timeout: テキスト抽出処理のタイムアウト時間（秒）
   label_full_text_search_external_command_max_memory: 外部コマンドの最大使用可能メモリー

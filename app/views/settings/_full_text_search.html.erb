@@ -7,6 +7,14 @@
 </p>
 
 <p>
+  <%= label_tag("settings[display_similar_issues]",
+                l(:label_full_text_search_display_similar_issues)) %>
+  <%= check_box_tag("settings[display_similar_issues]",
+                    FullTextSearch::Settings::TRUE_VALUE,
+                    settings.display_similar_issues?) %>
+</p>
+
+<p>
   <%= label_tag("settings[attachment_max_text_size_in_mb]",
                 l(:label_full_text_search_attachment_max_text_size)) %>
   <%= text_field_tag("settings[attachment_max_text_size_in_mb]",

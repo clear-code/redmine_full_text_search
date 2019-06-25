@@ -1,6 +1,6 @@
 <% html_title(l(:label_search)) -%>
 
-<%- if display_score? %>
+<%- if fts_display_score? %>
   <% content_for :header_tags do %>
     <%= stylesheet_link_tag "score", :plugin => "full_text_search" %>
   <% end %>
@@ -79,7 +79,7 @@
 
 <div id="search-result">
   <div id="search-result-metadata">
-    <% if display_score? %>
+    <% if fts_display_score? %>
       <div id="search-elapsed">
         <p>
           <i class="fas fa-clock"></i>
