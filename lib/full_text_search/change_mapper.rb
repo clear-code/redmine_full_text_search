@@ -34,11 +34,10 @@ module FullTextSearch
         changeset = @record.changeset
         repository = changeset.repository
         return if repository.nil?
-        identifier = changeset.identifier
-        relative_path = repository.relative_path(@record.path)
-        entry = repository.entry(relative_path, identifier)
-        return if entry.nil?
-        return unless entry.is_file?
+        entry = RepositoryEntry.new(repository,
+                                    @record.path,
+                                    changeset.identifier)
+        return unless entry.file?
         fts_target = find_fts_target
         fts_target.source_id = @record.id
         fts_target.source_type_id = Type[@record.class].id
@@ -63,11 +62,10 @@ module FullTextSearch
       changeset = @record.changeset
       repository = changeset.repository
       return if repository.nil?
-      identifier = changeset.identifier
-      relative_path = repository.relative_path(@record.path)
-      entry = repository.entry(relative_path, identifier)
-      return if entry.nil?
-      return unless entry.is_file?
+      entry = RepositoryEntry.new(repository,
+                                  @record.path,
+                                  changeset.identifier)
+      return unless entry.file?
 
       fts_target = find_fts_target
       return unless fts_target.persisted?
@@ -79,7 +77,7 @@ module FullTextSearch
         # ["content-type", content_type],
       ]
       content = run_text_extractor(fts_target, metadata) do |extractor|
-        repository.scm.cat_io(@record.path, identifier) do |input|
+        entry.cat do |input|
           extractor.extract(Pathname(@record.path),
                             input,
                             content_type)

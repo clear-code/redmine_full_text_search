@@ -31,6 +31,7 @@ Rails.configuration.to_prepare do
   require_dependency "full_text_search/resolver"
   require_dependency "full_text_search/text_extractor"
   require_dependency "full_text_search/batch_runner"
+  require_dependency "full_text_search/repository_entry"
 
   require_dependency "full_text_search/scm_adapter_cat_io"
 
