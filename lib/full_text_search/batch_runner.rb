@@ -43,7 +43,13 @@ module FullTextSearch
       all_bar = create_multi_progress_bar("All")
       bars = {}
 
-      FullTextSearch.resolver.each do |redmine_class, mapper_class|
+      resolver = FullTextSearch.resolver
+      if upsert == :later
+        each_method = :reverse_each
+      else
+        each_method = :each
+      end
+      resolver.__send__(each_method) do |redmine_class, mapper_class|
         new_redmine_records = mapper_class.not_mapped_redmine_records
         label = "#{redmine_class.name}:New"
         bars[label] =
@@ -67,17 +73,16 @@ module FullTextSearch
       end
 
       all_bar.start
-      FullTextSearch.resolver.each do |redmine_class, mapper_class|
+      resolver.__send__(each_method) do |redmine_class, mapper_class|
         new_redmine_records = mapper_class.not_mapped_redmine_records
         bar = bars["#{redmine_class.name}:New"]
         bar.start
         new_redmine_records.find_each do |record|
-          case upsert
-          when :immediate
+          if mapper_class.need_text_extraction? and upsert == :later
+            UpsertTargetJob.perform_later(mapper_class.name, record.id)
+          else
             mapper = mapper_class.redmine_mapper(record)
             mapper.upsert_fts_target(extract_text: extract_text)
-          when :later
-            UpsertTargetJob.perform_later(mapper_class.name, record.id)
           end
           bar.advance
         end
