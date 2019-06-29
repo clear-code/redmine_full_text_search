@@ -14,8 +14,10 @@ module FullTextSearch
     end
 
     def synchronize(project: nil,
+                    upsert: nil,
                     extract_text: nil)
       synchronize_fts_targets(project: project,
+                              upsert: upsert,
                               extract_text: extract_text)
     end
 
@@ -33,7 +35,11 @@ module FullTextSearch
 
     private
     def synchronize_fts_targets(project: nil,
-                                extract_text: :immdeiate)
+                                upsert: nil,
+                                extract_text: nil)
+      upsert ||= :immediate
+      extract_text ||= :immediate
+
       all_bar = create_multi_progress_bar("All")
       bars = {}
 
@@ -66,8 +72,13 @@ module FullTextSearch
         bar = bars["#{redmine_class.name}:New"]
         bar.start
         new_redmine_records.find_each do |record|
-          mapper = mapper_class.redmine_mapper(record)
-          mapper.upsert_fts_target(extract_text: extract_text)
+          case upsert
+          when :immediate
+            mapper = mapper_class.redmine_mapper(record)
+            mapper.upsert_fts_target(extract_text: extract_text)
+          when :later
+            UpsertTargetJob.perform_later(mapper_class.name, record.id)
+          end
           bar.advance
         end
         bar.finish

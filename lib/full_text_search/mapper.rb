@@ -142,7 +142,7 @@ module FullTextSearch
     end
 
     def extract_content(fts_target, options)
-      case options[:extract_text]
+      case options[:extract_text] || :immediate
       when :immediate
         extract_text
       when :later
