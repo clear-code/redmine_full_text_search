@@ -87,33 +87,36 @@
         </p>
       </div>
     <% end %>
-    <div id="search-order">
-      <h3><%= l(:label_full_text_search_result_order) %></h3>
+    <div id="search-order-target" class="search-order">
+      <h3><%= l(:label_full_text_search_result_order_target) %></h3>
       <ul>
         <li>
           <%= link_to_unless(@search_request.order_target == "score",
-                             tag.i(class: "fas fa-star",
-                                   title: l(:label_full_text_search_order_target_score)),
+                             tag.i(class: "fas fa-star") + " " +
+                               l(:label_full_text_search_order_target_score),
                              url_for(@search_request.to_params(order_target: "score"))) %>
         </li>
         <li>
           <%= link_to_unless(@search_request.order_target == "date",
-                             tag.i(class: "fas fa-clock",
-                                   title: l(:label_full_text_search_order_target_date)),
+                             tag.i(class: "fas fa-clock") + " " +
+                               l(:label_full_text_search_order_target_date),
                              url_for(@search_request.to_params(order_target: "date"))) %>
-         </li>
+        </li>
       </ul>
+    </div>
+    <div id="search-order-type" class="search-order">
+      <h3><%= l(:label_full_text_search_result_order_type) %></h3>
       <ul>
         <li>
           <%= link_to_unless(@search_request.order_type == "asc",
-                             tag.i(class: "fas fa-sort-numeric-up",
-                                   title: l(:label_full_text_search_order_type_asc)),
+                             tag.i(class: "fas fa-sort-numeric-up") + " " +
+                               l(:label_full_text_search_order_type_asc),
                              url_for(@search_request.to_params(order_type: "asc"))) %>
         </li>
         <li>
           <%= link_to_unless(@search_request.order_type == "desc",
-                             tag.i(class: "fas fa-sort-numeric-down",
-                                   title: l(:label_full_text_search_order_type_desc)),
+                             tag.i(class: "fas fa-sort-numeric-down") + " " +
+                               l(:label_full_text_search_order_type_desc),
                              url_for(@search_request.to_params(order_type: "desc"))) %>
         </li>
       </ul>

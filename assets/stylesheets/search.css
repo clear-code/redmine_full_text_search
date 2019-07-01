@@ -31,25 +31,24 @@
   grid-template-columns: 10em calc(100% - 10em);
 }
 
+#search-result h3 {
+  margin-top: 0.5em;
+}
+
 #search-result-metadata {
   border-right: 1px solid #bbbbbb;
   padding-right: 3px;
 }
 
-#search-order ul {
-  display: inline-flex;
+.search-order ul {
   padding: 0;
   margin: 0;
   list-style-type: none;
 }
 
-#search-order li {
+.search-order li {
   padding: 0;
   margin: 0;
-}
-
-.search-drilldown {
-  margin-top: 1em;
 }
 
 .search-drilldown ul {
