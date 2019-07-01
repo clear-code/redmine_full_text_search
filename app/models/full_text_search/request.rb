@@ -55,6 +55,14 @@ module FullTextSearch
       params
     end
 
+    def have_condition?
+      return true if q.present?
+      return true if tags.present?
+      return true if open_issues?
+      return true if (search_types - target_search_types).present?
+      false
+    end
+
     def target_projects
       case scope
       when "all"

@@ -42,7 +42,7 @@ module FullTextSearch
                     "keys" => "tag_ids",
                     "limit" => "-1",
                     "sort_keys" => "-_nsubrecs")
-      if arguments["query"].blank?
+      unless @request.have_condition?
         arguments["limit"] = "0"
       end
       arguments["filter"] = "false" unless arguments["filter"]
@@ -110,7 +110,7 @@ module FullTextSearch
       end
 
       if @request.open_issues?
-        closed_status_ids = IssueStatus.where(is_closed: false).pluck(:id)
+        closed_status_ids = IssueStatus.where(is_closed: true).pluck(:id)
         tag_ids = closed_status_ids.collect do |closed_status_id|
           Tag.issue_status(closed_status_id).id
         end
