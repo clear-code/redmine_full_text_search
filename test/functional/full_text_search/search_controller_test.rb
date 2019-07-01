@@ -315,7 +315,7 @@ module FullTextSearch
           expected_search_path = "/projects/#{project.identifier}/search"
           assert_equal([
                          [
-                           "All (50)",
+                           "All (52)",
                            expected_search_path,
                            common_search_options.merge("changes" => "1",
                                                        "changesets" => "1",
@@ -327,7 +327,7 @@ module FullTextSearch
                                                        "wiki_pages" => "1"),
                          ],
                          [
-                           "Issues (10)",
+                           "Issues (23)",
                            expected_search_path,
                            common_search_options.merge("issues" => "1"),
                          ],
@@ -347,12 +347,12 @@ module FullTextSearch
                            common_search_options.merge("changesets" => "1"),
                          ],
                          [
-                           "Wiki pages (8)",
+                           "Wiki pages (9)",
                            expected_search_path,
                            common_search_options.merge("wiki_pages" => "1"),
                          ],
                          [
-                           "Messages (6)",
+                           "Messages (7)",
                            expected_search_path,
                            common_search_options.merge("messages" => "1"),
                          ],
@@ -405,7 +405,7 @@ module FullTextSearch
 this is a text file for <span class="keyword">upload</span> tests\r
 with multiple lines\r
               DESCRIPTION
-              rank: 5,
+              rank: 2,
             }
           ],
         ]
@@ -440,7 +440,7 @@ with multiple lines\r
 Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
               TITLE
               description: "",
-              rank: 102,
+              rank: 101,
             }
           ],
         ]
@@ -499,7 +499,7 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
 This file should be accessible for <span class="keyword">Redmine</span>, although its folder contains square
 brackets.
               DESCRIPTION
-              rank: 3,
+              rank: 2,
             }
           ],
           [
@@ -516,7 +516,7 @@ brackets.
 # This program is free software; you can redistribute it and/or\r
 # modify it under the terms of the GNU Gener
               DESCRIPTION
-              rank: 3,
+              rank: 2,
             },
           ],
         ]
@@ -572,7 +572,7 @@ brackets.
             issue1,
             {
               description: %Q[<span class="keyword">Searchable</span>],
-              rank: 5,
+              rank: 2,
             }
           ],
         ]
@@ -614,7 +614,7 @@ Bug #6 (New): Issue of a <span class="keyword">private</span> <span class="keywo
               description: <<-DESCRIPTION.chomp,
 This is an issue of a <span class="keyword">private</span> <span class="keyword">subproject</span> of cookbook
               DESCRIPTION
-              rank: 205,
+              rank: 203,
             },
           ],
           [
@@ -626,7 +626,7 @@ Bug #1 (New): Cannot <span class="keyword">print</span> recipes
               description: <<-DESCRIPTION.chomp,
 Unable to <span class="keyword">print</span> recipes
               DESCRIPTION
-              rank: 104,
+              rank: 102,
             },
           ],
           [
@@ -636,7 +636,7 @@ Unable to <span class="keyword">print</span> recipes
               description: <<-DESCRIPTION.chomp,
 A comment with a <span class="keyword">private</span> <span class="keyword">version</span>.
               DESCRIPTION
-              rank: 5,
+              rank: 3,
             },
           ],
         ]
@@ -677,7 +677,7 @@ Help: <span class="keyword">First</span> <span class="keyword">post</span>
 This is the very <span class="keyword">first</span> <span class="keyword">post</span>
 in the forum
               DESCRIPTION
-              rank: 204,
+              rank: 203,
             },
           ],
           [
@@ -688,7 +688,7 @@ in the forum
 Help: RE: <span class="keyword">First</span> <span class="keyword">post</span>
               TITLE
               description: "",
-              rank: 202,
+              rank: 201,
             },
           ],
           [
@@ -701,7 +701,7 @@ Help: <span class="keyword">First</span> reply
               description: <<-DESCRIPTION.chomp,
 Reply to the <span class="keyword">first</span> <span class="keyword">post</span>
               DESCRIPTION
-              rank: 104,
+              rank: 103,
             },
           ],
         ]
@@ -744,7 +744,7 @@ h1. <span class="keyword">CookBook</span> documentation
 
 Some updated [[documentation]] here with <span class="keyword">gzipped</span> history
               DESCRIPTION
-              rank: 104,
+              rank: 103,
             },
           ],
         ]

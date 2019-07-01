@@ -34,6 +34,10 @@ module FullTextSearch
                     "keys" => "source_type_id",
                     "limit" => "-1")
       add_drilldown(arguments,
+                    "container_type",
+                    "keys" => "container_type_id",
+                    "limit" => "-1")
+      add_drilldown(arguments,
                     "tag",
                     "keys" => "tag_ids",
                     "limit" => "-1",
@@ -90,130 +94,98 @@ module FullTextSearch
       "(#{conditions.join(operator)})"
     end
 
-    def open_issues_condition
-      return nil unless @request.open_issues?
-      status_ids = IssueStatus.where(is_closed: false).pluck(:id)
-      tag_ids = status_ids.collect do |status_id|
-        Tag.issue_status(status_id).id
-      end
-      "in_values(tag_ids, #{tag_ids.join(', ')})"
-    end
-
     def filter
       project_ids = target_project_ids
       return nil if project_ids.empty?
 
       user = @request.user
-      sub_conditions = []
-      @request.target_search_types.each do |search_type|
-        case search_type
-        when "projects"
-          sub_conditions << [
-            "&&",
-            "source_type_id == #{Type.project.id}",
-            "in_values(project_id, #{project_ids.join(', ')})",
-          ]
-          if @search_attachment
-            sub_conditions << [
-              "&&",
-              "source_type_id == #{Type.attachment.id}",
-              "container_type_id == #{Type.project.id}",
-              "in_values(project_id, #{project_ids.join(', ')})",
-            ]
-          end
-          target_ids = CustomField.visible(user).pluck(:id)
-          if target_ids.present?
-            sub_conditions << [
-              "&&",
-              "source_type_id == #{Type.custom_value.id}",
-              "in_values(custom_field_id, #{target_ids.join(', ')})",
-            ]
-          end
-        when "issues"
-          target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
-          target_ids &= project_ids
-          if target_ids.present?
-            sub_conditions << [
-              "&&",
-              "source_type_id == #{Type.issue.id}",
-              "is_private == false",
-              "in_values(project_id, #{target_ids.join(', ')})",
-              open_issues_condition,
-            ]
-            if @request.attachments?
-              sub_conditions << [
-                "&&",
-                "source_type_id == #{Type.attachment.id}",
-                "container_type_id == #{Type.issue.id}",
-                "is_private == false",
-                "in_values(project_id, #{project_ids.join(', ')})",
-                open_issues_condition,
-              ]
-            end
-            sub_conditions << [
-              "&&",
-              "source_type_id == #{Type.journal.id}",
-              "is_private == false",
-              "in_values(project_id, #{target_ids.join(', ')})",
-              open_issues_condition,
-            ]
-          end
-          target_ids = Project.allowed_to(user, :view_private_notes).pluck(:id)
-          target_ids &= project_ids
-          if target_ids.present?
-            sub_conditions << [
-              "&&",
-              "source_type_id == #{Type.journal.id}",
-              "is_private == true",
-              "in_values(project_id, #{target_ids.join(', ')})",
-              open_issues_condition,
-            ]
-          end
-          target_ids = CustomField.visible(user).pluck(:id)
-          if target_ids.present?
-            sub_conditions << [
-              "&&",
-              "source_type_id == #{Type.custom_value.id}",
-              "is_private == false",
-              "in_values(project_id, #{project_ids.join(', ')})",
-              "in_values(custom_field_id, #{target_ids.join(', ')})",
-              open_issues_condition,
-            ]
-          end
-        else
-          target_ids =
-            Project.allowed_to(user, :"view_#{search_type}").pluck(:id)
-          target_ids &= project_ids
-          if target_ids.present?
-            type = Type[search_type]
-            sub_conditions << [
-              "&&",
-              "source_type_id == #{type.id}",
-              "in_values(project_id, #{target_ids.join(', ')})",
-            ]
-            if @request.attachments?
-              sub_conditions << [
-                "&&",
-                "source_type_id == #{Type.attachment.id}",
-                "container_type_id == #{type.id}",
-                "in_values(project_id, #{project_ids.join(', ')})",
-              ]
-            end
-          end
-        end
-      end
       conditions = []
-      # TODO: Optimize project_id search
-      # conditions << "in_values(project_id, #{project_ids.join(', ')})"
+      conditions << "in_values(project_id, #{project_ids.join(', ')})"
       unless @request.tags.blank?
-        tag_conditions = ["&&"]
-        @request.tags.each do |tag_id|
-          tag_conditions << "in_values(tag_ids, #{Integer(tag_id, 10)})"
+        tag_ids = @request.tags.collect do |tag_id|
+          Integer(tag_id, 10)
         end
-        conditions << tag_conditions
+        conditions << "&&"
+        conditions << "in_values(tag_ids, #{tag_ids.join(', ')})"
       end
-      conditions << ["||", *sub_conditions]
-      build_condition("&&", conditions)
+
+      if @request.open_issues?
+        closed_status_ids = IssueStatus.where(is_closed: false).pluck(:id)
+        tag_ids = closed_status_ids.collect do |closed_status_id|
+          Tag.issue_status(closed_status_id).id
+        end
+        conditions << "&!"
+        conditions << "in_values(tag_ids, #{tag_ids.join(', ')})"
+      end
+
+      # TODO: Support private notes again
+      # Project.allowed_to(user, :view_private_notes).pluck(:id)
+      conditions << "&!"
+      conditions << "is_private == true"
+
+      unless @request.attachments?
+        conditions << "&!"
+        conditions << "source_type_id == #{Type.attachment.id}"
+      end
+
+      not_target_custom_field_ids =
+        CustomField
+          .where(searchable: true)
+          .where.not(id: CustomField.visible(user))
+          .pluck(:id)
+      if not_target_custom_field_ids.present?
+        conditions << "&!"
+        conditions <<
+          "in_values(custom_field_id, " +
+          "#{not_target_custom_field_ids.join(', ')})"
+      end
+
+      not_search_types =
+        Redmine::Search.available_search_types - @request.target_search_types
+      not_search_types.each do |not_search_type|
+        conditions << "&!"
+        conditions << "source_type_id == #{Type[not_search_type].id}"
+        case not_search_type
+        when "issues"
+          conditions << "&!"
+          conditions << "source_type_id == #{Type.journal.id}"
+        end
+      end
+
+      @request.target_search_types.each do |search_type|
+        invisible_project_ids =
+          project_ids - Project.allowed_to(user, :view_issues).pluck(:id)
+        next unless invisible_project_ids.present?
+
+        source_type_ids = [Type[search_type].id]
+        case search_type
+        when "issues"
+          source_type_ids << Type.journal.id
+        end
+
+        conditions << "&!"
+        conditions << "("
+        conditions <<
+          "in_values(project_id, #{invisible_project_ids.join(', ')})"
+        conditions << "&&"
+        conditions << "in_values(source_type_id, #{source_type_ids.join(', ')})"
+        conditions << ")"
+
+        if @request.attachments?
+          conditions << "&!"
+          conditions << "("
+          conditions <<
+            "in_values(project_id, #{invisible_project_ids.join(', ')})"
+          conditions << "&&"
+          conditions << "source_type_id == #{Type.attachment.id}"
+          conditions << "&&"
+          conditions <<
+            "in_values(container_type_id, #{source_type_ids.join(', ')})"
+          conditions << ")"
+        end
+      end
+
+      conditions.join(" ")
     end
 
     def output_columns
@@ -315,13 +287,14 @@ module FullTextSearch
       when "issues"
         targets << Type.journal.id
       end
-      @response.drilldowns["source_type"].records.inject(0) do |count, record|
-        if targets.include?(record["_key"])
-          count + record["_nsubrecs"]
-        else
-          count
-        end
+      count = 0
+      @response.drilldowns["source_type"].records.each do |record|
+        count += record["_nsubrecs"] if targets.include?(record["_key"])
       end
+      @response.drilldowns["container_type"].records.each do |record|
+        count += record["_nsubrecs"] if targets.include?(record["_key"])
+      end
+      count
     end
 
     def tag_drilldown
