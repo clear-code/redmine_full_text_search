@@ -315,7 +315,7 @@ module FullTextSearch
           expected_search_path = "/projects/#{project.identifier}/search"
           assert_equal([
                          [
-                           "All (52)",
+                           "All (50)",
                            expected_search_path,
                            common_search_options.merge("changes" => "1",
                                                        "changesets" => "1",
@@ -327,7 +327,7 @@ module FullTextSearch
                                                        "wiki_pages" => "1"),
                          ],
                          [
-                           "Issues (23)",
+                           "Issues (20)",
                            expected_search_path,
                            common_search_options.merge("issues" => "1"),
                          ],

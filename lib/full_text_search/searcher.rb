@@ -143,13 +143,11 @@ module FullTextSearch
       not_search_types =
         Redmine::Search.available_search_types - @request.target_search_types
       not_search_types.each do |not_search_type|
+        not_search_type_id = Type[not_search_type].id
         conditions << "&!"
-        conditions << "source_type_id == #{Type[not_search_type].id}"
-        case not_search_type
-        when "issues"
-          conditions << "&!"
-          conditions << "source_type_id == #{Type.journal.id}"
-        end
+        conditions << "source_type_id == #{not_search_type_id}"
+        conditions << "&!"
+        conditions << "container_type_id == #{not_search_type_id}"
       end
 
       @request.target_search_types.each do |search_type|
@@ -157,32 +155,18 @@ module FullTextSearch
           project_ids - Project.allowed_to(user, :view_issues).pluck(:id)
         next unless invisible_project_ids.present?
 
-        source_type_ids = [Type[search_type].id]
-        case search_type
-        when "issues"
-          source_type_ids << Type.journal.id
-        end
-
+        source_type_id = Type[search_type].id
         conditions << "&!"
         conditions << "("
         conditions <<
           "in_values(project_id, #{invisible_project_ids.join(', ')})"
         conditions << "&&"
-        conditions << "in_values(source_type_id, #{source_type_ids.join(', ')})"
+        conditions << "("
+        conditions << "source_type_id == #{source_type_id}"
+        conditions << "||"
+        conditions << "container_type_id == #{source_type_id}"
         conditions << ")"
-
-        if @request.attachments?
-          conditions << "&!"
-          conditions << "("
-          conditions <<
-            "in_values(project_id, #{invisible_project_ids.join(', ')})"
-          conditions << "&&"
-          conditions << "source_type_id == #{Type.attachment.id}"
-          conditions << "&&"
-          conditions <<
-            "in_values(container_type_id, #{source_type_ids.join(', ')})"
-          conditions << ")"
-        end
+        conditions << ")"
       end
 
       conditions.join(" ")
@@ -282,17 +266,13 @@ module FullTextSearch
     end
 
     def source_drilldown(name)
-      targets = [Type[name].id]
-      case name
-      when "issues"
-        targets << Type.journal.id
-      end
+      target_id  = Type[name].id
       count = 0
       @response.drilldowns["source_type"].records.each do |record|
-        count += record["_nsubrecs"] if targets.include?(record["_key"])
+        count += record["_nsubrecs"] if record["_key"] == target_id
       end
       @response.drilldowns["container_type"].records.each do |record|
-        count += record["_nsubrecs"] if targets.include?(record["_key"])
+        count += record["_nsubrecs"] if record["_key"] == target_id
       end
       count
     end
