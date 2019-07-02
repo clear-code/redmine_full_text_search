@@ -44,12 +44,7 @@ module FullTextSearch
       bars = {}
 
       resolver = FullTextSearch.resolver
-      if upsert == :later
-        each_method = :reverse_each
-      else
-        each_method = :each
-      end
-      resolver.__send__(each_method) do |redmine_class, mapper_class|
+      resolver.each do |redmine_class, mapper_class|
         new_redmine_records = mapper_class.not_mapped_redmine_records
         label = "#{redmine_class.name}:New"
         bars[label] =
@@ -73,7 +68,7 @@ module FullTextSearch
       end
 
       all_bar.start
-      resolver.__send__(each_method) do |redmine_class, mapper_class|
+      resolver.each do |redmine_class, mapper_class|
         new_redmine_records = mapper_class.not_mapped_redmine_records
         bar = bars["#{redmine_class.name}:New"]
         bar.start
