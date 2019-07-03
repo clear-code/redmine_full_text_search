@@ -112,7 +112,8 @@ SHOW VARIABLES LIKE 'mroonga_version';
                 type: "fulltext",
                 comment: "LEXICON 'fts_tags', INDEX_FLAGS ''"
       else
-        t.index [:source_id,
+        t.index [:id,
+                 :source_id,
                  :source_type_id,
                  :project_id,
                  :container_id,
