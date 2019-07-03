@@ -222,7 +222,7 @@ module FullTextSearch
       def test_search_order_links
         project = Project.first
         get :index, params: {"id" => project.identifier}
-        assert_select("#search-order") do
+        assert_select(".search-order") do
           items = css_select(@selected, "li").collect do |li|
             href = (css_select(li, "a").first || {})["href"]
             if href
@@ -234,7 +234,7 @@ module FullTextSearch
               search_options = nil
             end
             [
-              css_select(li, "i").first["title"],
+              li.text.strip,
               search_path,
               search_options,
             ]
