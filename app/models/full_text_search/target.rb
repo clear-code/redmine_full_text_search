@@ -10,21 +10,23 @@ module FullTextSearch
       require_dependency "full_text_search/mroonga"
       include Mroonga
       attribute :tag_ids, MroongaIntegerArrayType.new
-      around_save :tag_ids_around_save
-      private def tag_ids_around_save
-        if tag_ids_changed?
-          raw_tag_ids = tag_ids.dup
-          yield
-          values = [
-            {"_key" => id, "tag_ids" => raw_tag_ids},
-          ]
-          arguments = {
-            "values" => values.to_json,
-          }
-          command = Groonga::Command::Load.new("load", arguments)
-          Target.select(command)
-        else
-          yield
+      unless mroonga_vector_load_is_supported?
+        around_save :tag_ids_around_save
+        private def tag_ids_around_save
+          if tag_ids_changed?
+            raw_tag_ids = tag_ids.dup
+            yield
+            values = [
+              {"_key" => id, "tag_ids" => raw_tag_ids},
+            ]
+            arguments = {
+              "values" => values.to_json,
+            }
+            command = Groonga::Command::Load.new("load", arguments)
+            self.class.select(command)
+          else
+            yield
+          end
         end
       end
     end

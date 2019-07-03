@@ -20,6 +20,23 @@ module FullTextSearch
         @time_offset ||= compute_time_offset
       end
 
+      def mroonga_version
+        connection.select_rows(<<-SQL)[0][1]
+SHOW VARIABLES LIKE 'mroonga_version';
+        SQL
+      end
+
+      def groonga_version
+        connection.select_rows(<<-SQL)[0][1]
+SHOW VARIABLES LIKE 'mroonga_libgroonga_version';
+        SQL
+      end
+
+      def mroonga_vector_load_is_supported?
+        # (groonga_version <=> "9.0.5") >= 0
+        false
+      end
+
       private
       def build_sql(command)
         arguments = [command.command_name]
