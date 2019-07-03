@@ -37,7 +37,7 @@ module FullTextSearch
                        ],
                      },
                    ],
-                   targets.all.collect {|target| target.attributes.except("id")})
+                   targets.collect {|target| target.attributes.except("id")})
     end
 
     def test_destroy

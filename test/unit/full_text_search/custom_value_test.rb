@@ -35,7 +35,7 @@ module FullTextSearch
                        "tag_ids" => null_number_array,
                      },
                    ],
-                   targets.all.collect {|target| target.attributes.except("id")})
+                   targets.collect {|target| target.attributes.except("id")})
     end
 
     def test_save_project
