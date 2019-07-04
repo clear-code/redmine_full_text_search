@@ -9,7 +9,8 @@ module FullTextSearch
     when "mysql2"
       require_dependency "full_text_search/mroonga"
       include Mroonga
-      attribute :tag_ids, MroongaIntegerArrayType.new
+      attribute :tag_ids,
+                MroongaIntegerArrayType.new(mroonga_vector_load_is_supported?)
       unless mroonga_vector_load_is_supported?
         around_save :tag_ids_around_save
         private def tag_ids_around_save
