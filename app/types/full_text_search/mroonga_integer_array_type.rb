@@ -23,11 +23,11 @@ module FullTextSearch
         value
       else
         if @vector_load_is_supported and
-           string.start_with?("[") and
-           string.end_with?("]")
-          return JSON.parse(string)
+           value.start_with?("[") and
+           value.end_with?("]")
+          return JSON.parse(value)
         end
-        string.unpack("l*")
+        value.unpack("l*")
       end
     end
 
