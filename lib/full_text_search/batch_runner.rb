@@ -107,7 +107,7 @@ module FullTextSearch
         projects = Project.all
       end
 
-      all_bar = create_multi_progress_bar("FullTextSearch::RepositoryFile:All")
+      all_bar = create_multi_progress_bar("Repository:All")
       projects.each do |_project|
         _project.repositories.each do |repository|
           synchronize_repository(repository, upsert, extract_text, all_bar)
