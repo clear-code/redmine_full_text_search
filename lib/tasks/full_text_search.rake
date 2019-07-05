@@ -33,20 +33,36 @@ namespace :full_text_search do
     end
   end
 
-  desc "Synchronize"
-  task :synchronize => :environment do
+  run_batch = lambda do |&block|
     upsert = ENV["UPSERT"] || "immediate"
     extract_text = ENV["EXTRACT_TEXT"] || "immediate"
     project = ENV["PROJECT"]
     batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
-    batch_runner.synchronize(project: project,
-                             upsert: upsert.to_sym,
-                             extract_text: extract_text.to_sym)
+    block.call(batch_runner,
+               project: project,
+               upsert: upsert.to_sym,
+               extract_text: extract_text.to_sym)
     wait_queue.call
   end
 
-  namespace :attachment do
-    desc "Extract"
+  desc "Synchronize"
+  task :synchronize => :environment do
+    run_batch.call do |batch_runner, **options|
+      batch_runner.synchronize(**options)
+    end
+  end
+
+  namespace :repository do
+    desc "Synchronize only repository data"
+    task :synchronize => :environment do
+      run_batch.call do |batch_runner, **options|
+        batch_runner.synchronize_repositories(**options)
+      end
+    end
+  end
+
+  namespace :text do
+    desc "Extract texts"
     task :extract => :environment do
       options = {}
       id = ENV["ID"]

@@ -75,7 +75,7 @@ module FullTextSearch
         records =
           with_project(redmine_class)
             .where.not(id: targets)
-        project = resolve_project(options[:project])
+        project = options[:project]
         if project
           records
             .where(project.project_condition(true))
@@ -90,14 +90,6 @@ module FullTextSearch
       end
 
       private
-      def resolve_project(project)
-        if project
-          Project.find(project)
-        else
-          nil
-        end
-      end
-
       def not_archived_project_statuses
         [Project::STATUS_ACTIVE, Project::STATUS_CLOSED]
       end
