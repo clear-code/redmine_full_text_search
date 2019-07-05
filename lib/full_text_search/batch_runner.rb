@@ -117,18 +117,32 @@ module FullTextSearch
     end
 
     def synchronize_repository(repository, upsert, extract_text, all_bar)
-      current_targets = {}
-      Target
-        .where(source_type_id: Type.change.id,
-               container_id: repository.id,
-               container_type_id: Type.repository.id)
-        .pluck(:id, :source_id)
-        .each do |id, source_id|
-        current_targets[source_id] = id
+      existing_target_ids = {}
+      existing_targets =
+        Target
+          .where(source_type_id: Type.change.id,
+                 container_id: repository.id,
+                 container_type_id: Type.repository.id)
+      existing_bar = create_sub_progress_bar(all_bar,
+                                             "#{repository.identifier}:Existing",
+                                             total: existing_targets.count)
+      existing_bar.start
+      each_existing_target = existing_targets.select(:id, :source_id).find_each
+      existing_bar.iterate(each_existing_target) do |target|
+        existing_target_ids[target.source_id] = target.id
       end
+      existing_bar.finish
+
       mapper_class = FullTextSearch::ChangeMapper
       unless repository.project.archived?
+        list_bar = create_sub_progress_bar(all_bar,
+                                           "#{repository.identifier}:List",
+                                           total: 1)
+        list_bar.start
         all_file_entries = repository.scm.all_file_entries
+        list_bar.advance
+        list_bar.finish
+
         update_bar = create_sub_progress_bar(all_bar,
                                              "#{repository.identifier}:Update",
                                              total: all_file_entries.size)
@@ -142,7 +156,7 @@ module FullTextSearch
                      path: entry.path)
               .first
           next unless change
-          current_targets.delete(change.id)
+          existing_target_ids.delete(change.id)
           if upsert == :later
             UpsertTargetJob.perform_later(mapper_class.name, change.id)
           else
@@ -156,8 +170,8 @@ module FullTextSearch
       return unless process_orphan_change_targets?(repository)
       destroy_bar = create_sub_progress_bar(all_bar,
                                             "#{repository.identifier}:Orphan",
-                                            total: current_targets.size)
-      destroy_bar.iterate(current_targets.each_value) do |target_id|
+                                            total: existing_target_ids.size)
+      destroy_bar.iterate(existing_target_ids.each_value) do |target_id|
         Target.find(target_id).destroy
       end
       destroy_bar.finish
