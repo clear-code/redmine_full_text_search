@@ -1,7 +1,7 @@
 require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
-  class ChangeTest < ActiveSupport::TestCase
+  class ChangeSubversionTest < ActiveSupport::TestCase
     include PrettyInspectable
     include NullValues
     include TimeValue

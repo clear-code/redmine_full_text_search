@@ -35,6 +35,7 @@ module FullTextSearch
       case @record.action
       when "A", "M", "R"
         return unless entry.file?
+        return if find_newer_fts_targets.exists?
 
         fts_target = nil
         if @record.from_path
@@ -108,7 +109,7 @@ module FullTextSearch
       }
     end
 
-    def find_old_fts_targets
+    def find_fts_targets
       Target
         .joins(<<-JOIN)
   JOIN changes
@@ -120,8 +121,17 @@ module FullTextSearch
     ON changesets.repository_id = repositories.id
         JOIN
         .where(repositories: {id: @record.changeset.repository.id},
-               changesets: {id: -Float::INFINITY...@record.changeset_id},
                title: @record.path)
+    end
+
+    def find_old_fts_targets
+      find_fts_targets
+        .where(changesets: {id: -Float::INFINITY...@record.changeset_id})
+    end
+
+    def find_newer_fts_targets
+      find_fts_targets
+        .where(changesets: {id: (@record.changeset_id + 1)..Float::INFINITY})
     end
   end
 

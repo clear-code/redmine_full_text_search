@@ -77,6 +77,35 @@ module FullTextSearch
                    ])
     end
 
+    def test_subversion_repository
+      project = Project.find(3)
+      url = self.class.subversion_repository_url
+      repository = Repository::Subversion.create(:project => project,
+                                                 :url => url)
+      repository.fetch_changesets
+      Target.changes.destroy_all
+      runner = BatchRunner.new
+      assert_difference("Target.count", 7) do
+        runner.synchronize
+      end
+    end
+
+    def test_git_repository
+      unless Target.multiple_column_unique_key_update_is_supported?
+        skip("Need Mroonga 9.05 or later")
+      end
+      project = Project.find(3)
+      url = self.class.repository_path("git")
+      repository = Repository::Git.create(:project => project,
+                                          :url => url)
+      repository.fetch_changesets
+      Target.changes.destroy_all
+      runner = BatchRunner.new
+      assert_difference("Target.count", 9) do
+        runner.synchronize
+      end
+    end
+
     def test_archived_attachment_issue
       attachment = Attachment.where(container_type: "Issue").first
       attachment.container.project.archive

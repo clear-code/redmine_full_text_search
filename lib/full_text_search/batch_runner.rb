@@ -7,6 +7,7 @@ module FullTextSearch
     def synchronize(project: nil,
                     upsert: nil,
                     extract_text: nil)
+      project = Project.find(project) if project
       upsert ||= :immediate
       extract_text ||= :immediate
       synchronize_fts_targets(project,
@@ -152,13 +153,20 @@ module FullTextSearch
         update_bar.finish
       end
 
+      return unless process_orphan_change_targets?(repository)
       destroy_bar = create_sub_progress_bar(all_bar,
-                                            "#{repository.identifier}:Destroy",
+                                            "#{repository.identifier}:Orphan",
                                             total: current_targets.size)
       destroy_bar.iterate(current_targets.each_value) do |target_id|
         Target.find(target_id).destroy
       end
       destroy_bar.finish
+    end
+
+    def process_orphan_change_targets?(repository)
+      return true unless repository.supports_revision_graph?
+      return true if Target.multiple_column_unique_key_update_is_supported?
+      false
     end
 
     def create_progress_bar(label, *args)

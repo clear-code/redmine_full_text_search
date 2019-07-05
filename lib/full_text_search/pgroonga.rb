@@ -13,6 +13,10 @@ module FullTextSearch
         @time_offset ||= compute_time_offset
       end
 
+      def multiple_column_unique_key_update_is_supported?
+        true
+      end
+
       private
       def build_sql(command)
         arguments = []

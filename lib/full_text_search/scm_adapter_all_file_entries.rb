@@ -39,7 +39,7 @@ module Redmine
             end
           end
           entries.sort_by do |entry|
-            entry.full_path
+            entry.path
           end
         rescue ScmCommandAborted
           []

@@ -17,6 +17,12 @@ if [ ! -d "${test_svn_repository}" ]; then
     svnadmin load "${test_svn_repository}"
 fi
 
+test_git_repository="tmp/test/git_repository"
+if [ ! -d "${test_git_repository}" ]; then
+  tar xf test/fixtures/repositories/git_repository.tar.gz \
+    -C "$(dirname ${test_git_repository})"
+fi
+
 ${task_runner} db:drop || true
 ${task_runner} generate_secret_token
 ${task_runner} db:create

@@ -37,6 +37,11 @@ SHOW VARIABLES LIKE 'mroonga_libgroonga_version';
         false
       end
 
+      def multiple_column_unique_key_update_is_supported?
+        # (mroonga_version <=> "9.05") >= 0
+        false
+      end
+
       private
       def build_sql(command)
         arguments = [command.command_name]
