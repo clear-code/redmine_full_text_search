@@ -1,5 +1,6 @@
 module FullTextSearch
   class RepositoryEntry
+    attr_reader :path
     def initialize(repository, path, identifier)
       @repository = repository
       @path = path
@@ -13,6 +14,10 @@ module FullTextSearch
 
     def file?
       @entry and @entry.is_file?
+    end
+
+    def directory?
+      @entry and @entry.is_dir?
     end
 
     def cat(&block)

@@ -25,15 +25,13 @@ module FullTextSearch
                   where(container_id: repository.id,
                         container_type_id: Type.repository.id).
                   order(source_id: :asc)
-      first_change = Change.find_by(path: "/subversion_test/.project")
-      last_change = Change.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt")
+      first_change = Change.find_by!(path: "/subversion_test/.project")
+      last_change = Change.find_by!(path: "/subversion_test/[folder_with_brackets]/README.txt")
       assert_equal([
                      [
                        "/subversion_test/.project",
                        "/subversion_test/folder/subfolder/rubylogo.gif",
-                       "/subversion_test/helloworld.rb",
                        "/subversion_test/textfile.txt",
-                       "/subversion_test/folder/greeter.rb",
                        "/subversion_test/folder/helloworld.rb",
                        "/subversion_test/helloworld.c",
                        "/subversion_test/folder/subfolder/journals_controller.rb",
@@ -97,15 +95,13 @@ brackets.
                   where(container_id: repository.id,
                         container_type_id: Type.repository.id).
                   order(source_id: :asc)
-      first_change = Change.find_by(path: "/subversion_test/.project")
-      last_change = Change.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt")
+      first_change = Change.find_by!(path: "/subversion_test/.project")
+      last_change = Change.find_by!(path: "/subversion_test/[folder_with_brackets]/README.txt")
       assert_equal([
                      [
                        "/subversion_test/.project",
                        "/subversion_test/folder/subfolder/rubylogo.gif",
-                       "/subversion_test/helloworld.rb",
                        "/subversion_test/textfile.txt",
-                       "/subversion_test/folder/greeter.rb",
                        "/subversion_test/folder/helloworld.rb",
                        "/subversion_test/helloworld.c",
                        "/subversion_test/folder/subfolder/journals_controller.rb",

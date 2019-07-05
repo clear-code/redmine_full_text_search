@@ -19,26 +19,40 @@ module FullTextSearch
       end
 
       def not_mapped(redmine_class, options={})
-        source_ids =
-          redmine_class
-            .joins(changeset: [:repository])
-            .group("repositories.id, changes.path")
-            .select("MAX(changes.id) as id")
-        super.where(id: source_ids)
+        super.none
       end
     end
 
     def upsert_fts_target(options={})
+      changeset = @record.changeset
+      return if changeset.nil?
+      repository = changeset.repository
+      return if repository.nil?
+
+      entry = RepositoryEntry.new(repository,
+                                  @record.path,
+                                  changeset.identifier)
       case @record.action
-      when "A", "M"
-        changeset = @record.changeset
-        repository = changeset.repository
-        return if repository.nil?
-        entry = RepositoryEntry.new(repository,
-                                    @record.path,
-                                    changeset.identifier)
+      when "A", "M", "R"
         return unless entry.file?
-        fts_target = find_fts_target
+
+        fts_target = nil
+        if @record.from_path
+          from_change =
+            Change
+              .joins(changeset: :repository)
+              .find_by(repositories: {id: repository.id},
+                       changesets: {revision: @record.from_revision},
+                       path: @record.from_path)
+          if from_change
+            fts_target = Target.find_by(source_id: from_change.id,
+                                        source_type_id: Type[from_change].id,
+                                        title: from_change)
+          end
+        end
+        fts_target ||= find_old_fts_targets.first
+        fts_target ||= find_fts_target
+        fts_target.title = @record.path
         fts_target.source_id = @record.id
         fts_target.source_type_id = Type[@record.class].id
         fts_target.container_id = repository.id
@@ -46,15 +60,13 @@ module FullTextSearch
         fts_target.project_id = repository.project_id
         fts_target.last_modified_at = changeset.committed_on
         fts_target.tag_ids = extract_tag_ids_from_path(fts_target.title)
-        prepare_text_extraction(fts_target)
-        Target.where(source_type_id: fts_target.source_type_id,
-                     container_id: fts_target.container_id,
-                     container_type_id: fts_target.container_type_id,
-                     title: fts_target.title).destroy_all
-        fts_target.save!
-        extract_content(fts_target, options)
+        if fts_target.changed?
+          prepare_text_extraction(fts_target)
+          fts_target.save!
+          extract_content(fts_target, options)
+        end
       when "D"
-        destroy_fts_target
+        find_old_fts_targets.destroy_all
       end
     end
 
@@ -91,9 +103,25 @@ module FullTextSearch
     def fts_target_keys
       {
         source_id: @record.id,
-        source_type_id: Type[@record.class].id,
+        source_type_id: Type[@record].id,
         title: @record.path,
       }
+    end
+
+    def find_old_fts_targets
+      Target
+        .joins(<<-JOIN)
+  JOIN changes
+    ON source_type_id = #{Type.change.id} AND
+       source_id = changes.id
+  JOIN changesets
+    ON changes.changeset_id = changesets.id
+  JOIN repositories
+    ON changesets.repository_id = repositories.id
+        JOIN
+        .where(repositories: {id: @record.changeset.repository.id},
+               changesets: {id: -Float::INFINITY...@record.changeset_id},
+               title: @record.path)
     end
   end
 

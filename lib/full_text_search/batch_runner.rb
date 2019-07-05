@@ -16,9 +16,14 @@ module FullTextSearch
     def synchronize(project: nil,
                     upsert: nil,
                     extract_text: nil)
-      synchronize_fts_targets(project: project,
-                              upsert: upsert,
-                              extract_text: extract_text)
+      upsert ||= :immediate
+      extract_text ||= :immediate
+      synchronize_fts_targets(project,
+                              upsert,
+                              extract_text)
+      synchronize_repositories(project,
+                               upsert,
+                               extract_text)
     end
 
     def extract_text(ids: nil)
@@ -34,13 +39,8 @@ module FullTextSearch
     end
 
     private
-    def synchronize_fts_targets(project: nil,
-                                upsert: nil,
-                                extract_text: nil)
-      upsert ||= :immediate
-      extract_text ||= :immediate
-
-      all_bar = create_multi_progress_bar("All")
+    def synchronize_fts_targets(project, upsert, extract_text)
+      all_bar = create_multi_progress_bar("FullTextSearch::Target:All")
       bars = {}
 
       resolver = FullTextSearch.resolver
@@ -106,6 +106,68 @@ module FullTextSearch
       end
 
       all_bar.finish
+    end
+
+    def synchronize_repositories(project, upsert, extract_text)
+      if project
+        projects = [project]
+      else
+        projects = Project.all
+      end
+
+      all_bar = create_multi_progress_bar("FullTextSearch::RepositoryFile:All")
+      projects.each do |_project|
+        _project.repositories.each do |repository|
+          synchronize_repository(repository, upsert, extract_text, all_bar)
+        end
+      end
+      all_bar.finish
+    end
+
+    def synchronize_repository(repository, upsert, extract_text, all_bar)
+      current_targets = {}
+      Target
+        .where(source_type_id: Type.change.id,
+               container_id: repository.id,
+               container_type_id: Type.repository.id)
+        .pluck(:id, :source_id)
+        .each do |id, source_id|
+        current_targets[source_id] = id
+      end
+      mapper_class = FullTextSearch::ChangeMapper
+      unless repository.project.archived?
+        all_file_entries = repository.scm.all_file_entries
+        update_bar = create_sub_progress_bar(all_bar,
+                                             "#{repository.identifier}:Update",
+                                             total: all_file_entries.size)
+        update_bar.iterate(all_file_entries.each) do |entry|
+          entry_identifier = entry.lastrev.identifier
+          change =
+            Change
+              .joins(changeset: :repository)
+              .where(repositories: {id: repository.id},
+                     changesets: {revision: entry_identifier},
+                     path: entry.path)
+              .first
+          next unless change
+          current_targets.delete(change.id)
+          if upsert == :later
+            UpsertTargetJob.perform_later(mapper_class.name, change.id)
+          else
+            mapper = mapper_class.redmine_mapper(change)
+            mapper.upsert_fts_target(extract_text: extract_text)
+          end
+        end
+        update_bar.finish
+      end
+
+      destroy_bar = create_sub_progress_bar(all_bar,
+                                            "#{repository.identifier}:Destroy",
+                                            total: current_targets.size)
+      destroy_bar.iterate(current_targets.each_value) do |target_id|
+        Target.find(target_id).destroy
+      end
+      destroy_bar.finish
     end
 
     def create_progress_bar(label, *args)
