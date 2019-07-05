@@ -32,6 +32,21 @@ module FullTextSearch
       end
     end
 
+    scope :attachments,   -> {where(source_type_id: Type.attachment.id)}
+    scope :changes,       -> {where(source_type_id: Type.change.id)}
+    scope :changesets,    -> {where(source_type_id: Type.changeset.id)}
+    scope :custom_values, -> {where(source_type_id: Type.custom_value.id)}
+    scope :documents,     -> {where(source_type_id: Type.document.id)}
+    scope :files,         -> {where(source_type_id: Type.file.id)}
+    scope :issues,        -> {where(source_type_id: Type.issue.id)}
+    scope :journals,      -> {where(source_type_id: Type.journal.id)}
+    scope :messages,      -> {where(source_type_id: Type.message.id)}
+    scope :news,          -> {where(source_type_id: Type.news.id)}
+    scope :projects,      -> {where(source_type_id: Type.project.id)}
+    scope :repositories,  -> {where(source_type_id: Type.repository.id)}
+    scope :versions,      -> {where(source_type_id: Type.version.id)}
+    scope :wiki_pages,    -> {where(source_type_id: Type.wiki_page.id)}
+
     attr_accessor :_score
     attr_accessor :highlighted_title
     attr_accessor :content_snippets
