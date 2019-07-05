@@ -125,13 +125,15 @@ module FullTextSearch
     end
 
     def synchronize_repository_internal(repository, options)
+      label = repository.name
+
       existing_target_ids = {}
       existing_targets =
         Target
           .where(source_type_id: Type.change.id,
                  container_id: repository.id,
                  container_type_id: Type.repository.id)
-      existing_bar = create_progress_bar("#{repository.identifier}:Existing",
+      existing_bar = create_progress_bar("#{label}:Existing",
                                          total: existing_targets.count)
       existing_bar.start
       each_existing_target = existing_targets.select(:id, :source_id).find_each
@@ -142,14 +144,14 @@ module FullTextSearch
 
       mapper_class = FullTextSearch::ChangeMapper
       unless repository.project.archived?
-        list_bar = create_progress_bar("#{repository.identifier}:List",
+        list_bar = create_progress_bar("#{label}:List",
                                        total: 1)
         list_bar.start
         all_file_entries = repository.scm.all_file_entries
         list_bar.advance
         list_bar.finish
 
-        update_bar = create_progress_bar("#{repository.identifier}:Update",
+        update_bar = create_progress_bar("#{label}:Update",
                                          total: all_file_entries.size)
         update_bar.iterate(all_file_entries.each) do |entry|
           entry_identifier = entry.lastrev.identifier
@@ -173,7 +175,7 @@ module FullTextSearch
       end
 
       return unless process_orphan_change_targets?(repository)
-      destroy_bar = create_progress_bar("#{repository.identifier}:Orphan",
+      destroy_bar = create_progress_bar("#{label}:Orphan",
                                         total: existing_target_ids.size)
       destroy_bar.iterate(existing_target_ids.each_value) do |target_id|
         Target.find(target_id).destroy
