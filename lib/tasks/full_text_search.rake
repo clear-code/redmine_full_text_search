@@ -16,10 +16,9 @@ namespace :full_text_search do
   desc "Release"
   task :release => :tag
 
-  desc "Destroy"
-  task :destroy => :environment do
-    batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
-    batch_runner.destroy
+  desc "Truncate"
+  task :truncate => :environment do
+    FullTextSearch::Target.truncate
   end
 
   wait_queue = lambda do

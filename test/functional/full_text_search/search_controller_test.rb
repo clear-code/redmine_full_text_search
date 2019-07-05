@@ -33,8 +33,8 @@ module FullTextSearch
     fixtures :wikis
 
     def setup
+      Target.destroy_all
       batch_runner = BatchRunner.new(show_progress: false)
-      batch_runner.destroy
       batch_runner.synchronize
       execute_groonga_command("plugin_register functions/vector")
       @user = User.admin.first

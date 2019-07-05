@@ -4,15 +4,6 @@ module FullTextSearch
       @show_progress = show_progress
     end
 
-    def destroy
-      destroy_bar = create_progress_bar("Destroy",
-                                        total: Target.count)
-      destroy_bar.iterate(Target.find_each) do |record|
-        record.destroy
-      end
-      destroy_bar.finish
-    end
-
     def synchronize(project: nil,
                     upsert: nil,
                     extract_text: nil)

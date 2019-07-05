@@ -30,8 +30,8 @@ module FullTextSearch
     fixtures :wikis
 
     def setup
+      Target.destroy_all
       runner = BatchRunner.new
-      runner.destroy
       runner.synchronize
 
       @user = User.find(4)

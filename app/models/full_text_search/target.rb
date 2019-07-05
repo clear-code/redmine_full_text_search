@@ -47,6 +47,12 @@ module FullTextSearch
     scope :versions,      -> {where(source_type_id: Type.version.id)}
     scope :wiki_pages,    -> {where(source_type_id: Type.wiki_page.id)}
 
+    class << self
+      def truncate
+        connection.truncate(table_name)
+      end
+    end
+
     attr_accessor :_score
     attr_accessor :highlighted_title
     attr_accessor :content_snippets
