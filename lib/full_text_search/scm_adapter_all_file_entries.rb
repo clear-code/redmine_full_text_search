@@ -1,3 +1,5 @@
+require "chupa-text/sax-parser"
+
 require "redmine/scm/adapters/git_adapter"
 require "redmine/scm/adapters/subversion_adapter"
 
@@ -47,6 +49,59 @@ module Redmine
       end
 
       class SubversionAdapter
+        class ListListener < ChupaText::SAXListener
+          def initialize(path_prefix, entries)
+            @path_prefix = path_prefix
+            @entries = entries
+            @tag_names = []
+            @entry_attributes = nil
+            @revision_attributes = nil
+          end
+
+          def start_element(uri, local_name, qname, attributes)
+            @tag_names.push(local_name)
+            case local_name
+            when "entry"
+              @entry_attributes = {
+                kind: attributes["kind"],
+              }
+            when "commit"
+              @revision_attributes = {
+                identifier: attributes["revision"],
+              }
+            end
+          end
+
+          def end_element(uri, local_name, qname)
+            case local_name
+            when "entry"
+              if @entry_attributes[:kind] == "file"
+                @entries << Entry.new(@entry_attributes)
+              end
+              @entry_attributes = nil
+            when "commit"
+              @entry_attributes[:lastrev] = Revision.new(@revision_attributes)
+              @revision_attributes = nil
+            end
+            @tag_names.pop
+          end
+
+          def characters(text)
+            case @tag_names.last
+            when "name"
+              path = "#{@path_prefix}#{text}"
+              @entry_attributes[:name] = URI.unescape(path)
+              @entry_attributes[:path] = path
+            when "size"
+              @entry_attributes[:size] = Integer(text, 10)
+            when "author"
+              @revision_attributes[:author] = text
+            when "date"
+              @revision_attributes[:date] = Time.iso8601(text).localtime
+            end
+          end
+        end
+
         def all_file_entries(identifier=nil)
           prefix = url.gsub(root_url, "")
           prefix = "/#{prefix}" unless prefix.start_with?("/")
@@ -62,35 +117,13 @@ module Redmine
           cmd << root
           cmd << credentials_string
           shellout(cmd) do |io|
-            output = io.read.force_encoding('UTF-8')
+            listener = ListListener.new(prefix, entries)
             begin
-              doc = parse_xml(output)
-              each_xml_element(doc['lists']['list'], 'entry') do |entry|
-                commit = entry['commit']
-                commit_date = commit['date']
-                next unless entry['kind'] == 'file'
-                name = entry['name']['__content__']
-                path = "#{prefix}#{name}"
-                author = commit['author']
-                revision_attributes = {
-                  :identifier => commit['revision'],
-                  :time => Time.parse(commit_date['__content__'].to_s).localtime,
-                  :author => (commit['author'] || {})['__content__'],
-                }
-                size = (entry['size'] || {})["__content__"]
-                size = size.to_i(10) if size
-                attributes = {
-                  :name => URI.unescape(path),
-                  :path => path,
-                  :kind => entry['kind'],
-                  :size => size,
-                  :lastrev => Revision.new(revision_attributes),
-                }
-                entries << Entry.new(attributes)
-              end
-            rescue Exception => e
+              parser = ChupaText::SAXParser.new(io, listener)
+              parser.parse
+            rescue ChupaText::SAXParser::ParseError => e
               logger.error("Error parsing svn output: #{e.message}")
-              logger.error("Output was:\n #{output}")
+              logger.error(e.backtrace.join("\n"))
             end
           end
           return [] if $? && $?.exitstatus != 0
