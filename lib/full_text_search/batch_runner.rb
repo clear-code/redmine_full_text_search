@@ -9,7 +9,6 @@ module FullTextSearch
                     extract_text: nil)
       options = Options.new(project, upsert, extract_text)
       synchronize_fts_targets_internal(options)
-      synchronize_repositories_internal(options)
     end
 
     def synchronize_fts_targets(project: nil,
@@ -74,35 +73,35 @@ module FullTextSearch
           mapper_class.not_mapped_redmine_records(project: options.project)
         bar = bars["#{redmine_class.name}:New"]
         bar.start
-        new_redmine_records.find_each do |record|
-          if mapper_class.need_text_extraction? and options.upsert == :later
-            UpsertTargetJob.perform_later(mapper_class.name, record.id)
+        bar.iterate(new_redmine_records.pluck(:id).each) do |record_id|
+          if options.upsert == :later
+            UpsertTargetJob.perform_later(mapper_class.name, record_id)
           else
+            record = redmine_class.find(record_id)
             mapper = mapper_class.redmine_mapper(record)
             mapper.upsert_fts_target(extract_text: options.extract_text)
           end
-          bar.advance
         end
         bar.finish
 
         orphan_fts_targets = mapper_class.orphan_fts_targets
         bar = bars["#{redmine_class.name}:Orphan"]
         bar.start
-        orphan_fts_targets.select(:id).find_each do |record|
+        bar.iterate(orphan_fts_targets.find_each) do |record|
           record.destroy
-          bar.advance
         end
         bar.finish
 
-        outdated_fts_targets = mapper_class.outdated_fts_targets
+        outdated_fts_targets =
+          mapper_class.outdated_fts_targets
+            .select(:id,
+                    :source_id,
+                    :source_type_id)
         bar = bars["#{redmine_class.name}:Outdated"]
         bar.start
-        outdated_fts_targets.select(:id,
-                                    :source_id,
-                                    :source_type_id).find_each do |record|
+        bar.iterate(outdated_fts_targets.find_each) do |record|
           mapper = mapper_class.redmine_mapper(record.source_record)
           mapper.upsert_fts_target(extract_text: options.extract_text)
-          bar.advance
         end
         bar.finish
       end

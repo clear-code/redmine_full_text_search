@@ -45,6 +45,66 @@ module FullTextSearch
       end
     end
 
+    def test_new_subversion_repository
+      project = Project.find(3)
+      url = self.class.subversion_repository_url
+      repository = Repository::Subversion.create(:project => project,
+                                                 :url => url)
+      repository.fetch_changesets
+      Target.changes.destroy_all
+      runner = BatchRunner.new
+      assert_difference("Target.count", 7) do
+        runner.synchronize
+      end
+    end
+
+    def test_subversion_repository
+      project = Project.find(3)
+      url = self.class.subversion_repository_url
+      repository = Repository::Subversion.create(:project => project,
+                                                 :url => url)
+      repository.fetch_changesets
+      Target.changes.destroy_all
+      runner = BatchRunner.new
+      # Including only the latest files at the default branch.
+      assert_difference("Target.count", 7) do
+        runner.synchronize_repositories(project: project)
+      end
+    end
+
+    def test_new_git_repository
+      unless Target.multiple_column_unique_key_update_is_supported?
+        skip("Need Mroonga 9.05 or later")
+      end
+      project = Project.find(3)
+      url = self.class.repository_path("git")
+      repository = Repository::Git.create(:project => project,
+                                          :url => url)
+      repository.fetch_changesets
+      Target.changes.destroy_all
+      runner = BatchRunner.new
+      # Including only the latest files at all branches.
+      assert_difference("Target.count", 13) do
+        runner.synchronize
+      end
+    end
+
+    def test_git_repository
+      unless Target.multiple_column_unique_key_update_is_supported?
+        skip("Need Mroonga 9.05 or later")
+      end
+      project = Project.find(3)
+      url = self.class.repository_path("git")
+      repository = Repository::Git.create(:project => project,
+                                          :url => url)
+      repository.fetch_changesets
+      Target.changes.destroy_all
+      runner = BatchRunner.new
+      assert_difference("Target.count", 9) do
+        runner.synchronize_repositories(project: project)
+      end
+    end
+
     def test_orphan
       issue = Issue.generate!
       target = Target.where(source_type_id: Type.issue.id,
@@ -75,35 +135,6 @@ module FullTextSearch
                      Target.count,
                      target.last_modified_at,
                    ])
-    end
-
-    def test_subversion_repository
-      project = Project.find(3)
-      url = self.class.subversion_repository_url
-      repository = Repository::Subversion.create(:project => project,
-                                                 :url => url)
-      repository.fetch_changesets
-      Target.changes.destroy_all
-      runner = BatchRunner.new
-      assert_difference("Target.count", 7) do
-        runner.synchronize
-      end
-    end
-
-    def test_git_repository
-      unless Target.multiple_column_unique_key_update_is_supported?
-        skip("Need Mroonga 9.05 or later")
-      end
-      project = Project.find(3)
-      url = self.class.repository_path("git")
-      repository = Repository::Git.create(:project => project,
-                                          :url => url)
-      repository.fetch_changesets
-      Target.changes.destroy_all
-      runner = BatchRunner.new
-      assert_difference("Target.count", 9) do
-        runner.synchronize
-      end
     end
 
     def test_archived_attachment_issue

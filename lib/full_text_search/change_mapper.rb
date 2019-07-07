@@ -19,7 +19,12 @@ module FullTextSearch
       end
 
       def not_mapped(redmine_class, options={})
-        super.none
+        source_ids =
+          redmine_class
+            .joins(:changeset)
+            .group("changesets.repository_id, changes.path")
+            .select("MAX(changes.id) as id")
+        super.where(id: source_ids)
       end
     end
 
