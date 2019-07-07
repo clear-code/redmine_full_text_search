@@ -157,11 +157,12 @@ module FullTextSearch
           entry_identifier = entry.lastrev.identifier
           change =
             Change
-              .joins(changeset: :repository)
-              .where(repositories: {id: repository.id},
-                     changesets: {revision: entry_identifier},
-                     path: entry.path)
-              .first
+              .joins(:changeset)
+              .find_by(changesets: {
+                         repository_id: repository.id,
+                         revision: entry_identifier,
+                       },
+                       path: entry.path)
           next unless change
           existing_target_ids.delete(change.id)
           if options.upsert == :later
