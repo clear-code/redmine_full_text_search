@@ -1,6 +1,6 @@
 module FullTextSearch
   class ExtractTextJob < ActiveJob::Base
-    queue_as :default
+    queue_with_priority 10
 
     def perform(id)
       target = Target.find(id)
