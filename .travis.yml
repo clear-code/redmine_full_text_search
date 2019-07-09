@@ -15,6 +15,8 @@ redmine_3_4: &redmine_3_4
     - bin/rake db:structure:dump
   script:
     - RAILS_ENV=test bin/rake redmine:plugins:test
+    - bin/rake redmine:plugins:migrate NAME=full_text_search VERSION=0
+    - bin/rake redmine:plugins:migrate NAME=full_text_search
 
 redmine_4_0: &redmine_4_0
   install:
@@ -27,6 +29,8 @@ redmine_4_0: &redmine_4_0
     - bin/rails db:structure:dump
   script:
     - RAILS_ENV=test bin/rails redmine:plugins:test
+    - bin/rails redmine:plugins:migrate NAME=full_text_search VERSION=0
+    - bin/rails redmine:plugins:migrate NAME=full_text_search
 
 matrix:
   include:
