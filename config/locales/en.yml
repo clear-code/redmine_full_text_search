@@ -1,5 +1,6 @@
 en:
   label_result_all: All
+  label_full_text_search_result_order: Search result order
   label_full_text_search_result_order_target: Sort by
   label_full_text_search_result_order_type: Sort order
   label_full_text_search_order_target_score: score

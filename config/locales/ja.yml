@@ -1,5 +1,6 @@
 ja:
   label_result_all: すべて
+  label_full_text_search_result_order: 検索結果の並び順
   label_full_text_search_result_order_target: 並び替え対象
   label_full_text_search_result_order_type: 並び順
   label_full_text_search_order_target_score: スコア
