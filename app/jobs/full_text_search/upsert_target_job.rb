@@ -1,6 +1,10 @@
 module FullTextSearch
   class UpsertTargetJob < ActiveJob::Base
-    queue_with_priority 10
+    use_queue_priority = true
+    if Rails::VERSION::MAJOR == 4 and Rails.env == "test"
+      use_queue_priority = false
+    end
+    queue_with_priority 10 if use_queue_priority
 
     def perform(mapper_class_name, source_id)
       mapper_class = mapper_class_name.constantize
