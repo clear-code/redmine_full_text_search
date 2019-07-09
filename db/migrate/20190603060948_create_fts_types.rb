@@ -1,6 +1,4 @@
-migration = ActiveRecord::Migration
-migration = migration[4.2] if migration.respond_to?(:[])
-class CreateFtsTypes < migration
+class CreateFtsTypes < ActiveRecord::Migration[5.2]
   def change
     create_table :fts_types do |t|
       t.string :name, null: false

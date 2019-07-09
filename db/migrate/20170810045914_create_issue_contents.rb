@@ -1,8 +1,6 @@
 require "full_text_search/migration"
 
-migration = ActiveRecord::Migration
-migration = migration[4.2] if migration.respond_to?(:[])
-class CreateIssueContents < migration
+class CreateIssueContents < ActiveRecord::Migration[4.2]
   def change
     options = nil
     contents_limit = nil

@@ -1,6 +1,4 @@
-migration = ActiveRecord::Migration
-migration = migration[4.2] if migration.respond_to?(:[])
-class AddIndexToSearcherRecords < migration
+class AddIndexToSearcherRecords < ActiveRecord::Migration[4.2]
   def change
   end
 end

@@ -264,17 +264,11 @@ LEFT OUTER JOIN #{redmine_class.table_name}
           redmine_mapper_class
             .with_project(redmine_class)
             .where(projects: {id: archived_projects})
-        if Rails::VERSION::MAJOR >= 5
-          no_source_targets =
-            targets.where(redmine_class.table_name => {id: nil})
-          archived_source_targets =
-            targets.where(redmine_class.table_name => {id: archived_sources})
-          no_source_targets.or(archived_source_targets)
-        else
-          targets.where("#{redmine_class.table_name}.id is NULL OR " +
-                        "#{redmine_class.table_name}.id IN " +
-                        "(#{archived_sources.select(:id).to_sql})")
-        end
+        no_source_targets =
+          targets.where(redmine_class.table_name => {id: nil})
+        archived_source_targets =
+          targets.where(redmine_class.table_name => {id: archived_sources})
+        no_source_targets.or(archived_source_targets)
       end
 
       def outdated(redmine_class, options={})

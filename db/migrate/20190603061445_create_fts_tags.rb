@@ -1,6 +1,4 @@
-migration = ActiveRecord::Migration
-migration = migration[4.2] if migration.respond_to?(:[])
-class CreateFtsTags < migration
+class CreateFtsTags < ActiveRecord::Migration[5.2]
   def change
     if Redmine::Database.mysql?
       options = "ENGINE=Mroonga"

@@ -1,8 +1,6 @@
 require "full_text_search/migration"
 
-migration = ActiveRecord::Migration
-migration = migration[4.2] if migration.respond_to?(:[])
-class CreateSearcherRecords < migration
+class CreateSearcherRecords < ActiveRecord::Migration[4.2]
   def change
     if Redmine::Database.mysql?
       options = "ENGINE=Mroonga"

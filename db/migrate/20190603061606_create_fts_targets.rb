@@ -1,8 +1,6 @@
 require "full_text_search/migration"
 
-migration = ActiveRecord::Migration
-migration = migration[4.2] if migration.respond_to?(:[])
-class CreateFtsTargets < migration
+class CreateFtsTargets < ActiveRecord::Migration[5.2]
   def comparable_version(version)
     version.split(".").collect {|component| Integer(component, 10)}
   end
