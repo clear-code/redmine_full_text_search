@@ -1,5 +1,35 @@
 # Redmine FullTextSearch
 
+## 1.0.2 - 2019-07-09
+
+### Improvements
+
+  * Improved search UI.
+
+  * Improved performance.
+
+  * Made similar issue search optional.
+
+  * Removed archived projects from search targets.
+
+  * Changed task name to `full_text_search:truncate` from
+    `full_text_search:destroy`.
+
+  * Changed to use low priority for jobs.
+
+### Fixed
+
+  * `indexing`: Fixed a bug that sub path content in Subversion
+    repository can't be processed.
+
+  * Fixed wrong drilldown count.
+
+  * Fixed a bug that it doesn't work with PGroonga.
+    [GitHub#66][Reported by ryouma-nagare]
+
+  * Fixed a bug that uninstalling is failed.
+    [GitHub#67][Reported by ryouma-nagare]
+
 ## 1.0.1 - 2019-06-13
 
 ### Improvements
