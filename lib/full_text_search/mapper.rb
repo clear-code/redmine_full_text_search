@@ -13,17 +13,7 @@ module FullTextSearch
       end
 
       def after_commit(record)
-        begin
-          mapper = redmine_mapper(record)
-          mapper.upsert_fts_target(extract_text: :later)
-        rescue => error
-          Rails.logger.error do
-            message = "[full-text-search] Failed to upsert FTS target: "
-            message << "#{error.class}: #{error.message}\n"
-            message << error.backtrace.join("\n")
-            message
-          end
-        end
+        FullTextSearch::UpsertTargetJob.perform_later(name, record.id)
       end
 
       def after_destroy(record)
