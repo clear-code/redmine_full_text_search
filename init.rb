@@ -37,17 +37,19 @@ Rails.configuration.to_prepare do
   require_dependency "full_text_search/scm_adapter_all_file_entries"
 
   require_dependency "full_text_search/mapper"
-  require_dependency "full_text_search/attachment_mapper"
-  require_dependency "full_text_search/change_mapper"
-  require_dependency "full_text_search/changeset_mapper"
-  require_dependency "full_text_search/custom_value_mapper"
-  require_dependency "full_text_search/document_mapper"
-  require_dependency "full_text_search/issue_mapper"
+
+  # Order by priority on synchronize
   require_dependency "full_text_search/journal_mapper"
-  require_dependency "full_text_search/message_mapper"
-  require_dependency "full_text_search/news_mapper"
-  require_dependency "full_text_search/project_mapper"
+  require_dependency "full_text_search/issue_mapper"
   require_dependency "full_text_search/wiki_page_mapper"
+  require_dependency "full_text_search/custom_value_mapper"
+  require_dependency "full_text_search/project_mapper"
+  require_dependency "full_text_search/news_mapper"
+  require_dependency "full_text_search/document_mapper"
+  require_dependency "full_text_search/message_mapper"
+  require_dependency "full_text_search/attachment_mapper"
+  require_dependency "full_text_search/changeset_mapper"
+  require_dependency "full_text_search/change_mapper"
 
   require_dependency "full_text_search/hooks/search_index_options_content_bottom_hook"
   require_dependency "full_text_search/hooks/issues_show_description_bottom_hook"

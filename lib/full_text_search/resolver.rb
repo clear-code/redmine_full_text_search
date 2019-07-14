@@ -40,16 +40,7 @@ module FullTextSearch
     end
 
     def each(&block)
-      return to_enum(__method__) unless block_given?
-      targets_need_text_extraction = []
-      @redmine_to_mapper.each do |redmine_class, mapper_class|
-        if mapper_class.need_text_extraction?
-          targets_need_text_extraction << [redmine_class, mapper_class]
-        else
-          yield(redmine_class, mapper_class)
-        end
-      end
-      targets_need_text_extraction.each(&block)
+      @redmine_to_mapper.each(&block)
     end
 
     private
