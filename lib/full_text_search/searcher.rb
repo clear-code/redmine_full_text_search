@@ -102,20 +102,20 @@ module FullTextSearch
       conditions = []
       conditions << "in_values(project_id, #{project_ids.join(', ')})"
       unless @request.tags.blank?
-        tag_ids = @request.tags.collect do |tag_id|
-          Integer(tag_id, 10)
+        @request.tags.each do |tag_id|
+          tag_id = Integer(tag_id, 10)
+          conditions << "&&"
+          conditions << "tag_ids @ #{tag_id}"
         end
-        conditions << "&&"
-        conditions << "in_values(tag_ids, #{tag_ids.join(', ')})"
       end
 
       if @request.open_issues?
         closed_status_ids = IssueStatus.where(is_closed: true).pluck(:id)
-        tag_ids = closed_status_ids.collect do |closed_status_id|
-          Tag.issue_status(closed_status_id).id
+        closed_status_ids.each do |closed_status_id|
+          tag_id = Tag.issue_status(closed_status_id).id
+          conditions << "&!"
+          conditions << "tag_ids @ #{tag_id}"
         end
-        conditions << "&!"
-        conditions << "in_values(tag_ids, #{tag_ids.join(', ')})"
       end
 
       # TODO: Support private notes again
