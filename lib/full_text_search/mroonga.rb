@@ -57,7 +57,28 @@ SHOW VARIABLES LIKE 'mroonga_libgroonga_version';
       end
 
       def compute_time_offset
-        -Time.now.utc_offset
+        mysql_system_time_zone = connection.select_rows(<<-SQL)[0][1]
+SHOW VARIABLES LIKE 'system_time_zone'
+        SQL
+        now = Time.now
+        utc_offset = now.utc_offset
+        now.utc
+        begin
+          timezone = TZInfo::Timezone.get(mysql_system_time_zone)
+        rescue TZInfo::InvalidTimezoneIdentifier
+          timezone = TZInfo::Timezone.all.find do |tz|
+            abbreviation = tz.period_for_utc(now).abbreviation
+            abbreviation.to_s == mysql_system_time_zone
+          end
+        end
+        if timezone.nil?
+          Rails.logger.warn("[full-text-search][mroonga] " +
+                            "unknown timeonze: <#{mysql_system_time_zone}>")
+          mysql_system_utc_offset = 0
+        else
+          mysql_system_utc_offset = timezone.period_for_utc(now).utc_offset
+        end
+        mysql_system_utc_offset - utc_offset
       end
     end
   end
