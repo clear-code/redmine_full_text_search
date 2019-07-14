@@ -1,7 +1,7 @@
 module FullTextSearch
   class UpsertTargetJob < ActiveJob::Base
     queue_as :full_text_search
-    queue_with_priority 10
+    queue_with_priority 15
 
     def perform(mapper_class_name, source_id)
       mapper_class = mapper_class_name.constantize

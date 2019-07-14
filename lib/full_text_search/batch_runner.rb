@@ -76,7 +76,7 @@ module FullTextSearch
         bar.iterate(new_redmine_records.pluck(:id).each) do |record_id|
           if options.upsert == :later
             UpsertTargetJob
-              .set(priority: UpsertTargetJob.priority + 1)
+              .set(priority: UpsertTargetJob.priority + 5)
               .perform_later(mapper_class.name, record_id)
           else
             record = redmine_class.find(record_id)
@@ -168,7 +168,7 @@ module FullTextSearch
           existing_target_ids.delete(change.id)
           if options.upsert == :later
             UpsertTargetJob
-              .set(priority: UpsertTargetJob.priority + 1)
+              .set(priority: UpsertTargetJob.priority + 5)
               .perform_later(mapper_class.name, change.id)
           else
             mapper = mapper_class.redmine_mapper(change)
