@@ -105,17 +105,28 @@ module FullTextSearch
         tag_ids = @request.tags.collect do |tag_id|
           Integer(tag_id, 10)
         end
-        conditions << "&&"
-        conditions << "in_values(tag_ids, #{tag_ids.join(', ')})"
+        if Target.highlight_keyword_extraction_is_broken?
+          conditions << "&&"
+          conditions << "query('tag_ids', '#{tag_ids.join(' ')}')"
+        else
+          tag_ids.each do |tag_id|
+            conditions << "&&"
+            conditions << "tag_ids @ #{tag_id}"
+          end
+        end
       end
 
       if @request.open_issues?
         closed_status_ids = IssueStatus.where(is_closed: true).pluck(:id)
-        tag_ids = closed_status_ids.collect do |closed_status_id|
-          Tag.issue_status(closed_status_id).id
+        closed_status_ids.each do |closed_status_id|
+          tag_id = Tag.issue_status(closed_status_id).id
+          conditions << "&!"
+          if Target.highlight_keyword_extraction_is_broken?
+            conditions << "query('tag_ids', '#{tag_id}')"
+          else
+            conditions << "tag_ids @ #{tag_id}"
+          end
         end
-        conditions << "&!"
-        conditions << "in_values(tag_ids, #{tag_ids.join(', ')})"
       end
 
       # TODO: Support private notes again

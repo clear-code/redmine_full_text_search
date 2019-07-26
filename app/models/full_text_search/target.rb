@@ -32,6 +32,17 @@ module FullTextSearch
       end
     end
 
+    @highlight_keyword_extraction_is_broken = ((groonga_version <=> "9.0.5") < 0)
+    class << self
+      def highlight_keyword_extraction_is_broken?
+        @highlight_keyword_extraction_is_broken
+      end
+
+      def truncate
+        connection.truncate(table_name)
+      end
+    end
+
     scope :attachments,   -> {where(source_type_id: Type.attachment.id)}
     scope :changes,       -> {where(source_type_id: Type.change.id)}
     scope :changesets,    -> {where(source_type_id: Type.changeset.id)}
@@ -46,12 +57,6 @@ module FullTextSearch
     scope :repositories,  -> {where(source_type_id: Type.repository.id)}
     scope :versions,      -> {where(source_type_id: Type.version.id)}
     scope :wiki_pages,    -> {where(source_type_id: Type.wiki_page.id)}
-
-    class << self
-      def truncate
-        connection.truncate(table_name)
-      end
-    end
 
     attr_accessor :_score
     attr_accessor :highlighted_title
