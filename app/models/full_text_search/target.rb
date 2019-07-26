@@ -32,14 +32,22 @@ module FullTextSearch
       end
     end
 
-    @highlight_keyword_extraction_is_broken = ((groonga_version <=> "9.0.5") < 0)
+    @highlight_keyword_extraction_is_broken = nil
     class << self
       def highlight_keyword_extraction_is_broken?
+        if @highlight_keyword_extraction_is_broken.nil?
+          @highlight_keyword_extraction_is_broken =
+            ((groonga_version <=> "9.0.5") < 0)
+        end
         @highlight_keyword_extraction_is_broken
       end
 
       def truncate
         connection.truncate(table_name)
+      end
+
+      def pgroonga_index_name
+        "fts_targets_index_pgroonga"
       end
     end
 
@@ -68,12 +76,6 @@ module FullTextSearch
                   description: :_description,
                   author: :_author,
                   url: :_url)
-
-    class << self
-      def pgroonga_index_name
-        "fts_targets_index_pgroonga"
-      end
-    end
 
     def score
       _score

@@ -13,6 +13,16 @@ module FullTextSearch
         @time_offset ||= compute_time_offset
       end
 
+      def groonga_version
+        # Ensure loading PGroonga
+        connection.select_rows(<<-SQL)
+SELECT pgroonga_command('status');
+        SQL
+        connection.select_rows(<<-SQL)[0][0]
+SHOW pgroonga.libgroonga_version;
+        SQL
+      end
+
       def multiple_column_unique_key_update_is_supported?
         true
       end
