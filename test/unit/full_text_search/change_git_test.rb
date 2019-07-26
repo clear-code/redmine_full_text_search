@@ -54,7 +54,7 @@ module FullTextSearch
                        "container_id" => repository.id,
                        "container_type_id" => Type.repository.id,
                        "title" => "images/edit.png",
-                       "content" => null_string,
+                       "content" => "",
                        "custom_field_id" => null_number,
                        "is_private" => null_boolean,
                        "tag_ids" => [Tag.extension("png").id],
