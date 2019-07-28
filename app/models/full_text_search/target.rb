@@ -33,6 +33,7 @@ module FullTextSearch
     end
 
     @highlight_keyword_extraction_is_broken = nil
+    @slice_drilldown_is_supported = nil
     class << self
       def highlight_keyword_extraction_is_broken?
         if @highlight_keyword_extraction_is_broken.nil?
@@ -40,6 +41,14 @@ module FullTextSearch
             ((groonga_version <=> "9.0.5") < 0)
         end
         @highlight_keyword_extraction_is_broken
+      end
+
+      def slice_drilldown_is_supported?
+        if @slice_drilldown_is_supported.nil?
+          @slice_drilldown_is_supported =
+            ((groonga_version <=> "9.0.5") >= 0)
+        end
+        @slice_drilldown_is_supported
       end
 
       def truncate

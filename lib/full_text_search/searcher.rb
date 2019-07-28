@@ -12,39 +12,64 @@ module FullTextSearch
         "query" => @request.query,
         "query_flags" => "ALLOW_COLUMN|ALLOW_LEADING_NOT|QUERY_NO_SYNTAX_ERROR",
         "filter" => filter,
-        "output_columns" => output_columns.join(", "),
-        "sort_keys" => sort_keys.join(", "),
-        "offset" => (@request.offset || 0).to_s,
-        "limit" => (@request.limit || 10).to_s,
+        "output_columns" => "_id",
+        "limit" => "0",
       }
+      add_drilldown(arguments,
+                    "",
+                    "source_type",
+                    "keys" => "source_type_id",
+                    "limit" => "-1")
+      add_drilldown(arguments,
+                    "",
+                    "container_type",
+                    "keys" => "container_type_id",
+                    "limit" => "-1")
+      not_search_type_conditions = collect_not_search_type_conditions
+      if not_search_type_conditions.empty?
+        prefix = ""
+      else
+        if Target.slice_drilldown_is_supported?
+          prefix = "slices[type_filtered]."
+          arguments["#{prefix}filter"] =
+            (["all_records()"] + not_search_type_conditions).join(" &! ")
+        else
+          prefix = ""
+          if arguments["filter"]
+            arguments["filter"] =
+              ([arguments["filter"]] + not_search_type_conditions).join(" &! ")
+          end
+        end
+      end
       add_dynamic_column(arguments,
+                         prefix,
                          "highlighted_title",
                          "stage" => "output",
                          "type" => "ShortText",
                          "flags" => "COLUMN_SCALAR",
                          "value" => "highlight_html(title)")
       add_dynamic_column(arguments,
+                         prefix,
                          "content_snippets",
                          "stage" => "output",
                          "type" => "ShortText",
                          "flags" => "COLUMN_VECTOR",
                          "value" => "snippet_html(content)")
       add_drilldown(arguments,
-                    "source_type",
-                    "keys" => "source_type_id",
-                    "limit" => "-1")
-      add_drilldown(arguments,
-                    "container_type",
-                    "keys" => "container_type_id",
-                    "limit" => "-1")
-      add_drilldown(arguments,
+                    prefix,
                     "tag",
                     "keys" => "tag_ids",
                     "limit" => "-1",
                     "sort_keys" => "-_nsubrecs")
-      unless @request.have_condition?
-        arguments["limit"] = "0"
+      arguments["#{prefix}output_columns"] = output_columns.join(", ")
+      arguments["#{prefix}sort_keys"] = sort_keys.join(", ")
+      arguments["#{prefix}offset"] = (@request.offset || 0).to_s
+      if @request.have_condition?
+        limit = (@request.limit || 10).to_s
+      else
+        limit = "0"
       end
+      arguments["#{prefix}limit"] = limit
       arguments["filter"] = "false" unless arguments["filter"]
       command = Groonga::Command::Select.new("select", arguments)
       response = Target.select(command)
@@ -151,36 +176,45 @@ module FullTextSearch
           "#{not_target_custom_field_ids.join(', ')})"
       end
 
+      conditions.join(" ")
+    end
+
+    def collect_not_search_type_conditions
+      conditions = []
+
       not_search_types =
         Redmine::Search.available_search_types - @request.target_search_types
       not_search_types.each do |not_search_type|
         not_search_type_id = Type[not_search_type].id
-        conditions << "&!"
         conditions << "source_type_id == #{not_search_type_id}"
-        conditions << "&!"
         conditions << "container_type_id == #{not_search_type_id}"
       end
 
-      @request.target_search_types.each do |search_type|
-        invisible_project_ids =
-          project_ids - Project.allowed_to(user, :view_issues).pluck(:id)
-        next unless invisible_project_ids.present?
+      project_ids = target_project_ids
+      if project_ids.present?
+        user = @request.user
+        @request.target_search_types.each do |search_type|
+          invisible_project_ids =
+            project_ids - Project.allowed_to(user, :view_issues).pluck(:id)
+          next unless invisible_project_ids.present?
 
-        source_type_id = Type[search_type].id
-        conditions << "&!"
-        conditions << "("
-        conditions <<
-          "in_values(project_id, #{invisible_project_ids.join(', ')})"
-        conditions << "&&"
-        conditions << "("
-        conditions << "source_type_id == #{source_type_id}"
-        conditions << "||"
-        conditions << "container_type_id == #{source_type_id}"
-        conditions << ")"
-        conditions << ")"
+          source_type_id = Type[search_type].id
+          sub_conditions = []
+          sub_conditions << "("
+          sub_conditions <<
+            "in_values(project_id, #{invisible_project_ids.join(', ')})"
+          sub_conditions << "&&"
+          sub_conditions << "("
+          sub_conditions << "source_type_id == #{source_type_id}"
+          sub_conditions << "||"
+          sub_conditions << "container_type_id == #{source_type_id}"
+          sub_conditions << ")"
+          sub_conditions << ")"
+          conditions << sub_conditions.join(" ")
+        end
       end
 
-      conditions.join(" ")
+      conditions
     end
 
     def output_columns
@@ -218,15 +252,15 @@ module FullTextSearch
       end
     end
 
-    def add_dynamic_column(arguments, label, options)
+    def add_dynamic_column(arguments, prefix, label, options)
       options.each do |name, value|
-        arguments["columns[#{label}].#{name}"] = value
+        arguments["#{prefix}columns[#{label}].#{name}"] = value
       end
     end
 
-    def add_drilldown(arguments, label, options)
+    def add_drilldown(arguments, prefix, label, options)
       options.each do |name, value|
-        arguments["drilldowns[#{label}].#{name}"] = value
+        arguments["#{prefix}drilldowns[#{label}].#{name}"] = value
       end
     end
   end
@@ -238,10 +272,17 @@ module FullTextSearch
       @response = response
     end
 
-    # @return Integer the number of records
-    def count
+    def n_hits
       if @response.success?
-        @response.total_count
+        target.n_hits
+      else
+        0
+      end
+    end
+
+    def total_n_hits
+      if @response.success?
+        @response.n_hits
       else
         0
       end
@@ -254,7 +295,7 @@ module FullTextSearch
     # @return Array<FullTextSearch::Target>
     def records
       return [] unless @response.success?
-      @records ||= @response.records.map do |record|
+      @records ||= raw_records.map do |record|
         # Rails.logger.debug(title: record["title_digest"],
         #                    description: record["description_digest"])
         record["last_modified_at"] += Target.time_offset
@@ -267,7 +308,7 @@ module FullTextSearch
     end
 
     def raw_records
-      @response.records
+      target.records
     end
 
     def each
@@ -289,7 +330,7 @@ module FullTextSearch
     end
 
     def tag_drilldown
-      @response.drilldowns["tag"].records.collect do |record|
+      target.drilldowns["tag"].records.collect do |record|
         {
           tag: Tag.find(record["_key"]),
           n_records: record["_nsubrecs"],
@@ -304,6 +345,11 @@ module FullTextSearch
       grouped_tag_drilldown.collect do |type_id, drilldown|
         [TagType.find(type_id), drilldown]
       end
+    end
+
+    private
+    def target
+      @response.slices["type_filtered"] || @response
     end
   end
 end

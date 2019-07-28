@@ -30,7 +30,8 @@ module FullTextSearch
         context = @search_request.to_params
         context = context.merge("user_id" => @search_request.user.id,
                                 "project_id" => @search_request.project&.id,
-                                "n_hits" => @result_set.count,
+                                "n_hits" => @result_set.n_hits,
+                                "total_n_hits" => @result_set.total_n_hits,
                                 "elapsed_time" => @result_set.elapsed_time,
                                 "timestamp" => Time.zone.now.iso8601)
         log = "[full-text-search][search] #{context.to_json}"

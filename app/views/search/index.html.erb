@@ -147,7 +147,7 @@
     <div id="search-source-types" class="tabs">
       <ul>
         <li>
-          <%= link_to("#{l(:label_result_all)} (#{@result_set.count})",
+          <%= link_to("#{l(:label_result_all)} (#{@result_set.total_n_hits})",
                       url_for(@search_request.to_params(types: :all)),
                       class: @search_request.target?(:all) ? "selected" : "") %>
         </li>
@@ -180,7 +180,7 @@
     </dl>
 
     <% if @result_pages %>
-    <span class="pagination"><%= pagination_links_full @result_pages, @result_set.count, :per_page_links => false %></span>
+    <span class="pagination"><%= pagination_links_full @result_pages, @result_set.n_hits, :per_page_links => false %></span>
     <% end %>
   </div>
 </div>

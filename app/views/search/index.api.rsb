@@ -1,4 +1,4 @@
-api.array :results, api_meta(:total_count => @result_set.count,
+api.array :results, api_meta(:total_count => @result_set.n_hits,
                              :offset => @search_request.offset,
                              :limit => @search_request.limit) do
   @result_set.each do |record|
