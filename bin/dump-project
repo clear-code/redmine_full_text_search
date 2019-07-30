@@ -11,17 +11,30 @@ APP_PATH = File.join(config_dir, "application")
 require APP_PATH
 Rails.application.require_environment!
 
-def dump_components(output_dir, component, json)
-end
-
 identifier = ARGV[0]
 project = Project.find_by_identifier!(identifier)
-arguments = {
-  "filter" => "project_id == #{project.id}",
-  "limit" => "-1",
-}
-command = Groonga::Command::Select.new("select", arguments)
-response = FullTextSearch::Target.select(command)
+offset = 0
+limit = 10000
 File.open("#{identifier}.json", "w") do |output|
-  output.puts(JSON.pretty_generate(response.records))
+  puts("[")
+  i = 0
+  loop do
+    arguments = {
+      "filter" => "project_id == #{project.id}",
+      "offset" => offset.to_s,
+      "limit" => limit.to_s,
+    }
+    command = Groonga::Command::Select.new("select", arguments)
+    response = FullTextSearch::Target.select(command)
+    records = response.records
+    records.each do |record|
+      puts(",") if i > 0
+      print(record.to_json)
+      i += 1
+    end
+    offset += records.size
+    break if response.n_hits == i
+  end
+  puts if i > 0
+  puts("]")
 end
