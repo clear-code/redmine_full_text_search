@@ -14,7 +14,7 @@ Rails.application.require_environment!
 identifier = ARGV[0]
 project = Project.find_by_identifier!(identifier)
 offset = 0
-limit = 10000
+limit = 1000
 puts("[")
 i = 0
 loop do
