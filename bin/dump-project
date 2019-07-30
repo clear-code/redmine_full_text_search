@@ -15,26 +15,24 @@ identifier = ARGV[0]
 project = Project.find_by_identifier!(identifier)
 offset = 0
 limit = 10000
-File.open("#{identifier}.json", "w") do |output|
-  puts("[")
-  i = 0
-  loop do
-    arguments = {
-      "filter" => "project_id == #{project.id}",
-      "offset" => offset.to_s,
-      "limit" => limit.to_s,
-    }
-    command = Groonga::Command::Select.new("select", arguments)
-    response = FullTextSearch::Target.select(command)
-    records = response.records
-    records.each do |record|
-      puts(",") if i > 0
-      print(record.to_json)
-      i += 1
-    end
-    offset += records.size
-    break if response.n_hits == i
+puts("[")
+i = 0
+loop do
+  arguments = {
+    "filter" => "project_id == #{project.id}",
+    "offset" => offset.to_s,
+    "limit" => limit.to_s,
+  }
+  command = Groonga::Command::Select.new("select", arguments)
+  response = FullTextSearch::Target.select(command)
+  records = response.records
+  records.each do |record|
+    puts(",") if i > 0
+    print(record.to_json)
+    i += 1
   end
-  puts if i > 0
-  puts("]")
+  offset += records.size
+  break if response.n_hits == i
 end
+puts if i > 0
+puts("]")
