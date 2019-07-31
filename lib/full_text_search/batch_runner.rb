@@ -43,7 +43,7 @@ module FullTextSearch
         mapper_class = resolver.resolve(Type.find(target.source_type_id).name)
         if options.upsert == :later
           UpsertTargetJob
-            .set(priority: UpsertTargetJob.priority + 5)
+            .set(priority: UpsertTargetJob.priority + 1)
             .perform_later(mapper_class.name, target.source_id)
         else
           source_record = target.source_record
