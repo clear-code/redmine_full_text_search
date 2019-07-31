@@ -10,11 +10,6 @@ module FullTextSearch
       :mroonga_integer_array
     end
 
-    # TODO: Remove this when we drop Redmine 3.4 support
-    def type_cast(value)
-      deserialize(value)
-    end
-
     def deserialize(value)
       return nil if value.nil?
       return [] if value.empty?
