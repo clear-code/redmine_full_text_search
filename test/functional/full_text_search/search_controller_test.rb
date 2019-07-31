@@ -42,6 +42,14 @@ module FullTextSearch
       @search_id = "2.9"
     end
 
+    def adjust_slice_score(score)
+      if Target.slice_drilldown_is_supported?
+        score + 1
+      else
+        score
+      end
+    end
+
     def get(action, params: {}, api: false)
       if api
         with_settings(rest_api_enabled: 1) do
@@ -405,7 +413,7 @@ module FullTextSearch
 this is a text file for <span class="keyword">upload</span> tests\r
 with multiple lines\r
               DESCRIPTION
-              rank: 2,
+              rank: adjust_slice_score(2),
             }
           ],
         ]
@@ -440,7 +448,7 @@ with multiple lines\r
 Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
               TITLE
               description: "",
-              rank: 101,
+              rank: adjust_slice_score(101),
             }
           ],
         ]
@@ -499,7 +507,7 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
 This file should be accessible for <span class="keyword">Redmine</span>, although its folder contains square
 brackets.
               DESCRIPTION
-              rank: 2,
+              rank: adjust_slice_score(2),
             }
           ],
           [
@@ -516,7 +524,7 @@ brackets.
 # This program is free software; you can redistribute it and/or\r
 # modify it under the terms of the GNU Gener
               DESCRIPTION
-              rank: 2,
+              rank: adjust_slice_score(2),
             },
           ],
         ]
@@ -572,7 +580,7 @@ brackets.
             issue1,
             {
               description: %Q[<span class="keyword">Searchable</span>],
-              rank: 2,
+              rank: adjust_slice_score(2),
             }
           ],
         ]
@@ -614,7 +622,7 @@ Bug #6 (New): Issue of a <span class="keyword">private</span> <span class="keywo
               description: <<-DESCRIPTION.chomp,
 This is an issue of a <span class="keyword">private</span> <span class="keyword">subproject</span> of cookbook
               DESCRIPTION
-              rank: 203,
+              rank: adjust_slice_score(203),
             },
           ],
           [
@@ -626,7 +634,7 @@ Bug #1 (New): Cannot <span class="keyword">print</span> recipes
               description: <<-DESCRIPTION.chomp,
 Unable to <span class="keyword">print</span> recipes
               DESCRIPTION
-              rank: 102,
+              rank: adjust_slice_score(102),
             },
           ],
           [
@@ -636,7 +644,7 @@ Unable to <span class="keyword">print</span> recipes
               description: <<-DESCRIPTION.chomp,
 A comment with a <span class="keyword">private</span> <span class="keyword">version</span>.
               DESCRIPTION
-              rank: 3,
+              rank: adjust_slice_score(3),
             },
           ],
         ]
@@ -677,7 +685,7 @@ Help: <span class="keyword">First</span> <span class="keyword">post</span>
 This is the very <span class="keyword">first</span> <span class="keyword">post</span>
 in the forum
               DESCRIPTION
-              rank: 203,
+              rank: adjust_slice_score(203),
             },
           ],
           [
@@ -688,7 +696,7 @@ in the forum
 Help: RE: <span class="keyword">First</span> <span class="keyword">post</span>
               TITLE
               description: "",
-              rank: 201,
+              rank: adjust_slice_score(201),
             },
           ],
           [
@@ -701,7 +709,7 @@ Help: <span class="keyword">First</span> reply
               description: <<-DESCRIPTION.chomp,
 Reply to the <span class="keyword">first</span> <span class="keyword">post</span>
               DESCRIPTION
-              rank: 103,
+              rank: adjust_slice_score(103),
             },
           ],
         ]
@@ -744,7 +752,7 @@ h1. <span class="keyword">CookBook</span> documentation
 
 Some updated [[documentation]] here with <span class="keyword">gzipped</span> history
               DESCRIPTION
-              rank: 103,
+              rank: adjust_slice_score(103),
             },
           ],
         ]
