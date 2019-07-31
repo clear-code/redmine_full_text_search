@@ -46,7 +46,7 @@ module FullTextSearch
       def slice_drilldown_is_supported?
         if @slice_drilldown_is_supported.nil?
           @slice_drilldown_is_supported =
-            ((groonga_version <=> "9.0.5") >= 0)
+            ((groonga_version <=> "9.0.6") >= 0)
         end
         @slice_drilldown_is_supported
       end
