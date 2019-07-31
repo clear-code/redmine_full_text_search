@@ -32,7 +32,7 @@ SHOW pgroonga.libgroonga_version;
         arguments = []
         command["table"] = "pgroonga_table_name('#{pgroonga_index_name}')"
         if command["filter"].present?
-          command["filter"] += "&& pgroonga_tuple_is_alive(ctid)"
+          command["filter"] += " && pgroonga_tuple_is_alive(ctid)"
         else
           command["filter"] = "pgroonga_tuple_is_alive(ctid)"
         end
