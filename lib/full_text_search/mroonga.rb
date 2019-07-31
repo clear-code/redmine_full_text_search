@@ -33,13 +33,11 @@ SHOW VARIABLES LIKE 'mroonga_libgroonga_version';
       end
 
       def mroonga_vector_load_is_supported?
-        # (groonga_version <=> "9.0.5") >= 0
-        false
+        (groonga_version <=> "9.0.5") >= 0
       end
 
       def multiple_column_unique_key_update_is_supported?
-        # (mroonga_version <=> "9.05") >= 0
-        false
+        (mroonga_version <=> "9.05") >= 0
       end
 
       private
