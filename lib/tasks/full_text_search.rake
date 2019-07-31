@@ -61,6 +61,15 @@ namespace :full_text_search do
     end
   end
 
+  namespace :target do
+    desc "Reload targets"
+    task :reload => :environment do
+      run_batch.call do |batch_runner, **options|
+        batch_runner.reload_fts_targets(**options)
+      end
+    end
+  end
+
   namespace :text do
     desc "Extract texts"
     task :extract => :environment do

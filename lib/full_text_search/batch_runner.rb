@@ -25,6 +25,35 @@ module FullTextSearch
       synchronize_repositories_internal(options)
     end
 
+    def reload_fts_targets(project: nil,
+                           upsert: nil,
+                           extract_text: nil)
+      options = Options.new(project, upsert, extract_text)
+      if options.project
+        targets = Target.where(project_id: options.project.id)
+      else
+        targets = Target.all
+      end
+      bar = create_progress_bar("FullTextSearch::Target",
+                                total: targets.count)
+      bar.start
+      each_target = targets.select(:id, :source_id, :source_type_id).find_each
+      resolver = FullTextSearch.resolver
+      bar.iterate(each_target) do |target|
+        mapper_class = resolver.resolve(Type.find(target.source_type_id).name)
+        if options.upsert == :later
+          UpsertTargetJob
+            .set(priority: UpsertTargetJob.priority + 5)
+            .perform_later(mapper_class.name, target.source_id)
+        else
+          source_record = target.source_record
+          mapper = mapper_class.redmine_mapper(source_record)
+          mapper.upsert_fts_target(extract_text: options.extract_text)
+        end
+      end
+      bar.finish
+    end
+
     def extract_text(ids: nil)
       attachments = Target.where(source_type_id: Type.attachment.id)
       attachments = attachments.where(id: ids) if ids
