@@ -2,14 +2,6 @@
 
 set -exu
 
-rails_major_version=$(grep 'gem "rails"' Gemfile | grep -o '[0-9]*' | head -n 1)
-
-if [ "${rails_major_version}" = "4" ]; then
-  task_runner="bin/rake"
-else
-  task_runner="bin/rails"
-fi
-
 test_svn_repository="tmp/test/subversion_repository"
 if [ ! -d "${test_svn_repository}" ]; then
   svnadmin create "${test_svn_repository}"
@@ -23,13 +15,13 @@ if [ ! -d "${test_git_repository}" ]; then
     -C "$(dirname ${test_git_repository})"
 fi
 
-${task_runner} db:drop || true
-${task_runner} generate_secret_token
-${task_runner} db:create
-${task_runner} db:migrate
-${task_runner} redmine:load_default_data REDMINE_LANG=en
-${task_runner} redmine:plugins:migrate
-${task_runner} db:structure:dump
+bin/rails db:drop || true
+bin/rails generate_secret_token
+bin/rails db:create
+bin/rails db:migrate
+bin/rails redmine:load_default_data REDMINE_LANG=en
+bin/rails redmine:plugins:migrate
+bin/rails db:structure:dump
 bin/rails runner '
 u = User.find(1)
 u.password = u.password_confirmation = "adminadmin"

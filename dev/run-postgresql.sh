@@ -10,4 +10,4 @@ if [ $# -ge 1 ]; then
   options+=("-v${db_dir}:/var/lib/postgresql")
 fi
 
-docker run "${options[@]}" groonga/pgroonga:latest-debian-9.6
+docker run "${options[@]}" groonga/pgroonga:latest-debian-11
