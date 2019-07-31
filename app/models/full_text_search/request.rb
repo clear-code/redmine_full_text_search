@@ -76,6 +76,10 @@ module FullTextSearch
       end
     end
 
+    def choose_one_project?
+      target_projects.is_a?(Project)
+    end
+
     def q
       (@q || "").strip
     end
@@ -161,23 +165,22 @@ module FullTextSearch
     private
     def compute_search_types
       types = Redmine::Search.available_search_types.dup
-      projects = target_projects
-      if projects.is_a?(Project)
-        types.delete("projects")
-        u = user
-        types = types.select do |type|
-          case type
-          when "changes"
-            allow_type = "changesets"
-          when "journals"
-            allow_type = "issues"
-          else
-            allow_type = type
-          end
-          u.allowed_to?(:"view_#{allow_type}", projects)
+      return types unless choose_one_project?
+
+      project = target_projects
+      types.delete("projects")
+      u = user
+      types.select do |type|
+        case type
+        when "changes"
+          allow_type = "changesets"
+        when "journals"
+          allow_type = "issues"
+        else
+          allow_type = type
         end
+        u.allowed_to?(:"view_#{allow_type}", project)
       end
-      types
     end
 
     def compute_target_search_types

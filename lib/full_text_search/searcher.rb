@@ -126,6 +126,13 @@ module FullTextSearch
       user = @request.user
       conditions = []
       conditions << "in_values(project_id, #{project_ids.join(', ')})"
+      if @request.choose_one_project?
+        project_type_id = Type.project.id
+        conditions << "&!"
+        conditions << "source_type_id == #{project_type_id}"
+        conditions << "&!"
+        conditions << "container_type_id == #{project_type_id}"
+      end
       unless @request.tags.blank?
         tag_ids = @request.tags.collect do |tag_id|
           Integer(tag_id, 10)
@@ -184,6 +191,9 @@ module FullTextSearch
 
       not_search_types =
         Redmine::Search.available_search_types - @request.target_search_types
+      if @request.choose_one_project?
+        not_search_types -= ["projects"]
+      end
       not_search_types.each do |not_search_type|
         not_search_type_id = Type[not_search_type].id
         conditions << "source_type_id == #{not_search_type_id}"
