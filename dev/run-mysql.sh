@@ -6,6 +6,7 @@ options=(--rm -p3306:3306)
 if [ $# -ge 1 ]; then
   db_base_dir=$1
   rm -rf ${db_base_dir}
+  mkdir -p ${db_base_dir}/mysql
   mkdir -p ${db_base_dir}/log
   chmod +t ${db_base_dir}/log
   chmod go+wx ${db_base_dir}/log
