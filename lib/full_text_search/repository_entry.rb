@@ -21,30 +21,50 @@ module FullTextSearch
     end
 
     def cat(&block)
-      @repository.scm.cat_io(@path, @identifier, &block)
+      trace("Fetched content") do
+        @repository.scm.cat_io(@path, @identifier, &block)
+      end
     end
 
     private
     def fetch_entry
-      relative_path = @repository.relative_path(@path)
-      parts = relative_path.to_s.split(%r{[\/\\]}).select {|n| !n.blank?}
-      search_path = parts[0..-2].join('/')
-      search_name = parts[-1]
-      if search_path.blank? and search_name.blank?
-        @repository.entry(relative_path, @identifier)
-      else
-        entries = fetch_entries(search_path)
-        entries&.detect {|entry| entry.name == search_name}
+      trace("Fetched an entry") do
+        relative_path = @repository.relative_path(@path)
+        parts = relative_path.to_s.split(%r{[\/\\]}).select {|n| !n.blank?}
+        search_path = parts[0..-2].join('/')
+        search_name = parts[-1]
+        if search_path.blank? and search_name.blank?
+          @repository.entry(relative_path, @identifier)
+        else
+          entries = fetch_entries(search_path)
+          entries&.detect {|entry| entry.name == search_name}
+        end
       end
     end
 
     @@cache_mutex = Mutex.new
     @@cached_entries = {}
     def fetch_entries(path)
-      cache_key = [@repository.id, path, @identifier]
-      @@cache_mutex.synchronize do
-        @@cached_entries[cache_key] ||=
-          @repository.scm.entries(path, @identifier)
+      trace("Fetched entries") do
+        cache_key = [@repository.id, path, @identifier]
+        @@cache_mutex.synchronize do
+          @@cached_entries[cache_key] ||=
+            @repository.scm.entries(path, @identifier)
+        end
+      end
+    end
+
+    def trace(label)
+      tracer = Tracer.new("[repository-entry]")
+      tracer_data = [
+        ["Repository", @repository.id],
+        ["path", @path],
+        ["identifier", @identifier],
+      ]
+      begin
+        yield
+      ensure
+        tracer.trace(:info, label, tracer_data)
       end
     end
   end

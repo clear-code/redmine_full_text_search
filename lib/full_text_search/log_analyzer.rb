@@ -124,8 +124,7 @@ module FullTextSearch
       end
 
       def path
-        return nil if @attributes["path"].nil?
-        @attributes["path"][/\A<(.+)>\z/, 1]
+        @attributes["path"]
       end
 
       def full_text_search_target
@@ -133,30 +132,15 @@ module FullTextSearch
       end
 
       def memory_usage
-        case @attributes["memory usage"]
-        when /\A<(.+)>\z/
-          Size.new($1)
-        else
-          Size.new(0.0)
-        end
+        Size.new(@attributes["memory usage"] || 0.0)
       end
 
       def memory_usage_diff
-        case @attributes["memory usage diff"]
-        when /\A<(.+)>\z/
-          Size.new($1)
-        else
-          Size.new(0.0)
-        end
+        Size.new(@attributes["memory usage diff"] || 0.0)
       end
 
       def elapsed_time
-        case @attributes["elapsed time"]
-        when /\A<(.+)>\z/
-          ElapsedTime.new($1)
-        else
-          ElapsedTime.new(0)
-        end
+        ElapsedTime.new(@attributes["elapsed time"] || 0)
       end
 
       def large_memory_used?
@@ -274,7 +258,10 @@ module FullTextSearch
             components = text_extract_message.split(": ")
             case components[0]
             when "Extracted"
-              attributes = components[1..-1].each_slice(2).to_h
+              attributes = {}
+              components[1..-1].each_slice(2).each do |key, value|
+                attributes[key] = value[/\A<(.+?)>\z/, 1]
+              end
               record = Record.new(attributes, @options)
               extracted(record)
               if record.large_memory_used?
@@ -311,8 +298,8 @@ module FullTextSearch
     end
 
     def extracted(record)
-      extension = (record.path || "")[/\.([^.]+)\z/, 1]
-      return if extension.nil?
+      extension = File.extname(record.path || "").gsub(/\A\./, "")
+      return if extension.empty?
       extension = extension.downcase
       @extension_statistics[extension] ||= Statistics.new
       @extension_statistics[extension].add(record)

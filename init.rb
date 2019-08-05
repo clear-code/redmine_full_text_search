@@ -28,6 +28,7 @@ require_relative "config/initializers/chupa_text"
 Rails.configuration.to_prepare do
   require_dependency "full_text_search"
   require_dependency "full_text_search/settings"
+  require_dependency "full_text_search/tracer"
   require_dependency "full_text_search/resolver"
   require_dependency "full_text_search/text_extractor"
   require_dependency "full_text_search/batch_runner"
