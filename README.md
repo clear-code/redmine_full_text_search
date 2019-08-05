@@ -52,7 +52,7 @@ application.
 
 ### Install this plugin
 
-```text
+```console
 $ cd redmine
 $ git clone https://github.com/clear-code/redmine_full_text_search.git plugins/full_text_search
 $ bundle install
@@ -85,12 +85,74 @@ You need to create index for existing data. You need to run
 `full_text_search:synchronize` task until no more synchronize target
 data.
 
-```text
+```console
 $ cd redmine
 $ RAILS_ENV=production bin/rails full_text_search:synchronize
 $ RAILS_ENV=production bin/rails full_text_search:synchronize
 $ RAILS_ENV=production bin/rails full_text_search:synchronize
 ...
+```
+
+## How to recover broken database
+
+### Mroonga
+
+Mroonga isn't crash safe. If MySQL is crashed while updating data in
+Mroonga, Mroonga data may be broken.
+
+Here is the instruction to recover from broken Mroonga data.
+
+If you're using [Redmine plugin Delayed
+Job](https://gitlab.com/clear-code/redmine-plugin-delayed-job), you
+need to stop workers and delete jobs for this plugin:
+
+```console
+$ sudo -H systemctl stop redmine-delayed-job@0.service
+$ cd redmine
+$ RAILS_ENV=production bin/rails runner 'Delayed::Job.where(queue: "full_text_search").delete_all'
+```
+
+Stop MySQL:
+
+```console
+$ sudo -H systemctl stop mysqld
+```
+
+Remove Mroonga related files:
+
+```console
+$ cd redmine
+$ database_name=$(RAILS_ENV=production bin/rails runner 'puts ActiveRecord::Base.configurations[Rails.env]["database"]')
+$ sudo -H sh -c "rm -rf /var/lib/mysql/${database_name}.mrn*"
+```
+
+Start MySQL:
+
+```console
+$ sudo -H systemctl start mysqld
+```
+
+Recreate schema for this plugin:
+
+```console
+$ cd redmine
+$ RAILS_ENV=production bin/rails redmine:plugins:migrate NAME=full_text_search VERSION=0
+$ RAILS_ENV=production bin/rails redmine:plugins:migrate NAME=full_text_search
+```
+
+If you're using [Redmine plugin Delayed
+Job](https://gitlab.com/clear-code/redmine-plugin-delayed-job), you
+need to start workers:
+
+```console
+$ sudo -H systemctl start redmine-delayed-job@0.service
+```
+
+Synchronize:
+
+```console
+$ cd redmine
+$ RAILS_ENV=production bin/rails full_text_search:synchronize UPSERT=later
 ```
 
 ## Authors
