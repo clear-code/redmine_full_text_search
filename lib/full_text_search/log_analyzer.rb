@@ -118,7 +118,9 @@ module FullTextSearch
     end
 
     class Record
-      def initialize(attributes, options)
+      attr_reader :label
+      def initialize(label, attributes, options)
+        @label = label
         @attributes = attributes
         @options = options
       end
@@ -129,6 +131,10 @@ module FullTextSearch
 
       def full_text_search_target
         @attributes["FullTextSearch::Target"]
+      end
+
+      def repository
+        @attributes["Repository"]
       end
 
       def memory_usage
@@ -243,6 +249,15 @@ module FullTextSearch
       option_parser
     end
 
+    def parse_record(text)
+      label, raw_attributes = text_extract_message.split(": ")
+      attributes = {}
+      raw_attributes.each_slice(2).each do |key, value|
+        attributes[key] = value[/\A<(.+?)>\z/, 1]
+      end
+      Record.new(label, attributes, @options)
+    end
+
     def analyze(input)
       input.each_line do |line|
         line = line.chomp
@@ -254,15 +269,9 @@ module FullTextSearch
           content = $POSTMATCH
           case content
           when /\A\[text-extract\] /
-            text_extract_message = $POSTMATCH
-            components = text_extract_message.split(": ")
-            case components[0]
+            record = parse_record($POSTMATCH)
+            case record.label
             when "Extracted"
-              attributes = {}
-              components[1..-1].each_slice(2).each do |key, value|
-                attributes[key] = value[/\A<(.+?)>\z/, 1]
-              end
-              record = Record.new(attributes, @options)
               extracted(record)
               if record.large_memory_used?
                 puts("large-memory-used: %s:%s:%s" % [
@@ -285,6 +294,16 @@ module FullTextSearch
                        record.path,
                      ])
               end
+            end
+          when /\A\[repository-entry\] /
+            record = parse_record($POSTMATCH)
+            if record.slow?
+              puts("slow: %s:%s:%s:%s" % [
+                     record.elapsed_time,
+                     record.repository,
+                     record.label,
+                     record.path,
+                   ])
             end
           when "Failed to extract text"
             case components[11]
