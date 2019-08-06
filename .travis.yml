@@ -1,3 +1,7 @@
+notifications:
+  webhooks:
+    - https://webhook.commit-email.info/
+
 dist: xenial
 
 services:
