@@ -76,13 +76,15 @@ module FullTextSearch
       when Change
         change = item
         changeset = change.changeset
+        repository = changeset.repository
+        path = repository.relative_path(change.path).gsub(/\A\//, "")
         url_parameters = {
           controller: "repositories",
           action: "entry",
-          id: changeset.repository.project_id,
-          repository_id: changeset.repository.identifier_param,
+          id: repository.project_id,
+          repository_id: repository.identifier_param,
           rev: changeset.identifier,
-          path: change.path.gsub(/\A\//, ""),
+          path: path,
           search_id: search_id,
           search_n: search_n,
           only_path: only_path,
@@ -457,11 +459,87 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
       end
     end
 
-    class ChangeTest < self
+    class ChangeRootURLTest < self
       def setup
         super
         @project = Project.find(3)
         url = self.class.subversion_repository_url
+        @repository = Repository::Subversion.create(:project => @project,
+                                                    :url => url)
+        @repository.fetch_changesets
+      end
+
+      def search(query, api: false)
+        get :index,
+            params: {
+              "id" => @project.identifier,
+              "q" => query,
+              "changes" => "1",
+            },
+            api: api
+      end
+
+      def test_search
+        search("redmine")
+        revision10 = @repository.changesets.find_by(revision: "10").filechanges
+        revision11 = @repository.changesets.find_by(revision: "11").filechanges
+        items = [
+          revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
+          revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_items(items),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+
+      def test_api
+        search("redmine", api: true)
+        revision10 = @repository.changesets.find_by(revision: "10").filechanges
+        revision11 = @repository.changesets.find_by(revision: "11").filechanges
+        items = [
+          [
+            revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
+            {
+              type: "file",
+              title: <<-TITLE.chomp,
+/subversion_test/[folder_with_brackets]/README.txt@11
+              TITLE
+              description: <<-DESCRIPTION,
+This file should be accessible for <span class="keyword">Redmine</span>, although its folder contains square
+brackets.
+              DESCRIPTION
+              rank: adjust_slice_score(2),
+            }
+          ],
+          [
+            revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
+            {
+              type: "file",
+              title: <<-TITLE.chomp,
+/subversion_test/folder/subfolder/journals_controller.rb@10
+              TITLE
+              description: <<-DESCRIPTION.chomp,
+# <span class="keyword">redMine</span> - project management software\r
+# Copyright (C) 2006-2008  Jean-Philippe Lang\r
+#\r
+# This program is free software; you can redistribute it and/or\r
+# modify it under the terms of the GNU Gener
+              DESCRIPTION
+              rank: adjust_slice_score(2),
+            },
+          ],
+        ]
+        assert_equal(format_api_results(items),
+                     JSON.parse(response.body))
+      end
+    end
+
+    class ChangeSubURLTest < self
+      def setup
+        super
+        @project = Project.find(3)
+        url = "#{self.class.subversion_repository_url}/subversion_test"
         @repository = Repository::Subversion.create(:project => @project,
                                                     :url => url)
         @repository.fetch_changesets

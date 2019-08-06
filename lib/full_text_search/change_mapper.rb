@@ -141,6 +141,19 @@ module FullTextSearch
   end
 
   class FtsChangeMapper < FtsMapper
+    class PathResolver
+      include ApplicationHelper
+
+      def initialize(repository, path)
+        @repository = repository
+        @path = path
+      end
+
+      def resolve
+        to_path_param(@repository.relative_path(@path))
+      end
+    end
+
     def title_prefix
       change = redmine_record
       repository = change.changeset.repository
@@ -163,13 +176,14 @@ module FullTextSearch
     def url
       change = redmine_record
       changeset = change.changeset
+      repository = changeset.repository
       {
         controller: "repositories",
         action: "entry",
         id: @record.project_id,
-        repository_id: changeset.repository.identifier_param,
+        repository_id: repository.identifier_param,
         rev: changeset.identifier,
-        path: change.path.gsub(/\A\//, ""),
+        path: PathResolver.new(repository, change.path).resolve,
       }
     end
   end
