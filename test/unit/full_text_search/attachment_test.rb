@@ -134,10 +134,11 @@ module FullTextSearch
     end
 
     def format_log_message(message, context, error_message=nil)
+      fts_target_id = context[:fts_target].id
       formatted_message = "[full-text-search][text-extract] "
       formatted_message << "#{message}: "
-      formatted_message << "FullTextSearch::Target: #{context[:fts_target].id}: "
-      formatted_message << "Attachment: #{context[:attachment].id}: "
+      formatted_message << "FullTextSearch::Target: <#{fts_target_id}>: "
+      formatted_message << "Attachment: <#{context[:attachment].id}>: "
       formatted_message << "path: <#{context[:path]}>: "
       formatted_message << "content-type: <#{context[:content_type]}>"
       formatted_message << ": #{error_message}" if error_message
@@ -162,11 +163,6 @@ module FullTextSearch
       error_message = "ChupaText::EncryptedError: " +
                       "Encrypted data: <#{path}>(#{content_type})"
       assert_equal([
-                     [
-                       :info,
-                       format_log_message("Extracting...",
-                                          context),
-                     ],
                      [
                        :error,
                        format_log_message("Failed to extract text",
@@ -198,11 +194,6 @@ module FullTextSearch
       assert_equal([
                      "こん",
                      [
-                       [
-                         :info,
-                         format_log_message("Extracting...",
-                                            context),
-                       ],
                        [
                          :info,
                          format_log_message("Extracted",
