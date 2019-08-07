@@ -4,8 +4,6 @@ module FullTextSearch
   class SearchControllerTest < Redmine::ControllerTest
     include PrettyInspectable
 
-    include GroongaCommandExecutable
-
     tests SearchController
 
     fixtures :attachments
@@ -36,7 +34,6 @@ module FullTextSearch
       Target.destroy_all
       batch_runner = BatchRunner.new(show_progress: false)
       batch_runner.synchronize
-      execute_groonga_command("plugin_register functions/vector")
       @user = User.admin.first
       @request.session[:user_id] = @user.id
       @search_id = "2.9"

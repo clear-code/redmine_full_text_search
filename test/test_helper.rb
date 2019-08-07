@@ -153,22 +153,6 @@ module TimeValue
   end
 end
 
-module GroongaCommandExecutable
-  include FullTextSearchBackend
-
-  def execute_groonga_command(*args)
-    if mroonga?
-      function = "mroonga_command"
-    else
-      function = "pgroonga_command"
-    end
-    connection = ActiveRecord::Base.connection
-    sql = ActiveRecord::Base.__send__(:sanitize_sql_array,
-                                      ["SELECT #{function}(?)", args])
-    connection.select_one(sql)
-  end
-end
-
 class TestLogger
   attr_reader :messages
   def initialize
