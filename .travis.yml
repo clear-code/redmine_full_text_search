@@ -4,10 +4,6 @@ notifications:
 
 dist: xenial
 
-env:
-  global:
-    DISPLAY: ":99.0"
-
 services:
   - docker
 
@@ -93,6 +89,10 @@ before_install:
       --branch ${REDMINE_BRANCH}
       https://github.com/redmine/redmine.git
   - cd redmine
+  - sed
+      -i''
+      -e 's/using: :chrome,/using: :headless_chrome,/g'
+      test/application_system_test_case.rb
   - svnadmin create tmp/test/subversion_repository
   - zcat test/fixtures/repositories/subversion_repository.dump.gz |
       svnadmin load tmp/test/subversion_repository
