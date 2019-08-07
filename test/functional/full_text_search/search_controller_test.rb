@@ -252,7 +252,6 @@ module FullTextSearch
             "changes" => "1",
             "changesets" => "1",
             "documents" => "1",
-            "files" => "1",
             "issues" => "1",
             "limit" => "10",
             "messages" => "1",
@@ -320,58 +319,83 @@ module FullTextSearch
             "search_id" => @search_id,
           }
           expected_search_path = "/projects/#{project.identifier}/search"
+          all = 0
+          n_issues = 0
+          project.issues.each do |issue|
+            n_issues += 1
+            n_issues += issue.journals.count
+            n_issues += issue.attachments.count
+            issue.custom_values.each do |custom_value|
+              n_issues += 1 if custom_value.custom_field.searchable?
+            end
+          end
+          all += n_issues
+          n_news = project.news.count
+          all += n_news
+          n_documents = project.documents.count
+          all += n_documents
+          n_changesets = project.changesets.count
+          all += n_changesets
+          n_wiki_pages = 0
+          project.wiki.pages.each do |page|
+            n_wiki_pages += 1 + page.attachments.count
+          end
+          all += n_wiki_pages
+          n_messages = 0
+          project.boards.each do |board|
+            board.messages.each do |message|
+              n_messages += 1 + message.attachments.count
+            end
+          end
+          all += n_messages
+          n_changes = 0
+          all += n_changes
           assert_equal([
                          [
-                           "All (50)",
+                           "All (#{all})",
                            expected_search_path,
                            common_search_options.merge("changes" => "1",
                                                        "changesets" => "1",
                                                        "documents" => "1",
-                                                       "files" => "1",
                                                        "issues" => "1",
                                                        "messages" => "1",
                                                        "news" => "1",
                                                        "wiki_pages" => "1"),
                          ],
                          [
-                           "Issues (20)",
+                           "Issues (#{n_issues})",
                            expected_search_path,
                            common_search_options.merge("issues" => "1"),
                          ],
                          [
-                           "News (2)",
+                           "News (#{n_news})",
                            expected_search_path,
                            common_search_options.merge("news" => "1"),
                          ],
                          [
-                           "Documents (2)",
+                           "Documents (#{n_documents})",
                            expected_search_path,
                            common_search_options.merge("documents" => "1"),
                          ],
                          [
-                           "Changesets (10)",
+                           "Changesets (#{n_changesets})",
                            expected_search_path,
                            common_search_options.merge("changesets" => "1"),
                          ],
                          [
-                           "Wiki pages (9)",
+                           "Wiki pages (#{n_wiki_pages})",
                            expected_search_path,
                            common_search_options.merge("wiki_pages" => "1"),
                          ],
                          [
-                           "Messages (7)",
+                           "Messages (#{n_messages})",
                            expected_search_path,
                            common_search_options.merge("messages" => "1"),
                          ],
                          [
-                           "Changes (0)",
+                           "Changes (#{n_changes})",
                            expected_search_path,
                            common_search_options.merge("changes" => "1"),
-                         ],
-                         [
-                           "Files (0)",
-                           expected_search_path,
-                           common_search_options.merge("files" => "1"),
                          ],
                        ],
                        items)

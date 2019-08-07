@@ -11,7 +11,6 @@ end
 
 Redmine::Search.map do |search|
   search.register :changes
-  search.register :files
 end
 
 autoload_paths = [
