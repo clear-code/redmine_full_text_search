@@ -800,7 +800,7 @@ Reply to the <span class="keyword">first</span> <span class="keyword">post</span
     class WikiPageTest < self
       def search(query, api: false)
         get :index,
-            params: {"q" => "cookbook gzipped", "wiki_pages" => "1"},
+            params: {"q" => query, "wiki_pages" => "1"},
             api: api
       end
 
@@ -808,7 +808,7 @@ Reply to the <span class="keyword">first</span> <span class="keyword">post</span
         messages = [
           WikiPage.find(1),
         ]
-        search("first post")
+        search("cookbook gzipped")
         assert_select("#search-results") do
           assert_equal(format_items(messages),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
@@ -834,7 +834,7 @@ Some updated [[documentation]] here with <span class="keyword">gzipped</span> hi
             },
           ],
         ]
-        search("first post", api: true)
+        search("cookbook gzipped", api: true)
         assert_equal(format_api_results(items),
                      JSON.parse(response.body))
       end
