@@ -38,6 +38,12 @@ redmine_master: &redmine_master
     - bin/rails redmine:plugins:migrate NAME=full_text_search VERSION=0
     - bin/rails redmine:plugins:migrate NAME=full_text_search
 
+addons:
+  apt:
+    packages:
+      - chromium-chromedriver
+      - postgresql-client-11
+
 matrix:
   include:
     - name: "Redmine 4.0 & MySQL"
@@ -57,10 +63,6 @@ matrix:
         - RDBMS_PORT=5432
         - GROONGA_ADAPTER=pgroonga
         - DOCKER_TAG="latest-debian-11"
-      addons:
-        apt:
-          packages:
-            - postgresql-client-11
     - name: "Redmine master & MySQL"
       <<: *redmine_master
       env:
@@ -78,12 +80,9 @@ matrix:
         - RDBMS_PORT=5432
         - GROONGA_ADAPTER=pgroonga
         - DOCKER_TAG="latest-debian-11"
-      addons:
-        apt:
-          packages:
-            - postgresql-client-11
 
 before_install:
+  - sudo apt purge -y google-chrome-stable
   - docker run
       --detach
       -p ${RDBMS_PORT}:${RDBMS_PORT}
