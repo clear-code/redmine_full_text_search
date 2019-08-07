@@ -82,16 +82,17 @@ before_install:
   - docker run
       --detach
       -p ${RDBMS_PORT}:${RDBMS_PORT}
-       groonga/${GROONGA_ADAPTER}:${DOCKER_TAG:-latest}
+      groonga/${GROONGA_ADAPTER}:${DOCKER_TAG:-latest}
   - cd ..
   - git clone
       --depth 1
       --branch ${REDMINE_BRANCH}
       https://github.com/redmine/redmine.git
   - cd redmine
-  - sed
-      -i''
-      -e 's/using: :chrome,/using: :headless_chrome,/g'
+  - |
+    sed \
+      -i'' \
+      -e 's/using: :chrome,/using: :headless_chrome,/g' \
       test/application_system_test_case.rb
   - svnadmin create tmp/test/subversion_repository
   - zcat test/fixtures/repositories/subversion_repository.dump.gz |
