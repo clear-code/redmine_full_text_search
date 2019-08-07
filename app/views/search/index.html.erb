@@ -26,7 +26,7 @@
       <%= form.search_field "q",
                             id: "search-input",
                             name: "q" %>
-      <%= form.button type: "submit" do %>
+      <%= form.button type: "submit", id: "search-submit" do %>
         <i class="fas fa-search"></i>
       <% end %>
     </p>
@@ -74,6 +74,9 @@
     </fieldset>
     <%= form.hidden_field "options", id: "show-options", name: "options" %>
     <%= form.hidden_field "search_id", name: "search_id" %>
+    <% @search_request.target_search_types.each do |type| %>
+      <%= form.hidden_field type, name: type %>
+    <% end %>
   </div>
 <% end %>
 
@@ -149,12 +152,14 @@
         <li>
           <%= link_to("#{l(:label_result_all)} (#{@result_set.total_n_hits})",
                       url_for(@search_request.to_params(types: :all)),
+                      id: "search-target-all",
                       class: @search_request.target?(:all) ? "selected" : "") %>
         </li>
         <% @search_request.search_types.each do |type| %>
           <li>
             <%= link_to("#{type_label(type)} (#{@result_set.source_drilldown(type)})",
                         url_for(@search_request.to_params(types: [type])),
+                        id: "search-target-#{type.gsub(/_/, "-")}",
                         class: @search_request.target?(type) ? "selected" : "") %>
           </li>
         <% end %>

@@ -4,6 +4,10 @@ notifications:
 
 dist: xenial
 
+env:
+  global:
+    DISPLAY: ":99.0"
+
 services:
   - docker
 
@@ -21,12 +25,26 @@ redmine_4_0: &redmine_4_0
     - bin/rails redmine:plugins:migrate NAME=full_text_search VERSION=0
     - bin/rails redmine:plugins:migrate NAME=full_text_search
 
+redmine_master: &redmine_master
+  install:
+    - bundle install
+    - bin/rails db:create
+    - bin/rails generate_secret_token
+    - bin/rails db:migrate
+    - bin/rails redmine:load_default_data REDMINE_LANG=en
+    - bin/rails redmine:plugins:migrate
+  script:
+    - RAILS_ENV=test bin/rails redmine:plugins:test
+    - bin/rails redmine:plugins:migrate NAME=full_text_search VERSION=0
+    - bin/rails redmine:plugins:migrate NAME=full_text_search
+
 matrix:
   include:
     - name: "Redmine 4.0 & MySQL"
       <<: *redmine_4_0
       env:
         - REDMINE_VERSION=4.0
+        - REDMINE_BRANCH=4.0-stable
         - RDBMS=mysql
         - RDBMS_PORT=3306
         - GROONGA_ADAPTER=mroonga
@@ -34,6 +52,28 @@ matrix:
       <<: *redmine_4_0
       env:
         - REDMINE_VERSION=4.0
+        - REDMINE_BRANCH=4.0-stable
+        - RDBMS=postgresql
+        - RDBMS_PORT=5432
+        - GROONGA_ADAPTER=pgroonga
+        - DOCKER_TAG="latest-debian-11"
+      addons:
+        apt:
+          packages:
+            - postgresql-client-11
+    - name: "Redmine master & MySQL"
+      <<: *redmine_master
+      env:
+        - REDMINE_VERSION=master
+        - REDMINE_BRANCH=master
+        - RDBMS=mysql
+        - RDBMS_PORT=3306
+        - GROONGA_ADAPTER=mroonga
+    - name: "Redmine master & PostgreSQL"
+      <<: *redmine_master
+      env:
+        - REDMINE_VERSION=master
+        - REDMINE_BRANCH=master
         - RDBMS=postgresql
         - RDBMS_PORT=5432
         - GROONGA_ADAPTER=pgroonga
@@ -51,7 +91,7 @@ before_install:
   - cd ..
   - git clone
       --depth 1
-      --branch ${REDMINE_VERSION}-stable
+      --branch ${REDMINE_BRANCH}
       https://github.com/redmine/redmine.git
   - cd redmine
   - svnadmin create tmp/test/subversion_repository
