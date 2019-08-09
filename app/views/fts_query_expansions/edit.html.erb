@@ -1,0 +1,12 @@
+<div class="contextual">
+  <%= link_to(t("fts_query_expansions.index.title"),
+              fts_query_expansions_path,
+              class: "icon icon-list") %>
+</div>
+
+<%= title t(".title") %>
+
+<%= labelled_form_for @query_expansion do |f| %>
+<%= render :partial => 'form', locals: {f: f} %>
+<%= submit_tag l(:button_save) %>
+<% end %>

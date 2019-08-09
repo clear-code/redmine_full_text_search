@@ -16,6 +16,18 @@ module FullTextSearch
         response
       end
 
+      def build_expand_query_sql_part(query)
+        [
+          "mroonga_query_expand(?, ?, ?, ?) AS query",
+          [
+            table_name,
+            source_column_name,
+            destination_column_name,
+            query,
+          ],
+        ]
+      end
+
       def time_offset
         @time_offset ||= compute_time_offset
       end
@@ -43,14 +55,25 @@ SHOW VARIABLES LIKE 'mroonga_libgroonga_version';
       private
       def build_sql(command)
         arguments = [command.command_name]
+        placeholders = ["?"]
         command["table"] = table_name
         command.arguments.each do |name, value|
           next if value.blank?
+          placeholders << "?"
           arguments << name
-          arguments << value
+          if name == :query
+            expand_query_sql_part =
+              FtsQueryExpansion.build_expand_query_sql_part(value)
+            placeholders << expand_query_sql_part[0]
+            arguments.concat(expand_query_sql_part[1])
+          else
+            placeholders << "?"
+            arguments << value
+          end
         end
-        placeholders = (["?"] * arguments.size).join(", ")
-        sql_template = "SELECT mroonga_command(#{placeholders})"
+        sql_template = <<-SELECT
+SELECT mroonga_command(#{placeholders.join(", ")})
+        SELECT
         sanitize_sql([sql_template, *arguments])
       end
 

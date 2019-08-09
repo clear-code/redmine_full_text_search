@@ -1,0 +1,27 @@
+.query-expansion-input-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+
+.query-expansion-input-box input,
+.query-expansion-input-box button {
+  border: 1px solid #bbbbbb;
+  height: 32px;
+  padding: 8px;
+  margin: 0px;
+}
+
+.query-expansion-input-box input {
+  flex-basis: 100%;
+}
+
+.query-expansion-input-box button {
+  border-left-width: 0;
+  cursor: pointer;
+}
+
+.query-expansion-input-box button:hover {
+  background: #169;
+}

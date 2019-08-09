@@ -1,0 +1,103 @@
+<% content_for :header_tags do %>
+  <%= javascript_include_tag "query_expansions", plugin: "full_text_search" %>
+  <%= stylesheet_link_tag "query_expansions", plugin: "full_text_search" %>
+  <% fontawesome_prefix = "fontawesome-free-5.8.2-web" %>
+  <%= stylesheet_link_tag "#{fontawesome_prefix}/css/all.css",
+                          plugin: "full_text_search" %>
+<% end %>
+
+<div class="contextual">
+  <%= link_to(t("fts_query_expansions.new.title"),
+              new_fts_query_expansion_path,
+              class: "icon icon-add") %>
+</div>
+
+<%= title t(".title") %>
+
+<%= form_with(model: @request,
+              method: :get,
+              url: url_for,
+              id: "query-expansion-form") do |form| %>
+  <fieldset>
+    <legend><%= l(:label_filter_plural) %></legend>
+    <p class="query-expansion-input-box">
+      <%= form.label "query-expansion-input",
+                     l(:description_search),
+                     :class => "hidden-for-sighted" %>
+      <%= form.search_field "query",
+                            id: "query-expansion-input",
+                            class: "autocomplete",
+                            name: "query",
+                            autocomplete: "off" %>
+      <%= form.button type: "submit", id: "query-expansion-submit" do %>
+        <i class="fas fa-search"></i>
+      <% end %>
+    </p>
+  </fieldset>
+<% end %>
+
+<h3><%= t(".result") %></h3>
+<div class="box">
+  <div id="query-expansion-result"></div>
+</div>
+
+<%= javascript_tag do %>
+observeIncrementalSearch("#query-expansion-input",
+                         function($element, value) {
+  $.ajax({
+    url: "<%= escape_javascript(fts_query_expand_path) %>",
+    type: "get",
+    data: {"query": value},
+    success: function(data) {
+      $("#query-expansion-result").html(data);
+    },
+    beforeSend: function() {
+      $element.addClass("ajax-loading");
+    },
+    complete: function() {
+      $element.removeClass("ajax-loading");
+    }
+  });
+});
+<% end %>
+
+<% if @expansions.empty? %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
+  <table class="list">
+    <thead>
+      <tr>
+        <%= sort_header_tag("source",
+                            caption: FtsQueryExpansion.human_attribute_name("source"),
+                            default_order: "asc") %>
+        <%= sort_header_tag("destination",
+                            caption: FtsQueryExpansion.human_attribute_name("destination"),
+                            default_order: "asc") %>
+        <%= sort_header_tag("created_at",
+                            caption: l(:field_created_on),
+                            default_order: "desc") %>
+        <%= sort_header_tag("updated_at",
+                            caption: l(:field_updated_on),
+                            default_order: "desc") %>
+        <th colspan="3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @expansions.each do |expansion| %>
+        <tr>
+          <td><%= expansion.source %></td>
+          <td><%= expansion.destination %></td>
+          <td><%= format_time(expansion.created_at) %></td>
+          <td><%= format_time(expansion.updated_at) %></td>
+          <td><%= link_to(l(:button_view), expansion) %></td>
+          <td><%= link_to(l(:button_edit),
+                          edit_fts_query_expansion_path(expansion),
+                          class: "icon icon-edit") %></td>
+          <td><%= delete_link(expansion) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<span class="pagination"><%= pagination_links_full(@paginator, @n_expansions) %></span>

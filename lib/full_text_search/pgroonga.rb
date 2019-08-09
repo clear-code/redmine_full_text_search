@@ -9,6 +9,18 @@ module FullTextSearch
         Groonga::Client::Response.parse(command, raw_response)
       end
 
+      def build_expand_query_sql_part(query)
+        [
+          "pgroonga_query_expand(?, ?, ?, ?)",
+          [
+            table_name,
+            source_column_name,
+            destination_column_name,
+            query,
+          ],
+        ]
+      end
+
       def time_offset
         @time_offset ||= compute_time_offset
       end
@@ -30,6 +42,7 @@ SHOW pgroonga.libgroonga_version;
       private
       def build_sql(command)
         arguments = []
+        placeholders = []
         command["table"] = "pgroonga_table_name('#{pgroonga_index_name}')"
         if command["filter"].present?
           command["filter"] += " && pgroonga_tuple_is_alive(ctid)"
@@ -39,13 +52,26 @@ SHOW pgroonga.libgroonga_version;
         command.arguments.each do |name, value|
           next if value.blank?
           next if name == :table
+          placeholders << "?"
           arguments << name
-          arguments << value
+          if name == :query
+            expand_query_sql_part =
+              FtsQueryExpansion.build_expand_query_sql_part(value)
+            placeholders << expand_query_sql_part[0]
+            arguments.concat(expand_query_sql_part[1])
+          else
+            placeholders << "?"
+            arguments << value
+          end
         end
-        placeholders = (["?"] * arguments.size).join(", ")
-        sql_template = "SELECT pgroonga_command(?, ARRAY["
-        sql_template << "'table', #{command["table"]}, "
-        sql_template << "#{placeholders}])"
+        sql_template = <<-SELECT
+SELECT pgroonga_command(?,
+  ARRAY[
+    'table', #{command["table"]},
+    #{placeholders.join(", ")}
+  ]
+)
+        SELECT
         sanitize_sql([sql_template,
                       command.command_name,
                       *arguments])

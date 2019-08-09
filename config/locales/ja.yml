@@ -20,3 +20,21 @@ ja:
     full_text_search:
       drilldown:
         deselect: 解除
+      menu:
+        query_expansions:
+          plural: クエリー展開一覧
+
+  fts_query_expansions:
+    index:
+      title: クエリー展開一覧
+      result: クエリー展開結果
+    show:
+      title: クエリー展開
+    new:
+      title: 新しいクエリー展開
+
+  activerecord:
+    attributes:
+      fts_query_expansion:
+        source: 展開元
+        destination: 展開先

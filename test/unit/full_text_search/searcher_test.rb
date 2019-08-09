@@ -56,5 +56,21 @@ module FullTextSearch
       assert_equal(@project.issues.open(false).order(:id).to_a,
                    diff_targets.collect(&:source_record).sort_by(&:id))
     end
+
+    def test_query_expansion
+      FtsQueryExpansion.create!(source: "press", destination: "press")
+      FtsQueryExpansion.create!(source: "press", destination: "print")
+      parameters = {
+        q: "press",
+      }
+      press_or_print_targets = search(parameters).records
+      print_issues = @project
+                       .issues
+                       .where("description LIKE '%print%'")
+                       .order(:id)
+                       .to_a
+      assert_equal(print_issues,
+                   press_or_print_targets.collect(&:source_record).sort_by(&:id))
+    end
   end
 end

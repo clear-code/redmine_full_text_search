@@ -20,3 +20,21 @@ en:
     full_text_search:
       drilldown:
         deselect: Deselect
+      menu:
+        query_expansions:
+          plural: Query expansions
+
+  fts_query_expansions:
+    index:
+      title: Query expansions
+      result: Expanded query
+    show:
+      title: Query expansion
+    new:
+      title: New query expansion
+
+  activerecord:
+    attributes:
+      fts_query_expansion:
+        source: Source
+        destination: Destination

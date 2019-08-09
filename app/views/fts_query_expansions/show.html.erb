@@ -1,0 +1,26 @@
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag "query_expansions", :plugin => "full_text_search" %>
+  <% fontawesome_prefix = "fontawesome-free-5.8.2-web" %>
+  <%= stylesheet_link_tag "#{fontawesome_prefix}/css/all.css",
+                          :plugin => "full_text_search" %>
+<% end %>
+
+<div class="contextual">
+  <%= link_to(t("fts_query_expansions.index.title"),
+              fts_query_expansions_path,
+              class: "icon icon-list") %>
+  <%= link_to(l(:button_edit),
+              edit_fts_query_expansion_path(@query_expansion),
+              class: "icon icon-edit",
+              accesskey: accesskey(:edit)) %>
+  <%= delete_link(@query_expansion) %>
+</div>
+
+<%= title("#{t(".title")} \##{@query_expansion.id}") %>
+
+<dl class="list">
+  <dt><%= FtsQueryExpansion.human_attribute_name("from") %></dt>
+  <dd><%= @query_expansion.from %></dd>
+  <dt><%= FtsQueryExpansion.human_attribute_name("to") %></dt>
+  <dd><%= @query_expansion.to %></dd>
+</dl>
