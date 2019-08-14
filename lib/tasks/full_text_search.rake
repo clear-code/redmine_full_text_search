@@ -81,4 +81,13 @@ namespace :full_text_search do
       wait_queue.call
     end
   end
+
+  namespace :query_expansion do
+    desc "Synchronize query expansion data"
+    task :synchronize => :environment do
+      input = ENV["INPUT"] || $stdin
+      synchronizer = FullTextSearch::QueryExpansionSynchronizer.new(input)
+      synchronizer.synchronize
+    end
+  end
 end
