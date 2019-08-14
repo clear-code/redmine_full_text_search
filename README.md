@@ -93,6 +93,85 @@ $ RAILS_ENV=production bin/rails full_text_search:synchronize
 ...
 ```
 
+### Synchronize query expansion list
+
+This plugin supports query expansion. You can use this feature to
+implement synonym search.
+
+You can administrate query expansion list by Web UI in administration
+page or data file.
+
+You can use the following format for data file:
+
+  * CSV
+  * JSON
+
+If you use CSV, use the following format:
+
+```csv
+SOURCE1,DESTINATION1
+SOURCE2,DESTINATION2
+...
+```
+
+Example:
+
+```csv
+MySQL,MySQL
+MySQL,MariaDB
+MariaDB,MySQL
+MariaDB,MariaDB
+```
+
+If you use JSON, use one of the following formats:
+
+```json
+[
+["SOURCE1", "DESTINATION1"],
+["SOURCE2", "DESTINATION2"],
+...
+]
+```
+
+```json
+[
+{"source": "SOURCE1", "destination": "DESTINATION1"},
+{"source": "SOURCE2", "destination": "DESTINATION2"},
+...
+]
+```
+
+Examples:
+
+```json
+[
+["MySQL",   "MySQL"],
+["MySQL",   "MariaDB"],
+["MariaDB", "MySQL"],
+["MariaDB", "MariaDB"]
+]
+```
+
+```json
+[
+{"source": "MySQL",   "destination": "MySQL"},
+{"source": "MySQL",   "destination": "MariaDB"},
+{"source": "MariaDB", "destination": "MySQL"},
+{"source": "MariaDB", "destination": "MariaDB"}
+]
+```
+
+You can synchronize query expansion list with the data file by the
+following command:
+
+```console
+$ cd redmine
+$ RAILS_ENV=production bin/rails full_text_search:query_expansion:synchronize INPUT=query-expansion.csv
+```
+
+You can confirm the current query expansion list in administration
+page.
+
 ## How to recover broken database
 
 ### Mroonga
