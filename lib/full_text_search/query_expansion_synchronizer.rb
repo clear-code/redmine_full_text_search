@@ -1,3 +1,6 @@
+require "csv"
+require "json"
+
 module FullTextSearch
   class QueryExpansionSynchronizer
     def initialize(input)
