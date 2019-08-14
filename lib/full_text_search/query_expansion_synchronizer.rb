@@ -10,9 +10,9 @@ module FullTextSearch
         attributes = {
           source: record["source"],
           destination: record["destination"],
-          updated_at: Time.current,
         }
         query_expansion = FtsQueryExpansion.find_or_initialize_by(attributes)
+        query_expansion.updated_at = Time.current
         unless query_expansion.save
           Rails.logger.warn("#{log_tag} failed to save:")
           query_expansion.errors.full_messages.each do |message|
