@@ -36,7 +36,7 @@ module FullTextSearch
                                 "timestamp" => Time.zone.now.iso8601)
         log = "[full-text-search][search] #{context.to_json}"
         Rails.logger.info(log)
-        @result_pages = Redmine::Pagination::Paginator.new(@result_set.count,
+        @result_pages = Redmine::Pagination::Paginator.new(@result_set.n_hits,
                                                            @search_request.limit,
                                                            params["page"])
 

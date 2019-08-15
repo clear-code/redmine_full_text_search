@@ -22,6 +22,7 @@ module FullTextSearch
     fixtures :projects
     fixtures :projects_trackers
     fixtures :repositories
+    fixtures :roles
     fixtures :trackers
     fixtures :users
     fixtures :wiki_contents
@@ -42,6 +43,14 @@ module FullTextSearch
       click_on("search-submit")
       assert_equal("selected",
                    find(:link, "search-target-wiki-pages")["class"])
+    end
+
+    def test_pagination
+      visit(search_url)
+      click_on("search-target-issues")
+      within(".pagination") do
+        assert_equal("1", find(".current").text)
+      end
     end
   end
 end
