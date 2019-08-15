@@ -17,6 +17,7 @@ module FullTextSearch
     fixtures :issue_statuses
     fixtures :issues
     fixtures :journals
+    fixtures :member_roles
     fixtures :messages
     fixtures :news
     fixtures :projects
