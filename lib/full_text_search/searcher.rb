@@ -29,7 +29,7 @@ module FullTextSearch
       if not_search_type_conditions.empty?
         prefix = ""
       else
-        if Target.slice_drilldown_is_supported?
+        if Target.use_slices?
           prefix = "slices[type_filtered]."
           arguments["#{prefix}filter"] =
             (["all_records()"] + not_search_type_conditions).join(" &! ")

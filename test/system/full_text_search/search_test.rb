@@ -48,8 +48,16 @@ module FullTextSearch
     def test_pagination
       visit(search_url)
       click_on("search-target-issues")
+      within("#search-results") do
+        binding.irb
+        assert_equal(10, all("li").size)
+      end
       within(".pagination") do
         assert_equal("1", find(".current").text)
+        find(".next a").click
+      end
+      within("#search-results") do
+        assert_equal(10, all("li").size)
       end
     end
   end
