@@ -86,26 +86,6 @@ module FullTextSearch
       end
     end
 
-    def visible_project_ids
-      if @request.user.respond_to?(:visible_project_ids)
-        @request.user.visible_project_ids
-      else
-        Project.visible(@request.user).pluck(:id)
-      end
-    end
-
-    def target_project_ids
-      target_projects = @request.target_projects
-      case target_projects
-      when Array
-        target_projects.map(&:id) & visible_project_ids
-      when Project
-        [target_projects.id] & visible_project_ids
-      else
-        visible_project_ids
-      end
-    end
-
     def build_condition(operator, conditions)
       conditions = conditions.compact.collect do |condition|
         if condition.is_a?(Array)
@@ -120,7 +100,7 @@ module FullTextSearch
     end
 
     def filter
-      project_ids = target_project_ids
+      project_ids = @request.target_project_ids
       return nil if project_ids.empty?
 
       user = @request.user
@@ -183,6 +163,27 @@ module FullTextSearch
           "#{not_target_custom_field_ids.join(', ')})"
       end
 
+      @request.target_search_types.each do |search_type|
+        invisible_project_ids =
+          project_ids - @request.viewable_project_ids(search_type)
+        next unless invisible_project_ids.present?
+
+        source_type_id = Type[search_type].id
+        sub_conditions = []
+        sub_conditions << "("
+        sub_conditions <<
+          "in_values(project_id, #{invisible_project_ids.join(', ')})"
+        sub_conditions << "&&"
+        sub_conditions << "("
+        sub_conditions << "source_type_id == #{source_type_id}"
+        sub_conditions << "||"
+        sub_conditions << "container_type_id == #{source_type_id}"
+        sub_conditions << ")"
+        sub_conditions << ")"
+        conditions << "&!"
+        conditions << sub_conditions.join(" ")
+      end
+
       conditions.join(" ")
     end
 
@@ -198,30 +199,6 @@ module FullTextSearch
         not_search_type_id = Type[not_search_type].id
         conditions << "source_type_id == #{not_search_type_id}"
         conditions << "container_type_id == #{not_search_type_id}"
-      end
-
-      project_ids = target_project_ids
-      if project_ids.present?
-        user = @request.user
-        @request.target_search_types.each do |search_type|
-          invisible_project_ids =
-            project_ids - Project.allowed_to(user, :view_issues).pluck(:id)
-          next unless invisible_project_ids.present?
-
-          source_type_id = Type[search_type].id
-          sub_conditions = []
-          sub_conditions << "("
-          sub_conditions <<
-            "in_values(project_id, #{invisible_project_ids.join(', ')})"
-          sub_conditions << "&&"
-          sub_conditions << "("
-          sub_conditions << "source_type_id == #{source_type_id}"
-          sub_conditions << "||"
-          sub_conditions << "container_type_id == #{source_type_id}"
-          sub_conditions << ")"
-          sub_conditions << ")"
-          conditions << sub_conditions.join(" ")
-        end
       end
 
       conditions

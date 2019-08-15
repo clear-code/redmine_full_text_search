@@ -64,16 +64,11 @@ module FullTextSearch
     end
 
     def target_projects
-      case scope
-      when "all"
-        nil
-      when "my_projects"
-        user.projects
-      when "subprojects"
-        @project ? (@project.self_and_descendants.active.to_a) : nil
-      else
-        @project
-      end
+      @target_projects ||= compute_target_projects
+    end
+
+    def target_project_ids
+      @target_project_ids ||= compute_target_project_ids
     end
 
     def choose_one_project?
@@ -156,6 +151,11 @@ module FullTextSearch
       end
     end
 
+    def viewable_project_ids(type)
+      viewable_projects = Project.allowed_to(user, resolve_permission(type))
+      viewable_projects.pluck(:id)
+    end
+
     def tag_drilldown?(tag_type_id)
       each_tag.any? do |tag|
         tag.type_id == tag_type_id
@@ -163,23 +163,51 @@ module FullTextSearch
     end
 
     private
+    def compute_target_projects
+      case scope
+      when "all"
+        nil
+      when "my_projects"
+        user.projects
+      when "subprojects"
+        @project ? (@project.self_and_descendants.active.to_a) : nil
+      else
+        @project
+      end
+    end
+
+    def compute_target_project_ids
+      projects = target_projects
+      case projects
+      when Array
+        target_projects.map(&:id) & user.visible_project_ids
+      when Project
+        [target_projects.id] & user.visible_project_ids
+      else
+        user.visible_project_ids
+      end
+    end
+
+    def resolve_permission(type)
+      case type
+      when "changes"
+        allow_type = "changesets"
+      when "journals"
+        allow_type = "issues"
+      else
+        allow_type = type
+      end
+      :"view_#{allow_type}"
+    end
+
     def compute_search_types
       types = Redmine::Search.available_search_types.dup
       return types unless choose_one_project?
 
       project = target_projects
       types.delete("projects")
-      u = user
       types.select do |type|
-        case type
-        when "changes"
-          allow_type = "changesets"
-        when "journals"
-          allow_type = "issues"
-        else
-          allow_type = type
-        end
-        u.allowed_to?(:"view_#{allow_type}", project)
+        user.allowed_to?(resolve_permission(type), project)
       end
     end
 

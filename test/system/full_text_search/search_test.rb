@@ -45,11 +45,24 @@ module FullTextSearch
                    find(:link, "search-target-wiki-pages")["class"])
     end
 
+    def test_no_pagination
+      subproject1 = Project.find("subproject1")
+      visit(url_for(controller: "search",
+                    action: "index",
+                    id: subproject1.identifier))
+      click_on("search-target-issues")
+      within("#search-results") do
+        assert_equal(2, all("li").size)
+      end
+      within(".pagination") do
+        assert_equal([], all("li").to_a)
+      end
+    end
+
     def test_pagination
       visit(search_url)
       click_on("search-target-issues")
       within("#search-results") do
-        binding.irb
         assert_equal(10, all("li").size)
       end
       within(".pagination") do
