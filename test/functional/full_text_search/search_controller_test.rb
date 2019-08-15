@@ -40,7 +40,7 @@ module FullTextSearch
     end
 
     def adjust_slice_score(score)
-      if Target.slice_drilldown_is_supported?
+      if Target.use_slices?
         score + 1
       else
         score
