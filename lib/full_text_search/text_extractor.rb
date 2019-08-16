@@ -36,6 +36,7 @@ module FullTextSearch
           text << body
           if text.bytesize >= @max_size
             text = text.byteslice(0, @max_size)
+            text.scrub!("")
             break
           end
         end
