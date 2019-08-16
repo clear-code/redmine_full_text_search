@@ -25,6 +25,7 @@ class CreateFtsQueryExpansions < ActiveRecord::Migration[5.2]
                 using: "PGroonga",
                 name: "fts_query_expansions_index_pgroonga"
       end
+      t.index :updated_at
     end
   end
 end
