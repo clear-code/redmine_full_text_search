@@ -29,6 +29,8 @@ module FullTextSearch
         self.class.extractor.extract(data) do |extracted|
           body = extracted.body
           extracted.release
+          body.scrub!("")
+          body.gsub!("\u0000", "")
           next if body.empty?
           text << "\n" unless text.empty?
           text << body
@@ -40,7 +42,6 @@ module FullTextSearch
       ensure
         data.release
       end
-      text.scrub!("")
       text
     end
 

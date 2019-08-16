@@ -207,6 +207,36 @@ module FullTextSearch
                    ])
     end
 
+    def test_have_null
+      filename = "have-null.txt"
+      file = fixture_file_upload(fixture_file_path(filename), "text/plain")
+      attachment = nil
+      messages = capture_log do
+        attachment = Attachment.generate!(file: file)
+      end
+      target = attachment.to_fts_target
+      context = {
+        attachment: attachment,
+        fts_target: target,
+        path: attachment.diskfile,
+        content_type: "text/plain",
+      }
+      assert_equal([
+                     "AB\n",
+                     [
+                       [
+                         :info,
+                         format_log_message("Extracted",
+                                            context),
+                       ],
+                     ],
+                   ],
+                   [
+                     target.content,
+                     messages,
+                   ])
+    end
+
     def test_server_url
       setup_server
       filename = "one-page.pdf"
