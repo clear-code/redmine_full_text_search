@@ -8,7 +8,7 @@ module FullTextSearch
     end
 
     def synchronize
-      start = Time.current - 1
+      start = Time.current.change(usec: 0)
       each_record do |record|
         attributes = {
           source: record["source"],
