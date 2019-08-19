@@ -1,7 +1,11 @@
 module FullTextSearch
   class SimilarWordsFilter
+    attr_accessor :cosine_threshold
+    attr_accessor :engine
+    attr_accessor :sentence_piece_space
     def initialize
-      @cosign_threshold = 0.95
+      @cosine_threshold = 0.99
+      @engine = nil
       @sentence_piece_space = "▁"
     end
 
@@ -32,7 +36,11 @@ module FullTextSearch
       return false if destination.downcase.include?(source.downcase)
 
       cosine = record["cosine"]
-      if cosine and cosine < cosine_threshold
+      if cosine and cosine < @cosine_threshold
+        return false
+      end
+
+      if @engine and record["engine"] != @engine
         return false
       end
 

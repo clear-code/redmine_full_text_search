@@ -4,8 +4,11 @@ module FullTextSearch
   class SimilarWordsFilterTest < ActiveSupport::TestCase
     include PrettyInspectable
 
-    def filter(records)
+    def filter(records, options={})
       filter = SimilarWordsFilter.new
+      options.each do |key, value|
+        filter.__send__("#{key}=", value)
+      end
       filter.run(records)
     end
 
@@ -99,6 +102,29 @@ module FullTextSearch
                               "destination" => "PGroonga",
                             }
                           ]))
+    end
+
+    def test_ignore_cosine_threshold
+      assert_equal([],
+                   filter([
+                            {
+                              "source" => "Groonga",
+                              "destination" => "Mroonga",
+                              "cosine" => 0.1,
+                            }
+                          ]))
+    end
+
+    def test_ignore_engine
+      assert_equal([],
+                   filter([
+                            {
+                              "source" => "Groonga",
+                              "destination" => "Mroonga",
+                              "engine" => "BERT",
+                            }
+                          ],
+                          engine: "fastText"))
     end
   end
 end
