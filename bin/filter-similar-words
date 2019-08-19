@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require "optparse"
+require "json"
+
+config_dir = File.expand_path("../../../../config",  __FILE__)
+APP_PATH = File.join(config_dir, "application")
+require APP_PATH
+Rails.application.require_environment!
+
+plugin = Redmine::Plugin.find(:full_text_search)
+
+parser = OptionParser.new
+parser.version = plugin.version
+
+filter = FullTextSearch::SimilarWordsFilter.new
+filtered_records = filter.run(JSON.parse(ARGF.read))
+puts(JSON.pretty_generate(filtered_records))
