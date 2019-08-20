@@ -94,16 +94,6 @@ module FullTextSearch
                           ]))
     end
 
-    def test_ignore_destination_include_source
-      assert_equal([],
-                   filter([
-                            {
-                              "source" => "Groonga",
-                              "destination" => "PGroonga",
-                            }
-                          ]))
-    end
-
     def test_ignore_cosine_threshold
       assert_equal([],
                    filter([

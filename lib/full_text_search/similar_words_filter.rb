@@ -37,7 +37,6 @@ module FullTextSearch
       return false if destination.size == 1
       return false if ignore_character_only?(source)
       return false if ignore_character_only?(destination)
-      return false if destination.downcase.include?(source.downcase)
 
       cosine = record["cosine"]
       if cosine and cosine < @cosine_threshold
