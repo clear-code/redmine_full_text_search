@@ -26,13 +26,17 @@ module FullTextSearch
       word.gsub(@sentence_piece_space, " ").strip
     end
 
+    def ignore_character_only?(word)
+      /\A[\p{Number}\p{Punctuation}\p{Symbol}]*\z/.match?(word)
+    end
+
     def target?(source, destination, record)
       return false if source.include?(" ")
       return false if destination.include?(" ")
       return false if source.size == 1
       return false if destination.size == 1
-      return false if /\A[\p{Number}\p{Punctuation}]*\z/.match?(source)
-      return false if /\A[\p{Number}\p{Punctuation}]*\z/.match?(destination)
+      return false if ignore_character_only?(source)
+      return false if ignore_character_only?(destination)
       return false if destination.downcase.include?(source.downcase)
 
       cosine = record["cosine"]

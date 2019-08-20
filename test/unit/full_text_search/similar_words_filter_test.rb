@@ -74,22 +74,22 @@ module FullTextSearch
                           ]))
     end
 
-    def test_ignore_source_number_punctuation_only
+    def test_ignore_source_number_punctuation_symbol_only
       assert_equal([],
                    filter([
                             {
-                              "source" => "(12.3)",
+                              "source" => "(+12.3)",
                               "destination" => "count",
                             }
                           ]))
     end
 
-    def test_ignore_destination_number_punctuation_only
+    def test_ignore_destination_number_punctuation_symbol_only
       assert_equal([],
                    filter([
                             {
                               "source" => "count",
-                              "destination" => "(12.3)",
+                              "destination" => "(+12.3)",
                             }
                           ]))
     end
