@@ -94,6 +94,56 @@ module FullTextSearch
                           ]))
     end
 
+    def test_generate_destination_include_source_ascii_only
+      assert_equal([
+                     {"source"=>"groonga",  "destination"=>"groonga"},
+                     {"source"=>"groonga",  "destination"=>"pgroonga"},
+                     {"source"=>"pgroonga", "destination"=>"groonga"},
+                     {"source"=>"pgroonga", "destination"=>"pgroonga"},
+                   ],
+                   filter([
+                            {
+                              "source" => "Groonga",
+                              "destination" => "PGroonga",
+                            }
+                          ]))
+    end
+
+    def test_generate_source_include_destination_ascii_only
+      assert_equal([
+                     {"source"=>"groonga",  "destination"=>"groonga"},
+                     {"source"=>"groonga",  "destination"=>"pgroonga"},
+                     {"source"=>"pgroonga", "destination"=>"groonga"},
+                     {"source"=>"pgroonga", "destination"=>"pgroonga"},
+                   ],
+                   filter([
+                            {
+                              "source" => "PGroonga",
+                              "destination" => "Groonga",
+                            }
+                          ]))
+    end
+
+    def test_ignore_destination_include_source_multibyte
+      assert_equal([],
+                   filter([
+                            {
+                              "source" => "Groongaは",
+                              "destination" => "Groonga",
+                            }
+                          ]))
+    end
+
+    def test_ignore_source_include_destination_multibyte
+      assert_equal([],
+                   filter([
+                            {
+                              "source" => "Groonga",
+                              "destination" => "Groongaは",
+                            }
+                          ]))
+    end
+
     def test_ignore_cosine_threshold
       assert_equal([],
                    filter([

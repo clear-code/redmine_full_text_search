@@ -34,6 +34,14 @@ module FullTextSearch
       /\A[\p{Number}\p{Punctuation}\p{Symbol}]*\z/.match?(word)
     end
 
+    def multibyte_word?(word)
+      not word.ascii_only?
+    end
+
+    def sub_word?(word1, word2)
+      word1.include?(word2) or word2.include?(word1)
+    end
+
     def target?(source, destination, record)
       return false if source.include?(" ")
       return false if destination.include?(" ")
@@ -41,6 +49,9 @@ module FullTextSearch
       return false if destination.size == 1
       return false if ignore_character_only?(source)
       return false if ignore_character_only?(destination)
+      if multibyte_word?(source) or multibyte_word?(destination)
+        return false if sub_word?(source, destination)
+      end
 
       cosine = record["cosine"]
       if cosine and cosine < @cosine_threshold
