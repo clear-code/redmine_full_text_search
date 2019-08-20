@@ -54,7 +54,9 @@ module FullTextSearch
       records = []
       expansions.keys.sort.each do |source|
         destinations = expansions[source]
-        ([source] + destinations).uniq.sort.each do |destination|
+        destinations = ([source] + destinations).uniq.sort
+        next if destinations.size == 1
+        destinations.each do |destination|
           record = {
             "source" => source,
             "destination" => destination,
