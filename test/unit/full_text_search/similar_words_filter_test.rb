@@ -14,13 +14,13 @@ module FullTextSearch
 
     def test_generate
       assert_equal([
-                     {"source"=>"Groonga", "destination"=>"Groonga"},
-                     {"source"=>"Groonga", "destination"=>"Mroonga"},
-                     {"source"=>"Groonga", "destination"=>"Rroonga"},
-                     {"source"=>"Mroonga", "destination"=>"Groonga"},
-                     {"source"=>"Mroonga", "destination"=>"Mroonga"},
-                     {"source"=>"Rroonga", "destination"=>"Groonga"},
-                     {"source"=>"Rroonga", "destination"=>"Rroonga"},
+                     {"source"=>"groonga", "destination"=>"groonga"},
+                     {"source"=>"groonga", "destination"=>"mroonga"},
+                     {"source"=>"groonga", "destination"=>"rroonga"},
+                     {"source"=>"mroonga", "destination"=>"groonga"},
+                     {"source"=>"mroonga", "destination"=>"mroonga"},
+                     {"source"=>"rroonga", "destination"=>"groonga"},
+                     {"source"=>"rroonga", "destination"=>"rroonga"},
                    ],
                    filter([
                             {

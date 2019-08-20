@@ -23,7 +23,11 @@ module FullTextSearch
 
     private
     def normalize_word(word)
-      word.gsub(@sentence_piece_space, " ").strip
+      word.
+        gsub(@sentence_piece_space, " ").
+        unicode_normalize(:nfkc).
+        downcase.
+        strip
     end
 
     def ignore_character_only?(word)
