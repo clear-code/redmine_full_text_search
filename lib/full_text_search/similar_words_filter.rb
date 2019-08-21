@@ -42,6 +42,22 @@ module FullTextSearch
       word1.include?(word2) or word2.include?(word1)
     end
 
+    JAPANESE_PARTICLES = [
+      "が",
+      "で",
+      "と",
+      "に",
+      "の",
+      "は",
+      "も",
+      "を",
+    ]
+    def with_japanese_particle?(word)
+      JAPANESE_PARTICLES.any? do |particle|
+        word.start_with?(particle) or word.end_with?(particle)
+      end
+    end
+
     def target?(source, destination, record)
       return false if source.include?(" ")
       return false if destination.include?(" ")
@@ -52,6 +68,10 @@ module FullTextSearch
       if multibyte_word?(source) or multibyte_word?(destination)
         return false if sub_word?(source, destination)
       end
+
+      # TODO: Very heuristic. Remove me.
+      return false if with_japanese_particle?(source)
+      return false if with_japanese_particle?(destination)
 
       cosine = record["cosine"]
       if cosine and cosine < @cosine_threshold
