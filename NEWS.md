@@ -1,5 +1,47 @@
 # Redmine FullTextSearch
 
+## 1.0.3 - 2019-08-23
+
+### Improvements
+
+  * Dropped support for Redmine 3.
+
+  * Changed to use separated job queue.
+
+  * Changed to use job for real time update.
+
+  * Decreased priority for batch upsert jobs.
+
+  * Discarded "record not found" jobs immediately.
+
+  * Improved the number of records in tabs.
+    [GitHub#69][Reported by ryouma-nagare]
+
+  * Added support for query expansion.
+
+### Fixed
+
+  * Fixed a bug that search result order labels are missing.
+    [GitHub#68][Reported by ryouma-nagare]
+
+  * Fixed a bug that link URL for "change" is wrong.
+    [Reported by Shimadzu Corporation]
+
+  * Fixed a bug that pagination is broken.
+    [GitHub#70][Reported by a9zawa]
+
+  * Fixed a bug that extracted text that includes null character can't
+    be inserted.
+    [GitHub#71][Reported by a9zawa]
+
+### Thanks
+
+  * ryouma-nagare
+
+  * Shimadzu Corporation
+
+  * a9zawa
+
 ## 1.0.2 - 2019-07-09
 
 ### Improvements
@@ -29,6 +71,10 @@
 
   * Fixed a bug that uninstalling is failed.
     [GitHub#67][Reported by ryouma-nagare]
+
+### Thanks
+
+  * ryouma-nagare
 
 ## 1.0.1 - 2019-06-13
 
