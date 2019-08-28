@@ -31,6 +31,17 @@
   grid-template-columns: 10em calc(100% - 10em);
 }
 
+/* For IE11: start */
+#search-result {
+  display: -ms-grid;
+  -ms-grid-columns: 10em calc(100% - 10em);
+}
+
+#search-result-content {
+  -ms-grid-column: 2;
+}
+/* For IE11: end */
+
 #search-result h3 {
   margin-top: 0.5em;
 }
