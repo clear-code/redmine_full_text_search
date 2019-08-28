@@ -9,9 +9,25 @@ Rails.application.require_environment!
 
 plugin = Redmine::Plugin.find(:full_text_search)
 
+dump_attachment = true
+dump_change = true
+dump_changeset = true
+
 parser = OptionParser.new
 parser.version = plugin.version
 parser.banner += " IDENTIFIER"
+parser.on("--no-attachment",
+          "Ignore attachment data") do |boolean|
+  dump_attachment = boolean
+end
+parser.on("--no-change",
+          "Ignore change data") do |boolean|
+  dump_change = boolean
+end
+parser.on("--no-changeset",
+          "Ignore changeset data") do |boolean|
+  dump_changeset = boolean
+end
 identifier, = parser.parse!(ARGV)
 
 if identifier
@@ -29,8 +45,26 @@ loop do
     "offset" => offset.to_s,
     "limit" => limit.to_s,
   }
+  conditions = []
+  not_conditions = []
   if project
-    arguments["filter"] = "project_id == #{project.id}"
+    conditions << "project_id == #{project.id}"
+  end
+  unless dump_attachment
+    not_conditions << "source_type_id == #{FullTextSearch::Type.attachment.id}"
+  end
+  unless dump_change
+    not_conditions << "source_type_id == #{FullTextSearch::Type.change.id}"
+  end
+  unless dump_change
+    not_conditions << "source_type_id == #{FullTextSearch::Type.changeset.id}"
+  end
+  if conditions.size > 0 or not_conditions.size > 0
+    filter = conditions.join(" && ")
+    unless not_conditions.empty?
+      filter = "all_records()" if filter.empty?
+      filter = [filter, *conditions].join(" &! ")
+    end
   end
   command = Groonga::Command::Select.new("select", arguments)
   response = FullTextSearch::Target.select(command)
