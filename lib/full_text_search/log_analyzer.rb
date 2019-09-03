@@ -257,16 +257,19 @@ module FullTextSearch
         next_action_threshold = 30
         good_threshold = 3
         last_timestamp = nil
+        last_search_id = nil
         last_search = nil
         last_visit = nil
         @history.each do |data|
           timestamp = data["timestamp"]
+          search_id = data["search_id"]
           choose_n = data["search_n"]
           if choose_n
             last_visit = data
           else
             if last_timestamp and
               last_visit and
+              search_id != last_search_id and
               timestamp + next_action_threshold > last_timestamp and
               last_visit["search_n"] < good_threshold
               yield(last_search, last_visit)
@@ -275,6 +278,7 @@ module FullTextSearch
             last_visit = nil
           end
           last_timestamp = timestamp
+          last_search_id = search_id
         end
         if last_visit and last_visit["search_n"] < good_threshold
           yield(last_search, last_visit)
