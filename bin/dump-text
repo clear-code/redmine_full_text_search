@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require "optparse"
+require "strscan"
 
 config_dir = File.expand_path("../../../../config",  __FILE__)
 APP_PATH = File.join(config_dir, "application")
@@ -85,19 +86,100 @@ conditions = [
   ["(#{base_conditions.join(" && ")})", *not_conditions].join(" &! "),
 ]
 or_conditions.each do |or_condition|
-  ["(#{base_conditions.join(" && ")})", "(#{or_condition})"].join(" && "),
+  conditions <<
+    ["(#{base_conditions.join(" && ")})", "(#{or_condition})"].join(" && ")
 end
 conditions = conditions.collect do |condition|
   "(#{condition})"
 end
 filter = conditions.join(" || ")
 
+def emit_sentence(sentence)
+  sentence = sentence.gsub(/\r?\n/, " ").strip
+  yield(sentence) unless sentence.empty?
+end
+
+def paragraph_to_sentences(paragraph, &block)
+  paragraph = paragraph.gsub(/^\s+|\s+$/, "")
+  return if paragraph.empty?
+  scanner = StringScanner.new(paragraph)
+  sentence = ""
+  until scanner.eos?
+    data = scanner.scan(/[^。.]+/)
+    sentence << data if data
+    if scanner.scan(/\./)
+      sentence << "."
+      case sentence
+      when /\d\.\z/, # 1.
+           /\(\d\)\.\z/, # (1).
+           /\bMr\.\z/, # Mr.
+           /\.\.\z/, # ..
+           / \.\z/ # " ."
+        # Do nothing
+      else
+        if scanner.match?(/[a-zA-Z]/) # tar.gz
+          next
+        elsif scanner.match?(/\./) # ..
+          next
+        else
+          # p [:emit_period, sentence]
+          emit_sentence(sentence, &block)
+          sentence = ""
+        end
+      end
+    elsif scanner.scan(/。/)
+      sentence << "。"
+      # p [:emit_japanese_period, sentence]
+      emit_sentence(sentence, &block)
+      sentence = ""
+    else
+      # p [:emit_no_period, sentence]
+      emit_sentence(sentence, &block)
+      sentence = ""
+    end
+  end
+  # p [:emit_last, sentence]
+  emit_sentence(sentence, &block)
+end
+
+def text_to_sentences(text, &block)
+  buffer = ""
+  indent = ""
+  text.each_line do |line|
+    if line.strip.empty?
+      paragraph_to_sentences(buffer, &block)
+      buffer = ""
+      indent = ""
+    else
+      current_indent = line[/\A(\s+)/, 1]
+      if indent == current_indent
+        case line
+        when /\A\s*\p{Number}/ # 1, １, ①
+          # p [:paragraph_number, line]
+          paragraph_to_sentences(buffer, &block)
+          buffer = ""
+        when /\A\s*\p{Open_Punctuation}\p{Number}/ # (1, （１
+          # p [:paragraph_open_punctuation_number, line]
+          paragraph_to_sentences(buffer, &block)
+          buffer = ""
+        end
+      else
+        paragraph_to_sentences(buffer, &block)
+        buffer = ""
+      end
+      buffer << line
+      indent = current_indent
+    end
+  end
+  paragraph_to_sentences(buffer, &block)
+end
+
 offset = 0
 limit = 1000
-puts("[")
 i = 0
 loop do
   arguments = {
+    "output_columns" => "title,content,source_type_id",
     "filter" => filter,
     "offset" => offset.to_s,
     "limit" => limit.to_s,
@@ -106,12 +188,25 @@ loop do
   response = FullTextSearch::Target.select(command)
   records = response.records
   records.each do |record|
-    puts(",") if i > 0
-    print(record.to_json)
+    # pp record
+    sentences = []
+    source_type_id = record["source_type_id"]
+    case source_type_id
+    when attachment_id, source_type_id
+    else
+      text_to_sentences(record["title"]) do |sentence|
+        sentences << sentence
+      end
+    end
+    text_to_sentences(record["content"]) do |sentence|
+      sentences << sentence
+    end
+    next if sentences.empty?
+    puts if i > 0
+    puts(sentences)
+    # pp([source_type_id, sentences])
     i += 1
   end
   offset += records.size
-  break if response.n_hits == i
+  break if response.n_hits == offset
 end
-puts if i > 0
-puts("]")
