@@ -23,8 +23,8 @@ end
 mysqldump = ENV["MYSQLDUMP"] || "mysqldump"
 
 schema_only_dump_tables = [
-  "fts_targets",
   "fts_tags",
+  "fts_targets",
   "issue_contents",
 ]
 
