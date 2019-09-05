@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+
+config_dir = File.expand_path("../../../../config",  __FILE__)
+APP_PATH = File.join(config_dir, "application")
+require APP_PATH
+Rails.application.require_environment!
+
+db_config = ActiveRecord::Base.connection_config
+host = db_config[:host]
+port = db_config[:port] || 3306
+user = db_config[:username]
+password = db_config[:password]
+database = db_config[:database]
+
+have_delayed_job = true
+begin
+  Redmine::Plugin.find(:delayed_job)
+rescue Redmine::PluginNotFound
+  have_delayed_job = false
+end
+
+
+mysqldump = ENV["MYSQLDUMP"] || "mysqldump"
+
+schema_only_dump_tables = [
+  "fts_targets",
+  "fts_tags",
+  "issue_contents",
+]
+
+ignore_tables = schema_only_dump_tables.dup
+if have_delayed_job
+  ignore_tables << "delayed_jobs"
+end
+
+mysqldump_command_line = [
+  mysqldump,
+  "--host=#{host}",
+  "--port=#{port}",
+  "--user=#{user}",
+  "--password=#{password}",
+  "--single-transaction",
+]
+
+normal_dump_command_line = []
+ignore_tables.each do |ignore_table|
+  normal_dump_command_line << "--ignore-table=#{database}.#{ignore_table}"
+end
+normal_dump_command_line << database
+system(*mysqldump_command_line, *normal_dump_command_line)
+if have_delayed_job
+  system(*mysqldump_command_line,
+         "--where=queue <> 'full_text_search'",
+         database,
+         "delayed_jobs")
+end
+if have_delayed_job
+  system(*mysqldump_command_line,
+         "--where=queue <> 'full_text_search'",
+         database,
+         "delayed_jobs")
+end
+system(*mysqldump_command_line,
+       "--no-data",
+       database,
+       *schema_only_dump_tables)
