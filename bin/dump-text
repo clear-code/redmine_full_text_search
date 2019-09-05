@@ -1,0 +1,117 @@
+#!/usr/bin/env ruby
+
+require "optparse"
+
+config_dir = File.expand_path("../../../../config",  __FILE__)
+APP_PATH = File.join(config_dir, "application")
+require APP_PATH
+Rails.application.require_environment!
+
+plugin = Redmine::Plugin.find(:full_text_search)
+
+dump_attachment = true
+dump_change = true
+dump_changeset = true
+target_extensions = [
+  ".doc",
+  ".docx",
+  ".pdf",
+  ".txt",
+]
+
+parser = OptionParser.new
+parser.version = plugin.version
+parser.banner += " [TARGET_PROJECT]"
+parser.on("--no-attachment",
+          "Ignore attachment data") do |boolean|
+  dump_attachment = boolean
+end
+parser.on("--no-change",
+          "Ignore change data") do |boolean|
+  dump_change = boolean
+end
+parser.on("--no-changeset",
+          "Ignore changeset data") do |boolean|
+  dump_changeset = boolean
+end
+parser.on("--target-extensions=EXTENSION1,EXTENSION2,...",
+          Array,
+          "Attachment extensions do be dumped",
+          "(#{target_extensions.join(",")})") do |extensions|
+  target_extensions = extensions
+end
+target_project, = parser.parse!(ARGV)
+
+if target_project
+  project = Project.find_by_identifier!(target_project)
+else
+  project = nil
+end
+
+attachment_id = FullTextSearch::Type.attachment.id
+change_id = FullTextSearch::Type.change.id
+changeset_id = FullTextSearch::Type.changeset.id
+
+extension_conditions = target_extensions.collect do |extension|
+  "title @ #{extension.to_json}"
+end
+extension_condition = extension_conditions.join(" || ")
+
+base_conditions = []
+not_conditions = []
+or_conditions = []
+if project
+  base_conditions << "project_id == #{project.id}"
+end
+if dump_attachment
+  or_conditions <<
+    "source_type_id == #{attachment_id} && (#{extension_condition})"
+else
+  not_conditions << "source_type_id == #{attachment_id}"
+end
+if dump_change
+  or_conditions <<
+    "source_type_id == #{attachment_id} && (#{extension_condition})"
+else
+  not_conditions << "source_type_id == #{change_id}"
+end
+unless dump_changeset
+  not_conditions << "source_type_id == #{changeset_id}"
+end
+if base_conditions.empty?
+  base_conditions << "all_records()"
+end
+conditions = [
+  ["(#{base_conditions.join(" && ")})", *not_conditions].join(" &! "),
+]
+or_conditions.each do |or_condition|
+  ["(#{base_conditions.join(" && ")})", "(#{or_condition})"].join(" && "),
+end
+conditions = conditions.collect do |condition|
+  "(#{condition})"
+end
+filter = conditions.join(" || ")
+
+offset = 0
+limit = 1000
+puts("[")
+i = 0
+loop do
+  arguments = {
+    "filter" => filter,
+    "offset" => offset.to_s,
+    "limit" => limit.to_s,
+  }
+  command = Groonga::Command::Select.new("select", arguments)
+  response = FullTextSearch::Target.select(command)
+  records = response.records
+  records.each do |record|
+    puts(",") if i > 0
+    print(record.to_json)
+    i += 1
+  end
+  offset += records.size
+  break if response.n_hits == i
+end
+puts if i > 0
+puts("]")
