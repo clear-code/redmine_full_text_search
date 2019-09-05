@@ -755,7 +755,7 @@ A comment with a <span class="keyword">private</span> <span class="keyword">vers
     class MessageTest < self
       def search(query, api: false)
         get :index,
-            params: {"q" => query, "forums" => "1"},
+            params: {"q" => query, "messages" => "1"},
             api: api
       end
 
