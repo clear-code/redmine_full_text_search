@@ -94,9 +94,13 @@ conditions = conditions.collect do |condition|
 end
 filter = conditions.join(" || ")
 
+MAX_LINE_SIZE = 4192
+
 def emit_sentence(sentence)
   sentence = sentence.gsub(/\r?\n/, " ").strip
-  yield(sentence) unless sentence.empty?
+  return if sentence.empty?
+  return if sentence.bytesize > MAX_LINE_SIZE
+  yield(sentence)
 end
 
 def paragraph_to_sentences(paragraph, &block)
