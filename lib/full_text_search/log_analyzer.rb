@@ -539,7 +539,7 @@ module FullTextSearch
           user_name = data["user_name"]
           break if user_name
         end
-        puts("  #{i}: #{user_name} (#{user_id})")
+        puts("  User: #{i}: #{user_name} (#{user_id})")
         puts("    N searches:       #{statistics.n_searches}")
         puts("    N visits:         #{statistics.n_visits}")
         puts("    Max search time:  #{statistics.max}")
@@ -555,7 +555,10 @@ module FullTextSearch
         end
 
         zero_hits = statistics.zero_hits
-        puts("    N zero hits:      #{zero_hits.size}")
+        zero_hit_ratio = "%3.0f%%" % [
+          (zero_hits.size.to_f / statistics.n_searches.to_f) * 100
+        ]
+        puts("    N zero hits:      #{zero_hits.size} (#{zero_hit_ratio})")
         zero_hits.each_with_index do |action, j|
           query = action["q"]
           puts("      #{j}: #{query}")
@@ -564,7 +567,10 @@ module FullTextSearch
         slow_searches = statistics.slow_searches.sort_by do |action|
           -action["elapsed_time"]
         end
-        puts("    N slow searches:  #{slow_searches.size}")
+        slow_ratio = "%3.0f%%" % [
+          (slow_searches.size.to_f / statistics.n_searches.to_f) * 100
+        ]
+        puts("    N slow searches:  #{slow_searches.size} (#{slow_ratio})")
         slow_searches.each_with_index do |action, j|
           elapsed_time = ElapsedTime.new(action["elapsed_time"])
           puts("      #{j}: #{elapsed_time}")
