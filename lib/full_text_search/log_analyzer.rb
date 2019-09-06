@@ -568,9 +568,11 @@ module FullTextSearch
         slow_searches.each_with_index do |action, j|
           elapsed_time = ElapsedTime.new(action["elapsed_time"])
           puts("      #{j}: #{elapsed_time}")
-          pp action
+          puts("        Project:      #{action["project_id"] || "all"}")
+          puts("        Query:        #{action["q"]}")
+          # pp action
         end
-        pp statistics.history
+        # pp statistics.history
       end
     end
   end
