@@ -302,7 +302,7 @@ module FullTextSearch
       inputs = nil
       begin
         inputs = parser.parse(argv)
-      rescue OptionParser::Error => error
+      rescue OptionParser::ParseError => error
         $stderr.puts("Failed to parse options: #{error.message}")
         return false
       end
