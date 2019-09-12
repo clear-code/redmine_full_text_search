@@ -541,13 +541,19 @@ module FullTextSearch
         end
         puts("  User: #{i}: #{user_name} (#{user_id})")
         puts("    N searches:       #{statistics.n_searches}")
-        puts("    N visits:         #{statistics.n_visits}")
+        visit_ratio = "%3.0f%%" % [
+          (statistics.n_visits.to_f / statistics.n_searches.to_f) * 100
+        ]
+        puts("    N visits:         #{statistics.n_visits} (#{visit_ratio})")
         puts("    Max search time:  #{statistics.max}")
         puts("    Min search time:  #{statistics.min}")
         puts("    Mean search time: #{statistics.mean}")
 
         conversions = statistics.conversions
-        puts("    N conversions:    #{conversions.size}")
+        conversion_ratio = "%3.0f%%" % [
+          (conversions.size.to_f / statistics.n_searches.to_f) * 100
+        ]
+        puts("    N conversions:    #{conversions.size} (#{conversion_ratio})")
         conversions.each_with_index do |(action, visit), j|
           query = action["q"]
           n = visit["search_n"]
