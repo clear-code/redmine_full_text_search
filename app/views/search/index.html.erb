@@ -184,7 +184,7 @@
       <% end %>
     </dl>
 
-    <% if @result_pages %>
+    <% if @search_request.have_condition? %>
     <span class="pagination"><%= pagination_links_full @result_pages, @result_set.n_hits, :per_page_links => false %></span>
     <% end %>
   </div>
