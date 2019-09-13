@@ -228,7 +228,7 @@ JOIN #{redmine_class.table_name}
     end
 
     def title
-      "#{title_prefix}#{@record.title}#{title_suffix}"
+      "#{title_prefix}#{title_content}#{title_suffix}"
     end
 
     def description
@@ -251,6 +251,10 @@ JOIN #{redmine_class.table_name}
 
     def title_prefix
       ""
+    end
+
+    def title_content
+      @record.title
     end
 
     def title_suffix
