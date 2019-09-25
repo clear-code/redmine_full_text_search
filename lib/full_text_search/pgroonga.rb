@@ -10,7 +10,7 @@ module FullTextSearch
       end
 
       def full_text_search(column, query)
-        where("#{connection.quote_column_name(column)} &~ ?",
+        where("#{connection.quote_column_name(column)} &@~ ?",
               query)
       end
 
