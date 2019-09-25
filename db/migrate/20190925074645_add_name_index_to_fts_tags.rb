@@ -8,7 +8,6 @@ class AddNameIndexToFtsTags < ActiveRecord::Migration[5.2]
     else
       add_index :fts_tags,
                 :name,
-                type: "fulltext",
                 using: "PGroonga",
                 with: "normalizer = 'NormalizerNFKC121'"
     end
