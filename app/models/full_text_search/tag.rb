@@ -2,11 +2,26 @@ module FullTextSearch
   class Tag < ActiveRecord::Base
     self.table_name = :fts_tags
 
+    case connection_config[:adapter]
+    when "postgresql"
+      require_dependency "full_text_search/pgroonga"
+      include PGroonga
+    when "mysql2"
+      require_dependency "full_text_search/mroonga"
+      include Mroonga
+    end
+
     class << self
       def extension(ext)
         type = TagType.extension
         find_or_create_by(type_id: type.id,
                           name: ext.downcase)
+      end
+
+      def identifier(id)
+        type = TagType.identifier
+        find_or_create_by(type_id: type.id,
+                          name: id)
       end
 
       def issue_status(issue_status_id)

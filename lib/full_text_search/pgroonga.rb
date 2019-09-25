@@ -9,6 +9,11 @@ module FullTextSearch
         Groonga::Client::Response.parse(command, raw_response)
       end
 
+      def full_text_search(column, query)
+        where("#{connection.quote_column_name(column)} &~ ?",
+              query)
+      end
+
       def build_expand_query_sql_part(query)
         [
           "pgroonga_query_expand(?, ?, ?, ?)",

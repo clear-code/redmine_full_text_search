@@ -7,6 +7,10 @@ module FullTextSearch
         find_or_create_by(name: "extension")
       end
 
+      def identifier
+        find_or_create_by(name: "identifier")
+      end
+
       def issue_status
         find_or_create_by(name: "issue-status")
       end

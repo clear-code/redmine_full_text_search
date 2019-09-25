@@ -121,6 +121,12 @@ module FullTextSearch
                           search_id: search_id,
                           search_n: search_n,
                           only_path: only_path)
+      when Project
+        project = item
+        project_url(project.id,
+                    search_id: search_id,
+                    search_n: search_n,
+                    only_path: only_path)
       when WikiPage
         wiki_page = item
         project_wiki_page_url(wiki_page.project.id,
@@ -162,6 +168,9 @@ module FullTextSearch
       when Message
         message = item
         "#{message.board.name}: #{message.subject}"
+      when Project
+        project = item
+        "Project: #{project.name}"
       when WikiPage
         wiki_page = item
         "Wiki: #{wiki_page.title}"
@@ -205,7 +214,7 @@ module FullTextSearch
           "title" => detail[:title] || item_title(item),
           "type" => detail[:type] || item.class.name.underscore.dasherize,
           "url" => item_url(item),
-          "description" => detail[:description],
+          "description" => detail[:description] || "",
           "datetime" => datetime&.iso8601,
           "rank" => detail[:rank],
         }
@@ -470,7 +479,6 @@ with multiple lines\r
               title: <<-TITLE.chomp,
 Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
               TITLE
-              description: "",
               rank: adjust_slice_score(101),
             }
           ],
@@ -794,7 +802,6 @@ in the forum
               title: <<-TITLE.chomp,
 Help: RE: <span class="keyword">First</span> <span class="keyword">post</span>
               TITLE
-              description: "",
               rank: adjust_slice_score(201),
             },
           ],
@@ -813,6 +820,86 @@ Reply to the <span class="keyword">first</span> <span class="keyword">post</span
           ],
         ]
         search("first post", api: true)
+        assert_equal(format_api_results(items),
+                     JSON.parse(response.body))
+      end
+    end
+
+    class ProjectTest < self
+      def search(query, api: false)
+        get :index,
+            params: {"q" => query, "projects" => "1"},
+            api: api
+      end
+
+      def test_search
+        search("project6 OR eCookbook")
+        items = [
+          Project.find(1),
+          Project.find(3),
+          Project.find(4),
+          Project.find(5),
+          Project.find(6),
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_items(items),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+
+      def test_api
+        search("project6 OR eCookbook",
+               api: true)
+        items = [
+          [
+            Project.find(1),
+            {
+              title: <<-TITLE.chomp,
+Project: <span class="keyword">eCookbook</span>
+              TITLE
+              rank: adjust_slice_score(102),
+            },
+          ],
+          [
+            Project.find(3),
+            {
+              title: <<-TITLE.chomp,
+Project: <span class="keyword">eCookbook</span> Subproject 1
+              TITLE
+              description: <<-DESCRIPTION.chomp,
+<span class="keyword">eCookBook</span> Subproject 1
+              DESCRIPTION
+              rank: adjust_slice_score(102),
+            },
+          ],
+          [
+            Project.find(4),
+            {
+              title: <<-TITLE.chomp,
+Project: <span class="keyword">eCookbook</span> Subproject 2
+              TITLE
+              description: <<-DESCRIPTION.chomp,
+<span class="keyword">eCookbook</span> Subproject 2
+              DESCRIPTION
+              rank: adjust_slice_score(102),
+            },
+          ],
+          [
+            Project.find(5),
+            {
+              title: <<-TITLE.chomp,
+Project: Private child of <span class="keyword">eCookbook</span>
+              TITLE
+              rank: adjust_slice_score(101),
+            },
+          ],
+          [
+            Project.find(6),
+            {
+              rank: adjust_slice_score(2),
+            },
+          ],
+        ]
         assert_equal(format_api_results(items),
                      JSON.parse(response.body))
       end

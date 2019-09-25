@@ -24,9 +24,14 @@ module FullTextSearch
       fts_target.source_id = @record.id
       fts_target.source_type_id = Type[@record.class].id
       fts_target.project_id = @record.id
-      fts_target.title = @record.identifier
-      fts_target.content = "#{@record.name} #{@record.description}"
+      fts_target.title = @record.name
+      fts_target.content = @record.description
       fts_target.last_modified_at = @record.updated_on
+      tag_ids = []
+      if @record.identifier
+        tag_ids << Tag.identifier(@record.identifier).id
+      end
+      fts_target.tag_ids = tag_ids
       fts_target.save!
     end
   end
@@ -34,10 +39,6 @@ module FullTextSearch
   class FtsProjectMapper < FtsMapper
     def title_prefix
       "#{l(:label_project)}: "
-    end
-
-    def title_content
-      redmine_record.name
     end
 
     def url

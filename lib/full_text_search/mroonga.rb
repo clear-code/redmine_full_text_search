@@ -16,6 +16,12 @@ module FullTextSearch
         response
       end
 
+      def full_text_search(column, query)
+        where("MATCH (#{connection.quote_column_name(column)}) " +
+              "AGAINST (? IN BOOLEAN MODE)",
+              query)
+      end
+
       def build_expand_query_sql_part(query)
         [
           "mroonga_query_expand(?, ?, ?, ?) AS query",

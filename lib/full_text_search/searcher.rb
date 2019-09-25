@@ -9,7 +9,7 @@ module FullTextSearch
     def search
       arguments = {
         "match_columns" => match_columns.join(" || "),
-        "query" => @request.query,
+        "query" => query,
         "query_flags" => "ALLOW_COLUMN|ALLOW_LEADING_NOT|QUERY_NO_SYNTAX_ERROR",
         "filter" => filter,
         "output_columns" => "_id",
@@ -84,6 +84,20 @@ module FullTextSearch
       else
         ["title * 100", "scorer_tf_at_most(content, 5)"]
       end
+    end
+
+    def query
+      return nil if @request.query.blank?
+      query = ""
+      tag_ids = Tag
+                  .where(type_id: TagType.identifier.id)
+                  .full_text_search(:name, @request.query)
+                  .pluck(:id)
+      conditions = tag_ids.collect do |tag_id|
+        "(tag_ids:@#{tag_id})"
+      end
+      conditions << "(#{@request.query})"
+      conditions.join(" OR ")
     end
 
     def build_condition(operator, conditions)
