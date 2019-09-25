@@ -30,7 +30,10 @@ class CreateIssueContents < ActiveRecord::Migration[4.2]
                  :is_private],
                 name: "index_issue_contents_pgroonga",
                 using: "PGroonga",
-                with: "tokenizer = 'TokenMecab'"
+                with: [
+                  "tokenizer = 'TokenMecab'",
+                  "normalizer = 'NormalizerNFKC121'",
+                ].join(", ")
       end
     end
   end

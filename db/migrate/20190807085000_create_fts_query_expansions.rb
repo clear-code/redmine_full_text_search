@@ -23,6 +23,7 @@ class CreateFtsQueryExpansions < ActiveRecord::Migration[5.2]
                   "destination pgroonga_text_term_search_ops_v2",
                 ].join(", "),
                 using: "PGroonga",
+                with: "normalizer = 'NormalizerNFKC121'",
                 name: "fts_query_expansions_index_pgroonga"
       end
       t.index :updated_at

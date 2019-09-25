@@ -75,6 +75,7 @@ SHOW VARIABLES LIKE 'mroonga_version';
                  :content,
                  :tag_ids],
                 using: "PGroonga",
+                with: "normalizer = 'NormalizerNFKC121'",
                 name: "fts_targets_index_pgroonga"
       end
     end
