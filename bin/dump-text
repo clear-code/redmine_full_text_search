@@ -94,7 +94,7 @@ conditions = conditions.collect do |condition|
 end
 filter = conditions.join(" || ")
 
-MAX_LINE_SIZE = 4192
+MAX_LINE_SIZE = 2048
 
 def emit_sentence(sentence)
   sentence = sentence.gsub(/\r?\n/, " ").strip
