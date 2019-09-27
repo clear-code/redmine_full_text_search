@@ -21,7 +21,10 @@ module FullTextSearch
       tag_ids = []
       tag_ids << Tag.tracker(@record.tracker_id).id if @record.tracker_id
       fts_target.title = @record.subject
-      fts_target.content = @record.description
+      parser = MarkupParser.new(@record.project)
+      content_text, content_tag_ids = parser.parse(@record, :description)
+      fts_target.content = content_text
+      tag_ids.concat(content_tag_ids)
       tag_ids << Tag.user(@record.author_id).id if @record.author_id
       fts_target.is_private = @record.is_private
       tag_ids << Tag.issue_status(@record.status_id).id if @record.status_id

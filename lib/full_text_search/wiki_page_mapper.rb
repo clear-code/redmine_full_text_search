@@ -25,7 +25,12 @@ module FullTextSearch
       fts_target.source_type_id = Type[@record.class].id
       fts_target.project_id = @record.wiki.project_id
       fts_target.title = @record.title
-      fts_target.content = @record.text
+      tag_ids = []
+      parser = MarkupParser.new(@record.wiki.project)
+      content_text, content_tag_ids = parser.parse(@record.content, :text)
+      fts_target.content = content_text
+      tag_ids.concat(content_tag_ids)
+      fts_target.tag_ids = tag_ids
       fts_target.last_modified_at = @record.updated_on
       fts_target.save!
     end

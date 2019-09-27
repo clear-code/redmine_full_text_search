@@ -38,8 +38,11 @@ JOIN projects
       fts_target.project_id = issue.project_id
       fts_target.container_id = issue.id
       fts_target.container_type_id = Type.issue.id
-      fts_target.content = @record.notes
       tag_ids = []
+      parser = MarkupParser.new(issue.project)
+      content_text, content_tag_ids = parser.parse(@record, :notes)
+      fts_target.content = content_text
+      tag_ids.concat(content_tag_ids)
       tag_ids << Tag.user(@record.user_id).id if @record.user_id
       fts_target.is_private = (issue.is_private or @record.private_notes)
       tag_ids << Tag.tracker(issue.tracker_id).id if issue.tracker_id

@@ -932,11 +932,16 @@ Project: Private child of <span class="keyword">eCookbook</span>
 Wiki: <span class="keyword">CookBook</span>_documentation
               TITLE
               description: <<-DESCRIPTION.chomp,
-h1. <span class="keyword">CookBook</span> documentation
+<span class="keyword">CookBook</span> documentation
 
-{{child_pages}}
 
-Some updated [[documentation]] here with <span class="keyword">gzipped</span> history
+\t
+Page with an inline image
+
+
+
+
+\tSome updated documentation here with <span class="keyword">gzipped</span> history
               DESCRIPTION
               rank: adjust_slice_score(103),
             },
