@@ -99,6 +99,7 @@ MAX_LINE_SIZE = 2048
 def emit_sentence(sentence)
   sentence = sentence.gsub(/\r?\n/, " ").strip
   return if sentence.empty?
+  return unless sentence.end_with?("。")
   return if sentence.bytesize > MAX_LINE_SIZE
   yield(sentence)
 end
