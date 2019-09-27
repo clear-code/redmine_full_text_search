@@ -24,7 +24,7 @@ module FullTextSearch
                        "source_type_id" => Type.issue.id,
                        "last_modified_at" => issue.updated_on,
                        "title" => issue.subject,
-                       "content" => issue.description || null_string,
+                       "content" => issue.description || "",
                        "tag_ids" => [
                          Tag.tracker(issue.tracker_id).id,
                          Tag.user(issue.author_id).id,
