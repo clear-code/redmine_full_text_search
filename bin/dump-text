@@ -13,6 +13,8 @@ plugin = Redmine::Plugin.find(:full_text_search)
 dump_attachment = true
 dump_change = true
 dump_changeset = true
+output_file_prefix = nil
+max_size_per_file = 100 * 1024 * 1024
 target_extensions = [
   ".doc",
   ".docx",
@@ -34,6 +36,15 @@ end
 parser.on("--no-changeset",
           "Ignore changeset data") do |boolean|
   dump_changeset = boolean
+end
+parser.on("--output-file-prefix=PREFIX",
+          "Use PREFIX for output file") do |prefix|
+  output_file_prefix = prefix
+end
+parser.on("--max-size-per-file=SIZE",
+          "Use SIZE for max size per file",
+          "(#{FullTextSearch::LogAnalyzer::Size.new(max_size_per_file)})") do |size|
+  max_size_per_file = FullTextSearch::LogAnalyzer::Size.new(size).to_f
 end
 parser.on("--target-extensions=EXTENSION1,EXTENSION2,...",
           Array,
@@ -179,9 +190,54 @@ def text_to_sentences(text, &block)
   paragraph_to_sentences(buffer, &block)
 end
 
+class Output
+  def initialize(prefix, max_size_per_file)
+    @prefix = prefix
+    @max_size_per_file = max_size_per_file
+    @current_file = nil
+    @nth_file = 0
+    @size_per_file = 0
+    @n_records_per_file = 0
+  end
+
+  def close
+    @current_file.close if @current_file
+  end
+
+  def <<(sentences)
+    output_size = 0
+    sentences.each do |sentence|
+      output_size += sentence.bytesize + "\n".bytesize
+    end
+    if @prefix
+      if @current_file and (@size_per_file + output_size) > @max_size_per_file
+        @current_file.close
+        @current_file = nil
+      end
+      @current_file ||= open_next_file
+      output = @current_file
+    else
+      output = $stdout
+    end
+    output.puts if @n_records_per_file > 0
+    output.puts(sentences)
+    @size_per_file += output_size
+    @n_records_per_file += 1
+  end
+
+  private
+  def open_next_file
+    path = "#{@prefix}.#{@nth_file}.sentences"
+    @nth_file += 1
+    @size_per_file = 0
+    @n_records_per_file = 0
+    File.open(path, "w")
+  end
+end
+
 offset = 0
 limit = 1000
-i = 0
+output = Output.new(output_file_prefix, max_size_per_file)
 loop do
   arguments = {
     "output_columns" => "title,content,source_type_id",
@@ -207,11 +263,10 @@ loop do
       sentences << sentence
     end
     next if sentences.empty?
-    puts if i > 0
-    puts(sentences)
+    output << sentences
     # pp([source_type_id, sentences])
-    i += 1
   end
   offset += records.size
   break if response.n_hits == offset
 end
+output.close
