@@ -43,7 +43,6 @@ module FullTextSearch
       end
 
       def start_element(name, attributes=[])
-        pp [:start, name, @tag_stack, attributes]
         @tag_stack.push(name)
         @attributes_stack.push(attributes)
         unless @in_body
@@ -55,7 +54,6 @@ module FullTextSearch
       def end_element(name)
         @attributes_stack.pop
         @tag_stack.pop
-        pp [:end, name, @tag_stack]
         return unless @in_body
 
         if name == "body" and @tag_stack == ["html"]
@@ -65,7 +63,6 @@ module FullTextSearch
       end
 
       def characters(text)
-        pp [:characters, text, @tag_stack, in_target_text?]
         @text << text if in_target_text?
       end
 
