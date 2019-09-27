@@ -7,6 +7,8 @@ module FullTextSearch
 
     def initialize(project)
       @project = project
+      assign_controller(WelcomeController.new)
+      controller.request = ActionDispatch::Request.new({})
     end
 
     def parse(object, attribute, options={})
