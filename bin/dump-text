@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require "fileutils"
 require "optparse"
 require "strscan"
 
@@ -231,6 +232,7 @@ class Output
     @nth_file += 1
     @size_per_file = 0
     @n_records_per_file = 0
+    FileUtils.mkdir_p(File.dirname(path))
     File.open(path, "w")
   end
 end
