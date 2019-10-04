@@ -40,44 +40,17 @@ module FullTextSearch
       class Callbacks
         class << self
           def after_save(record)
-            case record
-            when Issue
-              r = FullTextSearch::IssueContent.find_or_initialize_by(issue_id: record.id)
-              r.project_id = record.project_id
-              r.subject = record.subject
-              r.contents = create_contents(record.id)
-              r.status_id = record.status_id
-              r.is_private = record.is_private
-              r.save!
-            when Journal
-              issue_id = record.journalized_id
-              FullTextSearch::IssueContent
-                .where(issue_id: issue_id)
-                .update_all(contents: create_contents(issue_id))
-            end
+            FullTextSearch::UpdateIssueContentJob
+              .perform_later(record.class.name,
+                             record.id,
+                             "save")
           end
 
           def after_destroy(record)
-            case record
-            when Issue
-              FullTextSearch::IssueContent.where(issue_id: record.id).destroy_all
-            when Journal
-              issue_id = record.journalized_id
-              FullTextSearch::IssueContent
-                .where(issue_id: issue_id)
-                .update_all(contents: create_contents(issue_id, excludes: [record.id]))
-            end
-          end
-
-          def create_contents(issue_id, excludes: [])
-            issue = Issue.eager_load(:journals).find(issue_id)
-            contents = [issue.subject, issue.description]
-            notes = issue.journals
-              .reject {|j| j.notes.blank? || excludes.include?(j.id) }
-              .sort_by(&:id)
-              .map(&:notes)
-            contents.concat(notes)
-            contents.join("\n")
+            FullTextSearch::UpdateIssueContentJob
+              .perform_later(record.class.name,
+                             record.id,
+                             "destroy")
           end
         end
       end
