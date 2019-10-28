@@ -19,17 +19,21 @@ parser.on("--output-directory=DIRECTORY",
           "[#{output_directory}]") do |directory|
   output_directory = directory
 end
+parser.parse!(ARGV)
 
 def format_user(user)
   return nil if user.nil?
   {
+    "type" => "user",
     "id" => user.id,
+    "name" => user.name,
   }
 end
 
 def format_status(status)
   return nil if status.nil?
   {
+    "type" => "status",
     "id" => status.id,
     "is_closed" => status.is_closed?,
     "name" => status.name,
@@ -39,14 +43,39 @@ end
 def format_priority(priority)
   return nil if priority.nil?
   {
+    "type" => "priority",
     "id" => priority.id,
     "number" => priority.position,
     "name" => priority.name,
   }
 end
 
+def format_version(version)
+  return nil if version.nil?
+  if version.is_a?(Version)
+    id = version.id
+    name = version.name
+  else
+    id = Integer(version, 10)
+    name = nil
+  end
+  {
+    "type" => "version",
+    "id" => id,
+    "name" => name,
+  }
+end
+
+def format_assigned_to(user)
+  format_user(user)
+end
+
+def format_fixed_version(version)
+  format_version(version)
+end
+
 def format_type(type, value)
-  if respond_to?("format_#{type}")
+  if respond_to?("format_#{type}", true)
     __send__("format_#{type}", value)
   else
     value
@@ -66,14 +95,16 @@ def format_details(details)
       case detail.prop_key
       when /\A(.+)_id\z/
         type = $1
-        type_class = detail.journal.journalized.__send__(type).class
+        issue = detail.journal.journalized
+        association = issue.class.reflect_on_association(type)
+        type_class = association.klass
         old_value = nil
         new_value = nil
         if detail.old_value
-          old_value = type_class.find(detail_old_value)
+          old_value = type_class.find_by_id(detail.old_value) || detail.old_value
         end
-        if detail.new_value
-          new_value = type_class.find(detail_new_value)
+        if detail.value
+          new_value = type_class.find_by_id(detail.value) || detail.value
         end
         {
           "type" => type,
@@ -92,7 +123,7 @@ def format_details(details)
         "type" => "custom_field",
         "custom_field" => {
           "id" => detail.custom_field.id,
-          "name" => details.custom_field.name,
+          "name" => detail.custom_field.name,
         },
         "old" => detail.old_value,
         "new" => detail.value,
@@ -107,7 +138,7 @@ FileUtils.mkdir_p(output_directory)
 Project.find_each do |project|
   issues = []
   project.issues.find_each do |issue|
-    issue = {
+    issue_data = {
       "id" => issue.id,
       "subject" => issue.subject,
       "description" => issue.description,
@@ -124,11 +155,11 @@ Project.find_each do |project|
         "created_at" => journal.created_on.iso8601,
         "user" => format_user(journal.user),
         "comment" => journal.notes,
-        "changes" => format_changes(journal.details),
+        "changes" => format_details(journal.details),
       }
     end
-    issue["history"] = history
-    issues << issue
+    issue_data["history"] = history
+    issues << issue_data
   end
   output_path = File.join(output_directory,
                           "issue-histories-#{project.identifier}.json")
