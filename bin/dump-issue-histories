@@ -39,21 +39,39 @@ end
 
 def format_status(status)
   return nil if status.nil?
+  if status.is_a?(IssueStatus)
+    id = status.id
+    is_closed = status.is_closed?
+    name = status.name
+  else
+    id = Integer(status, 10)
+    is_closed = nil
+    name = nil
+  end
   {
     "type" => "status",
-    "id" => status.id,
-    "is_closed" => status.is_closed?,
-    "name" => status.name,
+    "id" => id,
+    "is_closed" => is_closed,
+    "name" => name,
   }
 end
 
 def format_priority(priority)
   return nil if priority.nil?
+  if priority.is_a?(IssuePriority)
+    id = priority.id
+    number = priority.position
+    name = priority.name
+  else
+    id = Integer(priority, 10)
+    number = nil
+    name = nil
+  end
   {
     "type" => "priority",
-    "id" => priority.id,
-    "number" => priority.position,
-    "name" => priority.name,
+    "id" => id,
+    "number" => number,
+    "name" => name,
   }
 end
 
