@@ -1,0 +1,139 @@
+#!/usr/bin/env ruby
+
+require "fileutils"
+require "json"
+require "optparse"
+
+config_dir = File.expand_path("../../../../config",  __FILE__)
+APP_PATH = File.join(config_dir, "application")
+require APP_PATH
+Rails.application.require_environment!
+
+plugin = Redmine::Plugin.find(:full_text_search)
+
+output_directory = "."
+
+parser = OptionParser.new
+parser.version = plugin.version
+parser.on("--output-directory=DIRECTORY",
+          "Output to the DIRECTORY",
+          "[#{output_directory}]") do |directory|
+  output_directory = directory
+end
+
+def format_user(user)
+  return nil if user.nil?
+  {
+    "id" => user.id,
+  }
+end
+
+def format_status(status)
+  return nil if status.nil?
+  {
+    "id" => status.id,
+    "is_closed" => status.is_closed?,
+    "name" => status.name,
+  }
+end
+
+def format_priority(priority)
+  return nil if priority.ni?
+  {
+    "id" => priority.id,
+    "number" => priority.position,
+    "name" => priority.name,
+  }
+end
+
+def format_type(type, value)
+  if respond_to?("format_#{type}")
+    __send__("format_#{type}", value)
+  else
+    value
+  end
+end
+
+def format_details(details)
+  details.collect do |detail|
+    case detail.property
+    when "attachment", "relation"
+      {
+        "type" => detail.property,
+        "old" => detail.old_value,
+        "new" => detail.value,
+      }
+    when "attr"
+      case detail.prop_key
+      when /\A(.+)_id\z/
+        type = $1
+        type_class = detail.journal.journalized.__send__(type).class
+        old_value = nil
+        new_value = nil
+        if detail.old_value
+          old_value = type_class.find(detail_old_value)
+        end
+        if detail.new_value
+          new_value = type_class.find(detail_new_value)
+        end
+        {
+          "type" => type,
+          "old" => format_type(type, old_value),
+          "new" => format_type(type, new_value),
+        }
+      else
+        {
+          "type" => detail.prop_key,
+          "old" => detail.old_value,
+          "new" => detail.value,
+        }
+      end
+    when "cf"
+      {
+        "type" => "custom_field",
+        "custom_field" => {
+          "id" => detail.custom_field.id,
+          "name" => details.custom_field.name,
+        },
+        "old" => detail.old_value,
+        "new" => detail.value,
+      }
+    else
+      raise "unknown detail: #{detail.inspect}"
+    end
+  end
+end
+
+FileUtils.mkdir_p(output_directory)
+Project.find_each do |project|
+  issues = []
+  project.issues.find_each do |issue|
+    issue = {
+      "id" => issue.id,
+      "subject" => issue.subject,
+      "description" => issue.description,
+      "author" => format_user(issue.author),
+      "assignee" => format_user(issue.assigned_to),
+      "status" => format_status(issue.status),
+      "priority" => format_priority(issue.priority),
+      "created_at" => issue.created_on.iso8601,
+      "updated_at" => issue.updated_on.iso8601,
+    }
+    history = []
+    issue.journals.find_each do |journal|
+      history << {
+        "created_at" => journal.created_on.iso8601,
+        "user" => format_user(journal.user),
+        "comment" => journal.notes,
+        "changes" => format_changes(journal.details),
+      }
+    end
+    issue["history"] = history
+    issues << issue
+  end
+  output_path = File.join(output_directory,
+                          "issue-histories-#{project.identifier}.json")
+  File.open(output_path, "w") do |output|
+    output.puts(JSON.pretty_generate(issues))
+  end
+end
