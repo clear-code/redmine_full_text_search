@@ -107,6 +107,14 @@ def format_type(type, value)
   end
 end
 
+def format_custom_field(custom_field)
+  return nil if custom_field.nil?
+  {
+    "id" => custom_field.id,
+    "name" => custom_field.name,
+  }
+end
+
 def format_details(details)
   details.collect do |detail|
     case detail.property
@@ -146,10 +154,7 @@ def format_details(details)
     when "cf"
       {
         "type" => "custom_field",
-        "custom_field" => {
-          "id" => detail.custom_field.id,
-          "name" => detail.custom_field.name,
-        },
+        "custom_field" => format_custom_field(detail.custom_field),
         "old" => detail.old_value,
         "new" => detail.value,
       }
