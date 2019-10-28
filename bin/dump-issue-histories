@@ -23,10 +23,17 @@ parser.parse!(ARGV)
 
 def format_user(user)
   return nil if user.nil?
+  if user.is_a?(User)
+    id = user.id
+    name = user.name
+  else
+    id = Integer(user, 10)
+    name = nil
+  end
   {
     "type" => "user",
-    "id" => user.id,
-    "name" => user.name,
+    "id" => id,
+    "name" => name,
   }
 end
 
