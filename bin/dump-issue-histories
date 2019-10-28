@@ -37,7 +37,7 @@ def format_status(status)
 end
 
 def format_priority(priority)
-  return nil if priority.ni?
+  return nil if priority.nil?
   {
     "id" => priority.id,
     "number" => priority.position,
