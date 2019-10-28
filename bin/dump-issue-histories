@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require "fileutils"
-require "json"
 require "optparse"
 
 config_dir = File.expand_path("../../../../config",  __FILE__)
