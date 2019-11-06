@@ -178,7 +178,8 @@ Project.find_each do |project|
       "priority" => format_priority(issue.priority),
       "created_at" => issue.created_on.iso8601,
       "updated_at" => issue.updated_on.iso8601,
-      "elapsed_time" => issue.time_entries.sum(:hours),
+      "estimated_hours" => issue.estimated_hours,
+      "elapsed_hours" => issue.time_entries.sum(:hours),
     }
     history = []
     issue.journals.find_each do |journal|
