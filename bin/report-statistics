@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+require "fileutils"
+require "optparse"
+require "strscan"
+
+config_dir = File.expand_path("../../../../config",  __FILE__)
+APP_PATH = File.join(config_dir, "application")
+require APP_PATH
+Rails.application.require_environment!
+
+puts("N characters:")
+counts = FullTextSearch::Target
+           .group(:source_type_id)
+           .sum("CHAR_LENGTH(title) + CHAR_LENGTH(content)")
+counts.each do |id, n_characters|
+  puts("#{FullTextSearch::Type.find(id).name}: #{n_characters}")
+end
+puts("Total: #{counts.values.sum}")
