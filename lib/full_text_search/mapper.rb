@@ -118,7 +118,7 @@ module FullTextSearch
     end
 
     def extract_tag_ids_from_path(path)
-      extension = File.extname(path).delete_prefix(".")
+      extension = File.extname(path).gsub(/\A\./, "")
       return [] if extension.empty?
       [Tag.extension(extension).id]
     end
