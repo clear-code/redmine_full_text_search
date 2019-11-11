@@ -2,7 +2,7 @@ notifications:
   webhooks:
     - https://webhook.commit-email.info/
 
-dist: xenial
+dist: bionic
 
 services:
   - docker
@@ -40,23 +40,58 @@ addons:
       - chromium-chromedriver
       - postgresql-client-11
 
-rvm:
-  - 2.4
-  - 2.5
-  - 2.6
-
 matrix:
   include:
-    - name: "Redmine 4.0 & MySQL"
+    - name: "Redmine 4.0 & MySQL & Ruby 2.4"
       <<: *redmine_4_0
+      rvm: 2.4
       env:
         - REDMINE_VERSION=4.0
         - REDMINE_BRANCH=4.0-stable
         - RDBMS=mysql
         - RDBMS_PORT=3306
         - GROONGA_ADAPTER=mroonga
-    - name: "Redmine 4.0 & PostgreSQL"
+    - name: "Redmine 4.0 & MySQL & Ruby 2.5"
       <<: *redmine_4_0
+      rvm: 2.5
+      env:
+        - REDMINE_VERSION=4.0
+        - REDMINE_BRANCH=4.0-stable
+        - RDBMS=mysql
+        - RDBMS_PORT=3306
+        - GROONGA_ADAPTER=mroonga
+    - name: "Redmine 4.0 & MySQL & Ruby 2.6"
+      <<: *redmine_4_0
+      rvm: 2.6
+      env:
+        - REDMINE_VERSION=4.0
+        - REDMINE_BRANCH=4.0-stable
+        - RDBMS=mysql
+        - RDBMS_PORT=3306
+        - GROONGA_ADAPTER=mroonga
+    - name: "Redmine 4.0 & PostgreSQL & Ruby 2.4"
+      <<: *redmine_4_0
+      rvm: 2.4
+      env:
+        - REDMINE_VERSION=4.0
+        - REDMINE_BRANCH=4.0-stable
+        - RDBMS=postgresql
+        - RDBMS_PORT=5432
+        - GROONGA_ADAPTER=pgroonga
+        - DOCKER_TAG="latest-debian-11"
+    - name: "Redmine 4.0 & PostgreSQL & Ruby 2.5"
+      <<: *redmine_4_0
+      rvm: 2.5
+      env:
+        - REDMINE_VERSION=4.0
+        - REDMINE_BRANCH=4.0-stable
+        - RDBMS=postgresql
+        - RDBMS_PORT=5432
+        - GROONGA_ADAPTER=pgroonga
+        - DOCKER_TAG="latest-debian-11"
+    - name: "Redmine 4.0 & PostgreSQL & Ruby 2.6"
+      <<: *redmine_4_0
+      rvm: 2.6
       env:
         - REDMINE_VERSION=4.0
         - REDMINE_BRANCH=4.0-stable
