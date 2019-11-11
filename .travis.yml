@@ -40,6 +40,11 @@ addons:
       - chromium-chromedriver
       - postgresql-client-11
 
+rvm:
+  - 2.4
+  - 2.5
+  - 2.6
+
 matrix:
   include:
     - name: "Redmine 4.0 & MySQL"
