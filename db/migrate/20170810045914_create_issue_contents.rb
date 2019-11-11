@@ -2,6 +2,8 @@ require "full_text_search/migration"
 
 class CreateIssueContents < ActiveRecord::Migration[4.2]
   def change
+    return if reverting? and !table_exists?(:issue_contents)
+
     options = nil
     contents_limit = nil
     if Redmine::Database.mysql?

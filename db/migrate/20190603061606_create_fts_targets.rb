@@ -6,6 +6,8 @@ class CreateFtsTargets < ActiveRecord::Migration[5.2]
   end
 
   def change
+    return if reverting? and !table_exists?(:fts_targets)
+
     if Redmine::Database.mysql?
       mroonga_version = connection.select_rows(<<-SQL)[0][1]
 SHOW VARIABLES LIKE 'mroonga_version';

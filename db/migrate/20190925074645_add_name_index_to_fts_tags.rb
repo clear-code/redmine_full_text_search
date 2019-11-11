@@ -1,5 +1,7 @@
 class AddNameIndexToFtsTags < ActiveRecord::Migration[5.2]
   def change
+    return if reverting? and !table_exists?(:fts_tags)
+
     if Redmine::Database.mysql?
       add_index :fts_tags,
                 :name,
