@@ -7,7 +7,7 @@ class CreateIssueContents < ActiveRecord::Migration[4.2]
     options = nil
     contents_limit = nil
     if Redmine::Database.mysql?
-      options = "ENGINE=Mroonga"
+      options = "ENGINE=Mroonga DEFAULT CHARSET=utf8mb4"
       contents_limit = 16.megabytes
     end
     create_table :issue_contents, options: options do |t|

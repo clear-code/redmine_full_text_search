@@ -19,7 +19,7 @@ SHOW VARIABLES LIKE 'mroonga_version';
                   mroonga_version
         raise message
       end
-      options = "ENGINE=Mroonga"
+      options = "ENGINE=Mroonga DEFAULT CHARSET=utf8mb4"
     else
       options = nil
     end
