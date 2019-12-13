@@ -16,6 +16,10 @@ module FullTextSearch
         end
       end
 
+      def available?(name)
+        respond_to?(name.singularize)
+      end
+
       def attachment
         find_or_create_by(name: "Attachment")
       end
