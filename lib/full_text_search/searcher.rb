@@ -204,8 +204,7 @@ module FullTextSearch
     def collect_not_search_type_conditions
       conditions = []
 
-      not_search_types =
-        Redmine::Search.available_search_types - @request.target_search_types
+      not_search_types = @request.not_search_types
       if @request.choose_one_project?
         not_search_types -= ["projects"]
       end

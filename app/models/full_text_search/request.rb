@@ -137,6 +137,10 @@ module FullTextSearch
       @search_types ||= compute_search_types
     end
 
+    def not_search_types
+      @not_search_types ||= compute_not_search_types
+    end
+
     def target_search_types
       @target_search_types ||= compute_target_search_types
     end
@@ -200,8 +204,14 @@ module FullTextSearch
       :"view_#{allow_type}"
     end
 
+    def compute_available_search_types
+      Redmine::Search.available_search_types.select do |type|
+        Type.available?(type)
+      end
+    end
+
     def compute_search_types
-      types = Redmine::Search.available_search_types.dup
+      types = compute_available_search_types
       return types unless choose_one_project?
 
       project = target_projects
@@ -209,6 +219,10 @@ module FullTextSearch
       types.select do |type|
         user.allowed_to?(resolve_permission(type), project)
       end
+    end
+
+    def compute_not_search_types
+      compute_available_search_types - target_search_types
     end
 
     def compute_target_search_types
