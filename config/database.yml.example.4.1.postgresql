@@ -1,0 +1,20 @@
+production:
+  adapter: postgresql
+  database: redmine_41
+  host: 127.0.0.1
+  username: postgres
+  password: ""
+
+development:
+  adapter: postgresql
+  database: redmine_41_development
+  host: 127.0.0.1
+  username: postgres
+  password: ""
+
+test:
+  adapter: postgresql
+  database: redmine_41_test
+  host: 127.0.0.1
+  username: postgres
+  password: ""
