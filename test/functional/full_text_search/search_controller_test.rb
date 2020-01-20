@@ -19,6 +19,7 @@ module FullTextSearch
     fixtures :issue_statuses
     fixtures :issues
     fixtures :journals
+    fixtures :members
     fixtures :messages
     fixtures :news
     fixtures :projects
@@ -848,7 +849,7 @@ Reply to the <span class="keyword">first</span> <span class="keyword">post</span
       end
 
       def test_attachment_by_normal_user
-        @user = User.find(2)
+        @user = User.find(4)
         @request.session[:user_id] = @user.id
         search("unknown")
         items = [
