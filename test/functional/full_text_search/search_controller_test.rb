@@ -194,6 +194,7 @@ module FullTextSearch
 
     def format_api_results(items, total_count: nil)
       results = items.collect do |item, detail|
+        item.reload
         datetime = nil
         if item.respond_to?(:customized)
           customized = item.customized
