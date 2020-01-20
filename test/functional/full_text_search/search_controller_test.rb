@@ -847,6 +847,19 @@ Reply to the <span class="keyword">first</span> <span class="keyword">post</span
         end
       end
 
+      def test_attachment_by_normal_user
+        @user = User.find(2)
+        @request.session[:user_id] = @user.id
+        search("unknown")
+        items = [
+          Attachment.find(22),
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_items(items),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+
       def test_api
         search("project6 OR eCookbook",
                api: true)

@@ -198,6 +198,8 @@ module FullTextSearch
         allow_type = "changesets"
       when "journals"
         allow_type = "issues"
+      when "projects"
+        allow_type = "project"
       else
         allow_type = type
       end
