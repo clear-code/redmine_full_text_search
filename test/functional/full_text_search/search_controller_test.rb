@@ -361,6 +361,8 @@ module FullTextSearch
           all += n_messages
           n_changes = 0
           all += n_changes
+          n_attachments_of_scoped_project = project.attachments.count
+          all += n_attachments_of_scoped_project
           assert_equal([
                          [
                            "All (#{all})",
@@ -828,9 +830,13 @@ Reply to the <span class="keyword">first</span> <span class="keyword">post</span
     end
 
     class ProjectTest < self
-      def search(query, api: false)
+      def search(query, project_id: nil, api: false)
         get :index,
-            params: {"q" => query, "projects" => "1"},
+            params: {
+              "id" => project_id,
+              "projects" => "1",
+              "q" => query,
+            },
             api: api
       end
 
@@ -855,6 +861,18 @@ Reply to the <span class="keyword">first</span> <span class="keyword">post</span
         search("unknown")
         items = [
           Attachment.find(22),
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_items(items),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+
+      def test_attachment_of_scoped_project
+        attachment = Attachment.find(22)
+        search("unknown", project_id: attachment.container.id)
+        items = [
+          attachment,
         ]
         assert_select("#search-results") do
           assert_equal(format_items(items),

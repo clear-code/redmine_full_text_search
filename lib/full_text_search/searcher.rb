@@ -124,8 +124,6 @@ module FullTextSearch
         project_type_id = Type.project.id
         conditions << "&!"
         conditions << "source_type_id == #{project_type_id}"
-        conditions << "&!"
-        conditions << "container_type_id == #{project_type_id}"
       end
       unless @request.tags.blank?
         tag_ids = @request.tags.collect do |tag_id|
