@@ -198,6 +198,7 @@ module FullTextSearch
         datetime = nil
         if item.respond_to?(:customized)
           customized = item.customized
+          customized.reload
           if customized.respond_to?(:updated_on)
             datetime ||= customized.updated_on
           end
@@ -207,7 +208,9 @@ module FullTextSearch
         end
         datetime ||= item.committed_on if item.respond_to?(:committed_on)
         if item.respond_to?(:changeset)
-          datetime ||= item.changeset.committed_on
+          changeset = item.changeset
+          changeset.reload
+          datetime ||= changeset.committed_on
         end
         datetime ||= item.updated_on if item.respond_to?(:updated_on)
         datetime ||= item.created_on if item.respond_to?(:created_on)
