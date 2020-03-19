@@ -47,10 +47,20 @@ module FullTextSearch
           end
 
           def after_destroy(record)
-            FullTextSearch::UpdateIssueContentJob
-              .perform_later(record.class.name,
-                             record.id,
-                             "destroy")
+            # TODO: Refine
+            case record
+            when Issue
+              FullTextSearch::UpdateIssueContentJob
+                .perform_later(record.class.name,
+                               record.id,
+                               "destroy")
+            when Journal
+              FullTextSearch::UpdateIssueContentJob
+                .perform_later(record.class.name,
+                               record.id,
+                               "destroy",
+                               issue_id: record.journalized_id)
+            end
           end
         end
       end

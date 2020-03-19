@@ -5,12 +5,12 @@ module FullTextSearch
 
     discard_on ActiveRecord::RecordNotFound
 
-    def perform(record_class_name, record_id, action)
+    def perform(record_class_name, record_id, action, options={})
       record_class = record_class_name.constantize
-      record = record_class.find(record_id)
 
       case action
       when "save"
+        record = record_class.find(record_id)
         case record
         when Issue
           content = FullTextSearch::IssueContent
@@ -28,14 +28,14 @@ module FullTextSearch
             .update_all(contents: create_contents(issue_id))
         end
       when "destroy"
-        case record
-        when Issue
-          FullTextSearch::IssueContent.where(issue_id: record.id).destroy_all
-        when Journal
-          issue_id = record.journalized_id
+        case record_class_name
+        when "Issue"
+          FullTextSearch::IssueContent.where(issue_id: record_id).destroy_all
+        when "Journal"
+          issue_id = options[:issue_id]
           FullTextSearch::IssueContent
             .where(issue_id: issue_id)
-            .update_all(contents: create_contents(issue_id, excludes: [record.id]))
+            .update_all(contents: create_contents(issue_id, excludes: [record_id]))
         end
       end
     end
