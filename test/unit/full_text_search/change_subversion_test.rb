@@ -21,22 +21,17 @@ module FullTextSearch
       repository = Repository::Subversion.create(:project => @project,
                                                  :url => url)
       repository.fetch_changesets
+      repository_info = RepositoryInfo.new(repository)
+      files = repository_info.files.collect do |file|
+        "/#{file}"
+      end
       records = Target.
                   where(container_id: repository.id,
                         container_type_id: Type.repository.id).
                   order(source_id: :asc)
       first_change = Change.find_by!(path: "/subversion_test/.project")
-      last_change = Change.find_by!(path: "/subversion_test/[folder_with_brackets]/README.txt")
       assert_equal([
-                     [
-                       "/subversion_test/.project",
-                       "/subversion_test/folder/subfolder/rubylogo.gif",
-                       "/subversion_test/textfile.txt",
-                       "/subversion_test/folder/helloworld.rb",
-                       "/subversion_test/helloworld.c",
-                       "/subversion_test/folder/subfolder/journals_controller.rb",
-                       "/subversion_test/[folder_with_brackets]/README.txt",
-                     ],
+                     files.sort,
                      {
                        "project_id" => @project.id,
                        "source_id" => first_change.id,
@@ -62,27 +57,10 @@ module FullTextSearch
                        "is_private" => null_boolean,
                        "tag_ids" => [],
                      },
-                     {
-                       "project_id" => @project.id,
-                       "source_id" => last_change.id,
-                       "source_type_id" => Type.change.id,
-                       "last_modified_at" => parse_time("2010-06-20T09:13:43.065362Z"),
-                       "container_id" => repository.id,
-                       "container_type_id" => Type.repository.id,
-                       "custom_field_id" => null_number,
-                       "title" => "/subversion_test/[folder_with_brackets]/README.txt",
-                       "content" => <<-CONTENT,
-This file should be accessible for Redmine, although its folder contains square
-brackets.
-                       CONTENT
-                       "is_private" => null_boolean,
-                       "tag_ids" => [Tag.extension("txt").id],
-                     },
                    ],
                    [
-                     records.collect(&:title),
+                     records.collect(&:title).sort,
                      records.first.attributes.except("id"),
-                     records.last.attributes.except("id"),
                    ])
     end
 
@@ -91,22 +69,17 @@ brackets.
       repository = Repository::Subversion.create(:project => @project,
                                                  :url => url)
       repository.fetch_changesets
+      repository_info = RepositoryInfo.new(repository)
+      sub_path_files = repository_info.files.collect do |file|
+        "/subversion_test/#{file}"
+      end
       records = Target.
                   where(container_id: repository.id,
                         container_type_id: Type.repository.id).
                   order(source_id: :asc)
       first_change = Change.find_by!(path: "/subversion_test/.project")
-      last_change = Change.find_by!(path: "/subversion_test/[folder_with_brackets]/README.txt")
       assert_equal([
-                     [
-                       "/subversion_test/.project",
-                       "/subversion_test/folder/subfolder/rubylogo.gif",
-                       "/subversion_test/textfile.txt",
-                       "/subversion_test/folder/helloworld.rb",
-                       "/subversion_test/helloworld.c",
-                       "/subversion_test/folder/subfolder/journals_controller.rb",
-                       "/subversion_test/[folder_with_brackets]/README.txt",
-                     ],
+                     sub_path_files.sort,
                      {
                        "project_id" => @project.id,
                        "source_id" => first_change.id,
@@ -132,27 +105,10 @@ brackets.
                        "is_private" => null_boolean,
                        "tag_ids" => [],
                      },
-                     {
-                       "project_id" => @project.id,
-                       "source_id" => last_change.id,
-                       "source_type_id" => Type.change.id,
-                       "last_modified_at" => parse_time("2010-06-20T09:13:43.065362Z"),
-                       "container_id" => repository.id,
-                       "container_type_id" => Type.repository.id,
-                       "custom_field_id" => null_number,
-                       "title" => "/subversion_test/[folder_with_brackets]/README.txt",
-                       "content" => <<-CONTENT,
-This file should be accessible for Redmine, although its folder contains square
-brackets.
-                       CONTENT
-                       "is_private" => null_boolean,
-                       "tag_ids" => [Tag.extension("txt").id],
-                     },
                    ],
                    [
-                     records.collect(&:title),
+                     records.collect(&:title).sort,
                      records.first.attributes.except("id"),
-                     records.last.attributes.except("id"),
                    ])
     end
   end

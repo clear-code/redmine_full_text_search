@@ -171,3 +171,30 @@ class TestLogger
     @messages << [:error, message || yield]
   end
 end
+
+class RepositoryInfo
+  def initialize(repository)
+    @repository = repository
+  end
+
+  def files
+    collect_files
+  end
+
+  def n_files
+    files.size
+  end
+
+  private
+  def collect_files(path=nil)
+    files = []
+    @repository.entries(path).each do |entry|
+      if entry.is_file?
+        files << entry.path
+      elsif entry.is_dir?
+        files.concat(collect_files(entry.path))
+      end
+    end
+    files
+  end
+end

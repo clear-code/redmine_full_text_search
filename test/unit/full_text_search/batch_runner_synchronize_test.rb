@@ -51,9 +51,10 @@ module FullTextSearch
       repository = Repository::Subversion.create(:project => project,
                                                  :url => url)
       repository.fetch_changesets
+      repository_info = RepositoryInfo.new(repository)
       Target.changes.destroy_all
       runner = BatchRunner.new
-      assert_difference("Target.count", 7) do
+      assert_difference("Target.count", repository_info.files.size) do
         runner.synchronize
       end
     end
@@ -64,10 +65,11 @@ module FullTextSearch
       repository = Repository::Subversion.create(:project => project,
                                                  :url => url)
       repository.fetch_changesets
+      repository_info = RepositoryInfo.new(repository)
       Target.changes.destroy_all
       runner = BatchRunner.new
       # Including only the latest files at the default branch.
-      assert_difference("Target.count", 7) do
+      assert_difference("Target.count", repository_info.files.size) do
         runner.synchronize_repositories(project: project)
       end
     end
