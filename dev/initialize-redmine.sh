@@ -15,14 +15,14 @@ if [ ! -d "${test_git_repository}" ]; then
     -C "$(dirname ${test_git_repository})"
 fi
 
-bin/rails db:drop || true
-bin/rails generate_secret_token
-bin/rails db:create
-bin/rails db:migrate
-bin/rails redmine:load_default_data REDMINE_LANG=en
-bin/rails redmine:plugins:migrate
-bin/rails db:structure:dump
-bin/rails runner '
+${RUBY:-ruby} bin/rails db:drop || true
+${RUBY:-ruby} bin/rails generate_secret_token
+${RUBY:-ruby} bin/rails db:create
+${RUBY:-ruby} bin/rails db:migrate
+${RUBY:-ruby} bin/rails redmine:load_default_data REDMINE_LANG=en
+${RUBY:-ruby} bin/rails redmine:plugins:migrate
+${RUBY:-ruby} bin/rails db:structure:dump
+${RUBY:-ruby} bin/rails runner '
 u = User.find(1)
 u.password = u.password_confirmation = "adminadmin"
 u.must_change_passwd = false
