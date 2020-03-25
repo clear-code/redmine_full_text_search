@@ -4,7 +4,7 @@ module FullTextSearch
       def self.included(base)
         base.include(InstanceMethods)
         base.class_eval do
-          after_save Callbacks
+          after_commit Callbacks
           after_destroy Callbacks
         end
         case ActiveRecord::Base.connection_config[:adapter]
@@ -39,11 +39,11 @@ module FullTextSearch
       # Add callbacks to Issue
       class Callbacks
         class << self
-          def after_save(record)
+          def after_commit(record)
             FullTextSearch::UpdateIssueContentJob
               .perform_later(record.class.name,
                              record.id,
-                             "save")
+                             "commit")
           end
 
           def after_destroy(record)

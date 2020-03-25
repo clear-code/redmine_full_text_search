@@ -9,7 +9,7 @@ module FullTextSearch
       record_class = record_class_name.constantize
 
       case action
-      when "save"
+      when "commit"
         record = record_class.find(record_id)
         case record
         when Issue
