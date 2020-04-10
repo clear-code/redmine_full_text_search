@@ -16,6 +16,7 @@ en:
   label_similar_issues: Similar issues
   label_extension: Extension
   label_text_extraction: Text extraction
+  label_identifier: ID
   label:
     full_text_search:
       drilldown:
