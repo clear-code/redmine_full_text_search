@@ -1,6 +1,7 @@
 module FullTextSearch
   class Tag < ActiveRecord::Base
     self.table_name = :fts_tags
+    belongs_to :types, class_name: "FullTextSearch::TagType"
 
     case connection_config[:adapter]
     when "postgresql"
