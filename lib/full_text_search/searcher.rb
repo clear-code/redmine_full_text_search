@@ -328,12 +328,29 @@ module FullTextSearch
     end
 
     def tag_drilldown
-      target.drilldowns["tag"].records.collect do |record|
-        {
-          tag: Tag.find(record["_key"]),
-          n_records: record["_nsubrecs"],
+      drilldown = []
+      target.drilldowns["tag"].records.each do |record|
+        tag_id = record["_key"]
+        n_records = record["_nsubrecs"]
+        begin
+          tag = Tag.find(tag_id)
+        rescue ActiveRecord::RecordNotFound => error
+          related_targets = records.find_all do |target|
+            target.tag_ids.include?(tag_id)
+          end
+          related_target_ids = related_targets.collect(&:id)
+          message = "[full-text-search][searcher][drilldown][tag] "
+          message << "unknown tag ID exists: #{tag_id}(#{n_records}) "
+          message << "related target IDs: #{related_target_ids.inspect}"
+          rails.logger.warn(message)
+          next
+        end
+        drilldown << {
+          tag: tag,
+          n_records: n_records,
         }
       end
+      drilldown
     end
 
     def tag_drilldowns
