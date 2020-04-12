@@ -342,7 +342,7 @@ module FullTextSearch
           message = "[full-text-search][searcher][drilldown][tag] "
           message << "unknown tag ID exists: #{tag_id}(#{n_records}) "
           message << "related target IDs: #{related_target_ids.inspect}"
-          rails.logger.warn(message)
+          Rails.logger.warn(message)
           next
         end
         drilldown << {
