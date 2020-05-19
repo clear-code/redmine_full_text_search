@@ -15,6 +15,14 @@
 </p>
 
 <p>
+  <%= label_tag("settings[add_search_related_parameters_in_url]",
+                l(:label_full_text_search_add_search_related_parameters_in_url)) %>
+  <%= check_box_tag("settings[add_search_related_parameters_in_url]",
+                    FullTextSearch::Settings::TRUE_VALUE,
+                    settings.add_search_related_parameters_in_url?) %>
+</p>
+
+<p>
   <%= label_tag("settings[attachment_max_text_size_in_mb]",
                 l(:label_full_text_search_attachment_max_text_size)) %>
   <%= text_field_tag("settings[attachment_max_text_size_in_mb]",

@@ -20,6 +20,10 @@ module FullTextSearch
       @raw["display_similar_issues"] == TRUE_VALUE
     end
 
+    def add_search_related_parameters_in_url?
+      @raw["add_search_related_parameters_in_url"] == TRUE_VALUE
+    end
+
     DEFAULT_ATTACHMENT_MAX_TEXT_SIZE_IN_MB = 4
     def attachment_max_text_size_in_mb
       size = @raw.fetch("attachment_max_text_size_in_mb",

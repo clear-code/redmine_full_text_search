@@ -13,6 +13,7 @@ ja:
   label_full_text_search_text_extraction_timeout: テキスト抽出処理のタイムアウト時間（秒）
   label_full_text_search_external_command_max_memory: 外部コマンドの最大使用可能メモリー
   label_full_text_search_server_url: ChupaTextサーバーのURL
+  label_full_text_search_add_search_related_parameters_in_url: search_idとsearch_nをURLパラメータに追加
   label_similar_issues: 類似チケット
   label_extension: 拡張子
   label_text_extraction: テキスト抽出
