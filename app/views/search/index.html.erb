@@ -169,14 +169,9 @@
       <% @result_set.each_with_index do |e, i| %>
         <dt class="<%= e.event_type %> icon icon-<%= e.event_type %>">
           <%= content_tag("span", e.project, :class => "project") unless @project == e.project %>
-          <% if fts_add_search_related_parameters_in_url? %>
           <%= link_to(e.event_highlighted_title,
-                      e.event_url.merge("search_id" => @search_request.search_id,
-                                        "search_n" => i + @search_request.offset),
+                      search_result_entry_url(e, i),
                       :data => {:rank => e.rank}) %>
-          <% else %>
-          <%= link_to(e.event_highlighted_title, :data => {:rank => e.rank}) %>
-          <% end %>
         </dt>
         <dd>
           <ol class="search-snippets">

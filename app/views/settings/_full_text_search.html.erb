@@ -15,11 +15,11 @@
 </p>
 
 <p>
-  <%= label_tag("settings[add_search_related_parameters_in_url]",
-                l(:label_full_text_search_add_search_related_parameters_in_url)) %>
-  <%= check_box_tag("settings[add_search_related_parameters_in_url]",
+  <%= label_tag("settings[enable_tracking]",
+                l(:label_full_text_search_enable_tracking)) %>
+  <%= check_box_tag("settings[enable_tracking]",
                     FullTextSearch::Settings::TRUE_VALUE,
-                    settings.add_search_related_parameters_in_url?) %>
+                    settings.enable_tracking?) %>
 </p>
 
 <p>

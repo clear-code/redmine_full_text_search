@@ -20,8 +20,9 @@ module FullTextSearch
       @raw["display_similar_issues"] == TRUE_VALUE
     end
 
-    def add_search_related_parameters_in_url?
-      @raw["add_search_related_parameters_in_url"] == TRUE_VALUE
+    def enable_tracking?
+      @raw["enable_tracking"].nil? or
+        @raw["enable_tracking"] == TRUE_VALUE
     end
 
     DEFAULT_ATTACHMENT_MAX_TEXT_SIZE_IN_MB = 4
