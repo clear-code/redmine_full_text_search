@@ -1,25 +1,52 @@
 <p>
-  <%= label_tag("settings[display_score]",
+  <%= label_tag("settings[display_score]_#{FullTextSearch::Settings::TRUE_VALUE}",
                 l(:label_full_text_search_display_score)) %>
-  <%= check_box_tag("settings[display_score]",
-                    FullTextSearch::Settings::TRUE_VALUE,
-                    settings.display_score?) %>
+  <label class="block">
+    <%= radio_button_tag("settings[display_score]",
+                         FullTextSearch::Settings::TRUE_VALUE,
+                         settings.display_score?) %>
+    <%= l(:label_full_text_search_display) %>
+  </label>
+  <label class="block">
+    <%= radio_button_tag("settings[display_score]",
+                         FullTextSearch::Settings::FALSE_VALUE,
+                         !settings.display_score?) %>
+    <%= l(:label_full_text_search_hide) %>
+  </label>
 </p>
 
 <p>
-  <%= label_tag("settings[display_similar_issues]",
+  <%= label_tag("settings[display_similar_issues]_#{FullTextSearch::Settings::TRUE_VALUE}",
                 l(:label_full_text_search_display_similar_issues)) %>
-  <%= check_box_tag("settings[display_similar_issues]",
-                    FullTextSearch::Settings::TRUE_VALUE,
-                    settings.display_similar_issues?) %>
+  <label class="block">
+    <%= radio_button_tag("settings[display_similar_issues]",
+                         FullTextSearch::Settings::TRUE_VALUE,
+                         settings.display_similar_issues?) %>
+    <%= l(:label_full_text_search_display) %>
+  </label>
+  <label class="block">
+    <%= radio_button_tag("settings[display_similar_issues]",
+                         FullTextSearch::Settings::FALSE_VALUE,
+                         !settings.display_similar_issues?) %>
+    <%= l(:label_full_text_search_hide) %>
+  </label>
 </p>
 
 <p>
-  <%= label_tag("settings[enable_tracking]",
+  <%= label_tag("settings[enable_tracking]_#{FullTextSearch::Settings::TRUE_VALUE}",
                 l(:label_full_text_search_enable_tracking)) %>
-  <%= check_box_tag("settings[enable_tracking]",
-                    FullTextSearch::Settings::TRUE_VALUE,
-                    settings.enable_tracking?) %>
+  <label class="block">
+    <%= radio_button_tag("settings[enable_tracking]",
+                         FullTextSearch::Settings::TRUE_VALUE,
+                         settings.enable_tracking?) %>
+    <%= l(:label_full_text_search_enable) %>
+  </label>
+  <label class="block">
+    <%= radio_button_tag("settings[enable_tracking]",
+                         FullTextSearch::Settings::FALSE_VALUE,
+                         !settings.enable_tracking?) %>
+    <%= l(:label_full_text_search_disable) %>
+  </label>
 </p>
 
 <p>

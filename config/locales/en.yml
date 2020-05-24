@@ -14,6 +14,10 @@ en:
   label_full_text_search_external_command_max_memory: Max memory usage for executing an external command
   label_full_text_search_server_url: ChupaText server URL
   label_full_text_search_enable_tracking: Enable tracking
+  label_full_text_search_display: Display
+  label_full_text_search_hide: Hide
+  label_full_text_search_enable: Enable
+  label_full_text_search_disable: Disable
   label_similar_issues: Similar issues
   label_extension: Extension
   label_text_extraction: Text extraction

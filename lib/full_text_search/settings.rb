@@ -7,6 +7,7 @@ module FullTextSearch
 
   class Settings
     TRUE_VALUE = "1"
+    FALSE_VALUE = "0"
 
     def initialize(raw)
       @raw = raw || {}
@@ -21,8 +22,7 @@ module FullTextSearch
     end
 
     def enable_tracking?
-      @raw["enable_tracking"].nil? or
-        @raw["enable_tracking"] == TRUE_VALUE
+      @raw["enable_tracking"] != FALSE_VALUE
     end
 
     DEFAULT_ATTACHMENT_MAX_TEXT_SIZE_IN_MB = 4
