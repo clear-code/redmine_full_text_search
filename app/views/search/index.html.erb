@@ -170,8 +170,7 @@
         <dt class="<%= e.event_type %> icon icon-<%= e.event_type %>">
           <%= content_tag("span", e.project, :class => "project") unless @project == e.project %>
           <%= link_to(e.event_highlighted_title,
-                      e.event_url.merge("search_id" => @search_request.search_id,
-                                        "search_n" => i + @search_request.offset),
+                      search_result_entry_url(e, i),
                       :data => {:rank => e.rank}) %>
         </dt>
         <dd>

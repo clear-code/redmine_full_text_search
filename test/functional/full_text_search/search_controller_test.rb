@@ -180,14 +180,16 @@ module FullTextSearch
       end
     end
 
-    def format_items(items)
+    def format_items(items, enable_tracking: true)
       items.collect.with_index do |item, i|
+        options = {only_path: true}
+        if enable_tracking
+          options[:search_id] = @search_id
+          options[:search_n] = i
+        end
         [
           item_title(item),
-          item_url(item,
-                   search_id: @search_id,
-                   search_n: i,
-                   only_path: true),
+          item_url(item, options),
         ]
       end
     end
@@ -296,6 +298,19 @@ module FullTextSearch
                          ["desc", nil, nil],
                        ],
                        items)
+        end
+      end
+
+      def test_tracking
+        with_settings(plugin_full_text_search: {"enable_tracking" => "0"}) do
+          get :index, params: {"q" => "print", "issues" => "1"}
+        end
+        items = [
+          Issue.find(1),
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_items(items, enable_tracking: false),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
         end
       end
 
