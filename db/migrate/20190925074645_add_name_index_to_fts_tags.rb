@@ -1,3 +1,5 @@
+require "full_text_search/migration"
+
 class AddNameIndexToFtsTags < ActiveRecord::Migration[5.2]
   def change
     return if reverting? and !table_exists?(:fts_tags)
