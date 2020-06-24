@@ -72,5 +72,15 @@ module FullTextSearch
       assert_equal(print_issues,
                    press_or_print_targets.collect(&:source_record).sort_by(&:id))
     end
+
+    def test_syntax_error_query
+      issue = Issue.generate!(description: "AAA aaa(zzz ZZZ")
+      parameters = {
+        q: "aaa(zzz",
+      }
+      targets = search(parameters).records
+      assert_equal([issue],
+                   targets.collect(&:source_record).sort_by(&:id))
+    end
   end
 end

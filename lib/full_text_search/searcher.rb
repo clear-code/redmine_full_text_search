@@ -89,12 +89,17 @@ module FullTextSearch
     def query
       return nil if @request.query.blank?
       query = ""
-      tag_ids = Tag
-                  .where(type_id: TagType.identifier.id)
-                  .full_text_search(:name, @request.query)
-                  .pluck(:id)
-      conditions = tag_ids.collect do |tag_id|
-        "(tag_ids:@#{tag_id})"
+      conditions = []
+      begin
+        tag_ids = Tag
+                    .where(type_id: TagType.identifier.id)
+                    .full_text_search(:name, @request.query)
+                    .pluck(:id)
+        tag_ids.each do |tag_id|
+          conditions << "(tag_ids:@#{tag_id})"
+        end
+      rescue ActiveRecord::StatementInvalid
+        # Ignore syntax error for Groonga's query syntax
       end
       conditions << "(#{@request.query})"
       conditions.join(" OR ")
