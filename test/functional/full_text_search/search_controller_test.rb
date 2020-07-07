@@ -361,7 +361,11 @@ module FullTextSearch
           all += n_issues
           n_news = project.news.count
           all += n_news
-          n_documents = project.documents.count
+          n_documents = 0
+          project.documents.each do |document|
+            n_documents += 1
+            n_documents += document.attachments.count
+          end
           all += n_documents
           n_changesets = project.changesets.count
           all += n_changesets
