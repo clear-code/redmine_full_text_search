@@ -149,9 +149,11 @@ module FullTextSearch
         Target.find_by(source_type_id: attachment_type_id,
                        source_id: attachment.id)
       end
-      assert_equal(expected_targets,
-                   Target.where(source_type_id: attachment_type_id,
-                                container_type_id: document_type_id))
+      assert_equal(expected_targets.sort_by(&:id),
+                   Target.
+                     where(source_type_id: attachment_type_id,
+                                container_type_id: document_type_id).
+                     order(:id))
     end
 
     def test_archived_attachment_document
