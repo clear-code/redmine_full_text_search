@@ -139,6 +139,31 @@ module FullTextSearch
                    ])
     end
 
+    def test_attachment_document
+      attachments = Attachment.where(container_type: "Document")
+      runner = BatchRunner.new
+      runner.synchronize
+      attachment_type_id = FullTextSearch::Type[Attachment].id
+      document_type_id = FullTextSearch::Type[Document].id
+      expected_targets = attachments.collect do |attachment|
+        Target.find_by(source_type_id: attachment_type_id,
+                       source_id: attachment.id)
+      end
+      assert_equal(expected_targets,
+                   Target.where(source_type_id: attachment_type_id,
+                                container_type_id: document_type_id))
+    end
+
+    def test_archived_attachment_document
+      attachment = Attachment.where(container_type: "Document").first
+      attachment.container.project.archive
+      runner = BatchRunner.new
+      runner.synchronize
+      not_archived_projects = Project.where.not(status: Project::STATUS_ARCHIVED)
+      assert_equal([],
+                   Target.pluck(:project_id) - not_archived_projects.pluck(:id))
+    end
+
     def test_archived_attachment_issue
       attachment = Attachment.where(container_type: "Issue").first
       attachment.container.project.archive

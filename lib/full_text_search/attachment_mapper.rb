@@ -17,6 +17,10 @@ module FullTextSearch
       def with_project(redmine_class)
         redmine_class
           .joins(<<-JOIN)
+LEFT OUTER JOIN documents
+  ON container_type = 'Document' AND documents.id = container_id
+          JOIN
+          .joins(<<-JOIN)
 LEFT OUTER JOIN issues
   ON container_type = 'Issue' AND issues.id = container_id
           JOIN
@@ -38,7 +42,8 @@ LEFT OUTER JOIN wikis
           JOIN
           .joins(<<-JOIN)
 JOIN projects
-  ON (container_type = 'Issue' AND projects.id = issues.project_id) OR
+  ON (container_type = 'Document' AND projects.id = documents.project_id) OR
+     (container_type = 'Issue' AND projects.id = issues.project_id) OR
      (container_type = 'Message' AND projects.id = boards.project_id) OR
      (container_type = 'Project' AND projects.id = container_id) OR
      (container_type = 'WikiPage' AND projects.id = wikis.project_id)
