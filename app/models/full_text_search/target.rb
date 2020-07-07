@@ -38,14 +38,16 @@ module FullTextSearch
       def highlight_keyword_extraction_is_broken?
         if @highlight_keyword_extraction_is_broken.nil?
           @highlight_keyword_extraction_is_broken =
-            ((groonga_version <=> "9.0.5") < 0)
+            (Gem::Version.new(groonga_version) <
+             Gem::Version.new("9.0.5"))
         end
         @highlight_keyword_extraction_is_broken
       end
 
       def use_slices?
         if @use_slices.nil?
-          @use_slices = ((groonga_version <=> "9.0.7") >= 0)
+          @use_slices = (Gem::Version.new(groonga_version) >=
+                         Gem::Version.new("9.0.7"))
         end
         @use_slices
       end
