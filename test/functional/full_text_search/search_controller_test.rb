@@ -742,6 +742,20 @@ brackets.
         end
       end
 
+      def test_nonexistent_user
+        Issue.find(6).author.destroy
+        search("print OR (private (subproject OR version))")
+        items = [
+          Issue.find(6),
+          Issue.find(1),
+          Journal.find(4),
+        ]
+        assert_select("#search-results") do
+          assert_equal(format_items(items),
+                       css_select("dt a").collect {|a| [a.text, a["href"]]})
+        end
+      end
+
       def test_api
         search("print OR (private (subproject OR version))",
                api: true)
