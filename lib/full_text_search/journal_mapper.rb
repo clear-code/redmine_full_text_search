@@ -29,7 +29,7 @@ JOIN projects
 
     def upsert_fts_target(options={})
       # journal belongs to an issue for now.
-      issue = @record.issue
+      issue = @record.journalized
       return if issue.nil?
       return unless issue.is_a?(Issue)
 
