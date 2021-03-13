@@ -31,6 +31,7 @@ JOIN projects
       # journal belongs to an issue for now.
       issue = @record.issue
       return if issue.nil?
+      return unless issue.is_a?(Issue)
 
       fts_target = find_fts_target
       fts_target.source_id = @record.id
