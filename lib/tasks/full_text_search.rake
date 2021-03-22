@@ -61,6 +61,15 @@ namespace :full_text_search do
     end
   end
 
+  namespace :similar_issues do
+    desc "Synchronize similar issues data"
+    task :synchronize => :environment do
+      run_batch.call do |batch_runner, **options|
+        batch_runner.synchronize_similar_issues(**options)
+      end
+    end
+  end
+
   namespace :target do
     desc "Reload targets"
     task :reload => :environment do

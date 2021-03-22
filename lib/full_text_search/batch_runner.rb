@@ -25,6 +25,13 @@ module FullTextSearch
       synchronize_repositories_internal(options)
     end
 
+    def synchronize_similar_issues(project: nil,
+                                   upsert: nil,
+                                   extract_text: nil)
+      options = Options.new(project, upsert, extract_text)
+      synchronize_similar_issues_internal(options)
+    end
+
     def reload_fts_targets(project: nil,
                            upsert: nil,
                            extract_text: nil)
@@ -214,6 +221,41 @@ module FullTextSearch
         Target.find(target_id).destroy
       end
       destroy_bar.finish
+    end
+
+    def synchronize_similar_issues_internal(options)
+      if options.project
+        projects = [options.project]
+      else
+        projects = Project.all
+      end
+
+      all_bar = create_multi_progress_bar("Issues")
+      bars = {}
+      projects.each do |project|
+        label = "Issues:#{project.name}"
+        bars[label] = create_sub_progress_bar(all_bar,
+                                              label,
+                                              total: project.issues.count)
+      end
+      all_bar.start
+      projects.each do |project|
+        bar = bars["Issues:#{project.name}"]
+        bar.start
+        bar.iterate(project.issues.pluck(:id).each) do |issue_id|
+          # TODO: Refine
+          if options.upsert == :later
+            perform_method = :perform_later
+          else
+            perform_method = :perform_now
+          end
+          UpdateIssueContentJob
+            .set(priority: UpdateIssueContentJob.priority + 5)
+            .public_send(perform_method, Issue.name, issue_id, "commit")
+        end
+        bar.finish
+      end
+      all_bar.finish
     end
 
     def process_orphan_change_targets?(repository)
