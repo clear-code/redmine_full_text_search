@@ -74,7 +74,7 @@ jobs:
         run: |
           docker run \
             --detach \
-            -p ${RDBMS_PORT}:${RDBMS_PORT}
+            -p ${RDBMS_PORT}:${RDBMS_PORT} \
             groonga/${GROONGA_ADAPTER}:${DOCKER_TAG}
       - name: Prepare Redmine
         run: |
