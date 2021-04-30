@@ -58,7 +58,7 @@ jobs:
           esac
           case "${{ matrix.rdbms }}" in
             MySQL)
-              echo "DOCKER_TAG=latest" >> ${GITHUB_ENV}
+              echo "DOCKER_TAG=mysql80-latest" >> ${GITHUB_ENV}
               echo "GROONGA_ADAPTER=mroonga" >> ${GITHUB_ENV}
               echo "RDBMS=mysql" >> ${GITHUB_ENV}
               echo "RDBMS_PORT=3306" >> ${GITHUB_ENV}
