@@ -1,0 +1,120 @@
+name: Test
+on:
+  - push
+  - pull_request
+jobs:
+  test:
+    name: Redmine ${{ matrix.redmine-version }} & ${{ matrix.rdbms }} & Ruby ${{ matrix.ruby-version }}
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - redmine-version: "4.0"
+            ruby-version: "2.6"
+            rdbms: "MySQL"
+          - redmine-version: "4.0"
+            ruby-version: "2.6"
+            rdbms: "PostgreSQL"
+          - redmine-version: "4.1"
+            ruby-version: "2.6"
+            rdbms: "MySQL"
+          - redmine-version: "4.1"
+            ruby-version: "2.6"
+            rdbms: "PostgreSQL"
+          - redmine-version: "4.2"
+            ruby-version: "2.6"
+            rdbms: "MySQL"
+          - redmine-version: "4.2"
+            ruby-version: "2.6"
+            rdbms: "PostgreSQL"
+          - redmine-version: "4.2"
+            ruby-version: "2.7"
+            rdbms: "MySQL"
+          - redmine-version: "4.2"
+            ruby-version: "2.7"
+            rdbms: "PostgreSQL"
+          - redmine-version: "master"
+            ruby-version: "3.0"
+            rdbms: "MySQL"
+          - redmine-version: "master"
+            ruby-version: "3.0"
+            rdbms: "PostgreSQL"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+      - name: Setup environment variables
+        run: |
+          case "${{ matrix.redmine-version }}" in
+            master)
+              echo "REDMINE_BRANCH=master" >> ${GITHUB_ENV}
+              ;;
+            *)
+              echo "REDMINE_BRANCH=${{ matrix.redmine-version }}-stable" >> \
+                ${GITHUB_ENV}
+              ;;
+          esac
+          case "${{ matrix.rdbms }}" in
+            MySQL)
+              echo "DOCKER_TAG=latest" >> ${GITHUB_ENV}
+              echo "GROONGA_ADAPTER=mroonga" >> ${GITHUB_ENV}
+              echo "RDBMS=mysql" >> ${GITHUB_ENV}
+              echo "RDBMS_PORT=3306" >> ${GITHUB_ENV}
+              ;;
+            PostgreSQL)
+              echo "DOCKER_TAG=latest-debian-13" >> ${GITHUB_ENV}
+              echo "GROONGA_ADAPTER=pgroonga" >> ${GITHUB_ENV}
+              echo "RDBMS=postgresql" >> ${GITHUB_ENV}
+              echo "RDBMS_PORT=5432" >> ${GITHUB_ENV}
+              ;;
+          esac
+      - name: Run RDBMS
+        run: |
+          docker run \
+            --detach \
+            -p ${RDBMS_PORT}:${RDBMS_PORT}
+            groonga/${GROONGA_ADAPTER}:${DOCKER_TAG}
+      - name: Prepare Redmine
+        run: |
+          cd ..
+          git clone \
+            --depth 1 \
+            --branch ${REDMINE_BRANCH} \
+            https://github.com/redmine/redmine.git
+          cd redmine
+          sed \
+            -i'' \
+            -e 's/using: :chrome,/using: :headless_chrome,/g' \
+            test/application_system_test_case.rb
+          svnadmin create tmp/test/subversion_repository
+          zcat test/fixtures/repositories/subversion_repository.dump.gz | \
+            svnadmin load tmp/test/subversion_repository
+          tar xf test/fixtures/repositories/git_repository.tar.gz -C tmp/test
+          cd plugins
+          ln -s ../../redmine_full_text_search ./full_text_search
+          cd ../
+          cp plugins/full_text_search/config/database.yml.example.${{ matrix.redmine-version }}.${RDBMS} \
+            config/database.yml
+          cp plugins/full_text_search/config/initializers/schema_format.rb \
+            config/initializers/schema_format.rb
+      - name: Install
+        run: |
+          cd ../redmine
+          bundle install
+          bin/rails db:create
+          bin/rails generate_secret_token
+          bin/rails db:migrate
+          bin/rails redmine:load_default_data REDMINE_LANG=en
+          bin/rails redmine:plugins:migrate
+          case ${{ matrix.redmine-version }} in
+            4.0)
+              bin/rails db:structure:dump
+              ;;
+          esac
+      - name: Test
+        run: |
+          RAILS_ENV=test bin/rails redmine:plugins:test
+          bin/rails redmine:plugins:migrate NAME=full_text_search VERSION=0
+          bin/rails redmine:plugins:migrate NAME=full_text_search
