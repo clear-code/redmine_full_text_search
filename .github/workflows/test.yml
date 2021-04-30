@@ -72,12 +72,9 @@ jobs:
           esac
       - name: Install dependencies
         run: |
-          sudo apt update
           case ${RDBMS} in
-            mysql)
-              sudo apt install -y mysql-client
-              ;;
             postgresql)
+              sudo apt update
               sudo apt install -y postgresql-client
               ;;
           esac
