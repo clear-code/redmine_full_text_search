@@ -70,6 +70,17 @@ jobs:
               echo "RDBMS_PORT=5432" >> ${GITHUB_ENV}
               ;;
           esac
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          case ${RDBMS} in
+            mysql)
+              sudo apt install -y mysql-client
+              ;;
+            postgresql)
+              sudo apt install -y postgresql-client
+              ;;
+          esac
       - name: Run RDBMS
         run: |
           docker run \
