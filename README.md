@@ -302,10 +302,36 @@ You need to create mapper classes for each search target. See
 You need to add `require_dependency "full_text_search/XXX_mapper` to
 `init.rb` to load these new mapper classes.
 
+You can confirm your changes by usual Redmine development ways.
+
+For example, here is a command line to run Redmine:
+
+```console
+$ bin/rails server
+```
+
 You need to add tests to the following files:
 
   * `test/unit/full_text_search/XXX_test.rb`
   * `test/functional/full_text_search/search_controller_test.rb`
+
+Here is a command line to run tests:
+
+```console
+$ plugins/full_text_search/dev/run-test.sh
+```
+
+You can specify test options by `TESTOPTS`:
+
+```console
+$ plugins/full_text_search/dev/run-test.sh TESTOPTS="-n/test_XXX/"
+```
+
+You can see all test options by `TESTOPTS=--help`:
+
+```console
+$ plugins/full_text_search/dev/run-test.sh TESTOPTS=--help
+```
 
 ## Authors
 
