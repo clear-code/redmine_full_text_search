@@ -234,6 +234,79 @@ $ cd redmine
 $ RAILS_ENV=production bin/rails full_text_search:synchronize UPSERT=later
 ```
 
+## How to develop
+
+### Preparation
+
+Here are some useful tools to prepare:
+
+  * `dev/run-mysql.sh` and `dev/run-postgresql.sh`: Run new RDBMS
+    instance by Docker.
+  * `dev/initialize-redmine.sh`: Initialize Redmine.
+  * `dev/run-test.sh`: Run tests for the full text search plugin.
+
+Clone source codes. This is required only once.
+
+```console
+$ git clone https://github.com/redmine/redmine.git
+$ cd redmine
+$ git checkout 4.1-stable # or something
+$ git clone git@github.com:${YOUR_FORK}/redmine_full_text_search.git plugins/full_text_search
+```
+
+You can add more plugins to `plugins/`.
+
+Choose suitable database configuration:
+
+```console
+$ ln -fs ../plugins/full_text_search/config/database.yml.example.${REDMINE_VERSION}.${RDBMS} config/database.yml
+```
+
+Here is an example to use Redmine 4.1 and MySQL:
+
+```console
+$ ln -fs ../plugins/full_text_search/config/database.yml.example.4.1.mysql config/database.yml
+```
+
+Run RDBMS.
+
+For MySQL:
+
+```console
+$ plugins/full_text_search/dev/run-mysql.sh /tmp/mysql
+```
+
+For PostgreSQL:
+
+```console
+$ plugins/full_text_search/dev/run-postgresql.sh /tmp/postgresql
+```
+
+Initialize Redmine:
+
+```console
+$ plugins/full_text_search/dev/initialize-redmine.sh
+```
+
+Run tests:
+
+```console
+$ plugins/full_text_search/dev/run-test.sh
+```
+
+### How to add a new search target
+
+You need to create mapper classes for each search target. See
+`lib/full_text_search/*_mapper.rb` for details.
+
+You need to add `require_dependency "full_text_search/XXX_mapper` to
+`init.rb` to load these new mapper classes.
+
+You need to add tests to the following files:
+
+  * `test/unit/full_text_search/XXX_test.rb`
+  * `test/functional/full_text_search/search_controller_test.rb`
+
 ## Authors
 
   * Kenji Okimoto
