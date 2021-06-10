@@ -210,6 +210,7 @@ based on [the Mroonga manual](https://mroonga.org/ja/docs/tutorial/installation_
 
 ```console
 $ sudo -H systemctl start mysqld
+$ mysql -u root -p  < /usr/share/mroonga/install.sql
 ```
 
 Destruct tables explictly for this plugin:
