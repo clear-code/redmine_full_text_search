@@ -205,10 +205,21 @@ $ database_name=$(RAILS_ENV=production bin/rails runner 'puts ActiveRecord::Base
 $ sudo -H sh -c "rm -rf /var/lib/mysql/${database_name}.mrn*"
 ```
 
-Start MySQL:
+Start MySQL and check that Mroonga engine has been properly installed
+based on [the Mroonga manual](https://mroonga.org/ja/docs/tutorial/installation_check.html):
 
 ```console
 $ sudo -H systemctl start mysqld
+```
+
+Destruct tables explictly for this plugin:
+
+```console
+DROP TABLE IF EXISTS fts_query_expansions;
+DROP TABLE IF EXISTS fts_targets;
+DROP TABLE IF EXISTS fts_tags;
+DROP TABLE IF EXISTS fts_tag_types;
+DROP TABLE IF EXISTS fts_types;
 ```
 
 Recreate schema for this plugin:
