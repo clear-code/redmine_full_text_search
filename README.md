@@ -211,6 +211,25 @@ Start MySQL:
 $ sudo -H systemctl start mysqld
 ```
 
+Check that Mroonga has been properly installed based on [the Mroonga
+manual](https://mroonga.org/docs/tutorial/installation_check.html). If
+Mroonga isn't installed, install Mroonga like the following:
+
+```console
+$ mysql -u root -p < /usr/share/mroonga/install.sql
+```
+
+Destruct tables explictly for this plugin:
+
+```console
+$ mysql -u root -p ${database_name}
+> DROP TABLE IF EXISTS fts_query_expansions;
+> DROP TABLE IF EXISTS fts_targets;
+> DROP TABLE IF EXISTS fts_tags;
+> DROP TABLE IF EXISTS fts_tag_types;
+> DROP TABLE IF EXISTS fts_types;
+```
+
 Recreate schema for this plugin:
 
 ```console
