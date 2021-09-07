@@ -42,7 +42,7 @@ SHOW VARIABLES LIKE 'mroonga_version';
       end
       if Redmine::Database.mysql?
         t.text :tag_ids,
-               comment: "FLAGS 'COLUMN_VECTOR', GROONGA_TYPE 'Int32'"
+               comment: "FLAGS 'COLUMN_VECTOR', GROONGA_TYPE 'Int64'"
       else
         t.integer :tag_ids, array: true
       end
