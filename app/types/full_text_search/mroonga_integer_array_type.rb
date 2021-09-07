@@ -1,6 +1,5 @@
 module FullTextSearch
-  # TODO: Use ActiveModel::TypeValue when we drop Redmine 3.4 support
-  class MroongaIntegerArrayType < ActiveRecord::Type::Value
+  class MroongaIntegerArrayType < ActiveModel::Type::Value
     def initialize(vector_load_is_supported, *args, &block)
       @vector_load_is_supported = vector_load_is_supported
       super(*args, &block)
