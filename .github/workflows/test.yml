@@ -6,6 +6,7 @@ jobs:
   test:
     name: Redmine ${{ matrix.redmine-version }} & ${{ matrix.rdbms }} & Ruby ${{ matrix.ruby-version }}
     runs-on: ubuntu-20.04
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -58,7 +59,7 @@ jobs:
           esac
           case "${{ matrix.rdbms }}" in
             MySQL)
-              echo "DOCKER_TAG=mysql80-latest" >> ${GITHUB_ENV}
+              echo "DOCKER_TAG=mysql-8.0-latest" >> ${GITHUB_ENV}
               echo "GROONGA_ADAPTER=mroonga" >> ${GITHUB_ENV}
               echo "RDBMS=mysql" >> ${GITHUB_ENV}
               echo "RDBMS_PORT=3306" >> ${GITHUB_ENV}
