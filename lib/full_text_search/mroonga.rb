@@ -51,11 +51,11 @@ SHOW VARIABLES LIKE 'mroonga_libgroonga_version';
       end
 
       def mroonga_vector_load_is_supported?
-        (groonga_version <=> "9.0.5") >= 0
+        Gem::Version.new(groonga_version) >= Gem::Version.new("9.0.5")
       end
 
       def multiple_column_unique_key_update_is_supported?
-        (mroonga_version <=> "9.05") >= 0
+        Gem::Version.new(mroonga_version) >= Gem::Version.new("9.05")
       end
 
       private
