@@ -83,6 +83,7 @@ jobs:
         run: |
           docker run \
             --detach \
+            -e MYSQL_ALLOW_EMPTY_PASSWORD=yes \
             -e POSTGRES_HOST_AUTH_METHOD=trust \
             -p ${RDBMS_PORT}:${RDBMS_PORT} \
             groonga/${GROONGA_ADAPTER}:${DOCKER_TAG}
