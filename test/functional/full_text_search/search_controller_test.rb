@@ -189,7 +189,7 @@ module FullTextSearch
         end
         [
           item_title(item),
-          item_url(item, options),
+          item_url(item, **options),
         ]
       end
     end
