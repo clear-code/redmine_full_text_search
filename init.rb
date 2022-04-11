@@ -81,6 +81,7 @@ prepare = lambda do
   FullTextSearch::Type
 end
 
-prepare.call
+# We need to initialize explicitly with Redmine 5.0 or later.
+prepare.call if Redmine.const_defined?(:PluginLoader)
 
 Rails.application.config.to_prepare(&prepare)
