@@ -20,13 +20,15 @@ Redmine::MenuManager.map :admin_menu do |menu|
             html: {class: "icon icon-magnifier"}
 end
 
-autoload_paths = [
-  File.join(__dir__, "app", "jobs"),
-  File.join(__dir__, "app", "types"),
-]
-ActiveSupport::Dependencies.autoload_paths += autoload_paths
-if Rails.application.config.eager_load
-  Rails.application.config.eager_load_paths += autoload_paths
+if Rails.version < "6"
+  autoload_paths = [
+    File.join(__dir__, "app", "jobs"),
+    File.join(__dir__, "app", "types"),
+  ]
+  Rails.application.config.autoload_paths += autoload_paths
+  if Rails.application.config.eager_load
+    Rails.application.config.eager_load_paths += autoload_paths
+  end
 end
 
 require_relative "config/initializers/chupa_text"

@@ -3,7 +3,12 @@ module FullTextSearch
     self.table_name = :fts_tags
     belongs_to :type, class_name: "FullTextSearch::TagType"
 
-    case connection_config[:adapter]
+    if respond_to?(:connection_db_config)
+      adapter = connection_db_config.adapter
+    else
+      adapter = connection_config[:adapter]
+    end
+    case adapter
     when "postgresql"
       include Pgroonga
     when "mysql2"
