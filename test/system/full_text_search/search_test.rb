@@ -31,6 +31,10 @@ module FullTextSearch
     fixtures :wikis
 
     setup do
+      if ([Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR] <=> [4, 1]) <= 0
+        skip("Redmine 4.1 or earlier can't work with recent Selenium")
+      end
+
       Target.destroy_all
       batch_runner = BatchRunner.new(show_progress: false)
       batch_runner.synchronize
