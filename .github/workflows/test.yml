@@ -11,12 +11,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - redmine-version: "4.0"
-            ruby-version: "2.6"
-            rdbms: "MySQL"
-          - redmine-version: "4.0"
-            ruby-version: "2.6"
-            rdbms: "PostgreSQL"
           - redmine-version: "4.1"
             ruby-version: "2.6"
             rdbms: "MySQL"
