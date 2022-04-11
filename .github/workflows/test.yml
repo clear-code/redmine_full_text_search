@@ -113,11 +113,6 @@ jobs:
           bin/rails db:migrate
           bin/rails redmine:load_default_data REDMINE_LANG=en
           bin/rails redmine:plugins:migrate
-          case ${{ matrix.redmine-version }} in
-            4.0)
-              bin/rails db:structure:dump
-              ;;
-          esac
       - name: Test
         run: |
           cd ../redmine
