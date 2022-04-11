@@ -31,39 +31,37 @@ end
 
 require_relative "config/initializers/chupa_text"
 
-Rails.configuration.to_prepare do
-  require_dependency "full_text_search"
-  require_dependency "full_text_search/settings"
-  require_dependency "full_text_search/tracer"
-  require_dependency "full_text_search/resolver"
-  require_dependency "full_text_search/text_extractor"
-  require_dependency "full_text_search/markup_parser"
-  require_dependency "full_text_search/batch_runner"
-  require_dependency "full_text_search/repository_entry"
+prepare = lambda do
+  FullTextSearch::Settings
+  FullTextSearch::Tracer
+  FullTextSearch::Resolver
+  FullTextSearch::TextExtractor
+  FullTextSearch::MarkupParser
+  FullTextSearch::BatchRunner
+  FullTextSearch::RepositoryEntry
 
-  require_dependency "full_text_search/scm_adapter_cat_io"
-  require_dependency "full_text_search/scm_adapter_all_file_entries"
-
-  require_dependency "full_text_search/mapper"
+  FullTextSearch::ScmAdapterCatIo
+  FullTextSearch::ScmAdapterAllFileEntries
 
   # Order by priority on synchronize
-  require_dependency "full_text_search/journal_mapper"
-  require_dependency "full_text_search/issue_mapper"
-  require_dependency "full_text_search/wiki_page_mapper"
-  require_dependency "full_text_search/custom_value_mapper"
-  require_dependency "full_text_search/project_mapper"
-  require_dependency "full_text_search/news_mapper"
-  require_dependency "full_text_search/document_mapper"
-  require_dependency "full_text_search/message_mapper"
-  require_dependency "full_text_search/attachment_mapper"
-  require_dependency "full_text_search/changeset_mapper"
-  require_dependency "full_text_search/change_mapper"
+  FullTextSearch::JournalMapper
+  FullTextSearch::IssueMapper
+  FullTextSearch::WikiPageMapper
+  FullTextSearch::CustomValueMapper
+  FullTextSearch::ProjectMapper
+  FullTextSearch::NewsMapper
+  FullTextSearch::DocumentMapper
+  FullTextSearch::MessageMapper
+  FullTextSearch::AttachmentMapper
+  FullTextSearch::ChangesetMapper
+  FullTextSearch::ChangeMapper
 
-  require_dependency "full_text_search/hooks/search_index_options_content_bottom_hook"
-  require_dependency "full_text_search/hooks/issues_show_description_bottom_hook"
-  require_dependency "full_text_search/hooks/similar_issues_helper"
-  require_dependency "full_text_search/searcher"
-  require_dependency "full_text_search/similar_searcher"
+  FullTextSearch::Hooks::SearchIndexOptionsContentBottomHook
+  FullTextSearch::Hooks::IssuesShowDescriptionBottomHook
+  FullTextSearch::Hooks::SimilarIssuesHelper
+
+  FullTextSearch::Searcher
+  FullTextSearch::SimilarSearcher
 
   class << Setting
     prepend FullTextSearch::SettingsObjectize
@@ -82,3 +80,7 @@ Rails.configuration.to_prepare do
   FullTextSearch::TagType
   FullTextSearch::Type
 end
+
+prepare.call
+
+Rails.application.config.to_prepare(&prepare)

@@ -1,10 +1,8 @@
 class FtsQueryExpansion < ActiveRecord::Base
   case connection_config[:adapter]
   when "postgresql"
-    require_dependency "full_text_search/pgroonga"
     include FullTextSearch::PGroonga
   when "mysql2"
-    require_dependency "full_text_search/mroonga"
     include FullTextSearch::Mroonga
   end
 

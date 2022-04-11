@@ -7,12 +7,15 @@ module FullTextSearch
           after_commit Callbacks
           after_destroy Callbacks
         end
-        case ActiveRecord::Base.connection_config[:adapter]
+        if base.respond_to?(:connection_db_config)
+          adapter = base.connection_db_config.adapter
+        else
+          adapter = base.connection_config[:adapter]
+        end
+        case adapter
         when "postgresql"
-          require_dependency "full_text_search/similar_searcher/pgroonga"
           base.include(FullTextSearch::SimilarSearcher::PGroonga)
         when "mysql2"
-          require_dependency "full_text_search/similar_searcher/mroonga"
           base.include(FullTextSearch::SimilarSearcher::Mroonga)
         end
       end

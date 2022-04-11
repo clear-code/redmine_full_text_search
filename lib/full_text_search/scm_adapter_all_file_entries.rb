@@ -1,7 +1,8 @@
 require "chupa-text/sax-parser"
 
-require "redmine/scm/adapters/git_adapter"
-require "redmine/scm/adapters/subversion_adapter"
+# For auto load
+Redmine::Scm::Adapters::GitAdapter
+Redmine::Scm::Adapters::SubversionAdapter
 
 # TODO: Submit a patch to Redmine
 
@@ -134,5 +135,11 @@ module Redmine
         end
       end
     end
+  end
+end
+
+# For auto load
+module FullTextSearch
+  module ScmAdapterAllFileEntries
   end
 end

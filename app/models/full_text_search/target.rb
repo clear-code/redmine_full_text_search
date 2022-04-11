@@ -4,10 +4,8 @@ module FullTextSearch
 
     case connection_config[:adapter]
     when "postgresql"
-      require_dependency "full_text_search/pgroonga"
       include PGroonga
     when "mysql2"
-      require_dependency "full_text_search/mroonga"
       include Mroonga
       attribute :tag_ids,
                 MroongaIntegerArrayType.new(mroonga_vector_load_is_supported?)
