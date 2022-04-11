@@ -75,11 +75,13 @@ jobs:
           esac
       - name: Run RDBMS
         run: |
+          mkdir -p mysql
           docker run \
             --detach \
             -e MYSQL_ALLOW_EMPTY_PASSWORD=yes \
             -e POSTGRES_HOST_AUTH_METHOD=trust \
             -p ${RDBMS_PORT}:${RDBMS_PORT} \
+            -v ${PWD}/mysql:/var/lib/mysql \
             groonga/${GROONGA_ADAPTER}:${DOCKER_TAG}
       - name: Prepare Redmine
         run: |
