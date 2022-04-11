@@ -91,7 +91,7 @@ module Redmine
             case @tag_names.last
             when "name"
               path = "#{@path_prefix}#{text}"
-              @entry_attributes[:name] = URI.unescape(path)
+              @entry_attributes[:name] = CGI.unescape(path)
               @entry_attributes[:path] = path
             when "size"
               @entry_attributes[:size] = Integer(text, 10)
