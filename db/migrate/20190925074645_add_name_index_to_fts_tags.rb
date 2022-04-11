@@ -1,4 +1,5 @@
-require "full_text_search/migration"
+# For auto load
+FullTextSearch::Migration
 
 class AddNameIndexToFtsTags < ActiveRecord::Migration[5.2]
   def change

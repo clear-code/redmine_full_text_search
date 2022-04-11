@@ -1,4 +1,5 @@
-require "full_text_search/migration"
+# For auto load
+FullTextSearch::Migration
 
 class CreateFtsTargets < ActiveRecord::Migration[5.2]
   def comparable_version(version)

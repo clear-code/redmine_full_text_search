@@ -1,4 +1,5 @@
-require "full_text_search/migration"
+# For auto load
+FullTextSearch::Migration
 
 class CreateSearcherRecords < ActiveRecord::Migration[4.2]
   def change
