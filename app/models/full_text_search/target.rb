@@ -4,7 +4,7 @@ module FullTextSearch
 
     case connection_config[:adapter]
     when "postgresql"
-      include PGroonga
+      include Pgroonga
     when "mysql2"
       include Mroonga
       attribute :tag_ids,

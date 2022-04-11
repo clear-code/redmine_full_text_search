@@ -1,7 +1,7 @@
 class FtsQueryExpansion < ActiveRecord::Base
   case connection_config[:adapter]
   when "postgresql"
-    include FullTextSearch::PGroonga
+    include FullTextSearch::Pgroonga
   when "mysql2"
     include FullTextSearch::Mroonga
   end

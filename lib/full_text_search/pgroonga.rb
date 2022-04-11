@@ -1,5 +1,5 @@
 module FullTextSearch
-  module PGroonga
+  module Pgroonga
     extend ActiveSupport::Concern
 
     module ClassMethods

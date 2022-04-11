@@ -1,6 +1,6 @@
 module FullTextSearch
   module SimilarSearcher
-    module PGroonga
+    module Pgroonga
       def self.included(base)
         base.include(InstanceMethods)
         base.include(FullTextSearch::ConditionBuilder)

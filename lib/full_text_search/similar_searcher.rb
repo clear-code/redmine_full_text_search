@@ -14,7 +14,7 @@ module FullTextSearch
         end
         case adapter
         when "postgresql"
-          base.include(FullTextSearch::SimilarSearcher::PGroonga)
+          base.include(FullTextSearch::SimilarSearcher::Pgroonga)
         when "mysql2"
           base.include(FullTextSearch::SimilarSearcher::Mroonga)
         end
