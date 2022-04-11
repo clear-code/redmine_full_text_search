@@ -19,12 +19,12 @@ if [ $# -ge 1 ]; then
   options+=("-v${db_base_dir}/log:/var/log")
 fi
 
-db_conf_dir=/tmp/redmine-full-text-search/my.cnf.d
+db_conf_dir=/tmp/redmine-full-text-search/mysql/conf.d
 mkdir -p ${db_conf_dir}
 cat <<MY_CNF > ${db_conf_dir}/local.cnf
 [mysqld]
 max_allowed_packet = 256M
 MY_CNF
-options+=("-v${db_conf_dir}:/etc/my.cnf.d")
+options+=("-v${db_conf_dir}:/etc/mysql/conf.d")
 
 docker run "${options[@]}" groonga/mroonga:mysql-8.0-latest
