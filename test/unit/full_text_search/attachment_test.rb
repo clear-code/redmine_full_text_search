@@ -101,8 +101,9 @@ module FullTextSearch
     end
 
     def fixture_file_path(name)
-      path = Pathname(File.join(__dir__, "..", "..", "files", name)).expand_path
-      path.relative_path_from(Pathname(self.class.fixture_path))
+      dir = File.dirname(__FILE__)
+      path = Pathname(File.join(dir, "..", "..", "files", name)).expand_path
+      path.relative_path_from(Pathname(self.class.fixture_path) + "files")
     end
 
     def capture_log
