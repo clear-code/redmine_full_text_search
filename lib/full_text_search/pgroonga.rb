@@ -97,6 +97,9 @@ SELECT utc_offset
           offset = (hours * 60 * 60) + (minutes * 60) + seconds
           offset = -offset if minus == "-"
           offset - Time.now.utc_offset
+        when /\A[-+]?PT/
+          duration = ActiveSupport::Duration.parse(utc_offset)
+          duration.in_seconds - Time.now.utc_offset
         else
           raise "Invalid time offset value: #{utc_offset.inspect}"
         end
