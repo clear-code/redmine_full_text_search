@@ -102,7 +102,12 @@ JOIN projects
         ["content-type", content_type],
       ]
       content = run_text_extractor(fts_target, metadata) do |extractor|
-        extractor.extract(path, nil, content_type)
+        if @record.respond_to?(:raw_data)
+          input = StringIO.new(@record.raw_data)
+        else
+          input = nil
+        end
+        extractor.extract(path, input, content_type)
       end
       set_extracted_content(fts_target,
                             content,
