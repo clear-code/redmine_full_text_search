@@ -95,7 +95,8 @@ JOIN projects
       fts_target = find_fts_target
       return unless fts_target.persisted?
 
-      path = @record.diskfile
+      disk_path = @record.diskfile
+      path = @record.filename
       content_type = resolve_content_type(path, @record.content_type)
       metadata = [
         ["path", path],
@@ -107,7 +108,7 @@ JOIN projects
         else
           input = nil
         end
-        extractor.extract(path, input, content_type)
+        extractor.extract(disk_path, input, content_type)
       end
       set_extracted_content(fts_target,
                             content,
