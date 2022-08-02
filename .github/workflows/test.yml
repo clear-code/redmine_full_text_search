@@ -12,12 +12,6 @@ jobs:
       matrix:
         include:
           - redmine-version: "4.2"
-            ruby-version: "2.6"
-            rdbms: "MySQL"
-          - redmine-version: "4.2"
-            ruby-version: "2.6"
-            rdbms: "PostgreSQL"
-          - redmine-version: "4.2"
             ruby-version: "2.7"
             rdbms: "MySQL"
           - redmine-version: "4.2"
@@ -34,12 +28,18 @@ jobs:
             rdbms: "MySQL"
           - redmine-version: "5.0"
             ruby-version: "3.0"
+            rdbms: "PostgreSQL"
+          - redmine-version: "5.0"
+            ruby-version: "3.1"
+            rdbms: "MySQL"
+          - redmine-version: "5.0"
+            ruby-version: "3.1"
             rdbms: "PostgreSQL"
           - redmine-version: "master"
-            ruby-version: "3.0"
+            ruby-version: "3.1"
             rdbms: "MySQL"
           - redmine-version: "master"
-            ruby-version: "3.0"
+            ruby-version: "3.1"
             rdbms: "PostgreSQL"
     steps:
       - uses: actions/checkout@v2
