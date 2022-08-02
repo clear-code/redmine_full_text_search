@@ -269,7 +269,7 @@ Clone source codes. This is required only once.
 ```console
 $ git clone https://github.com/redmine/redmine.git
 $ cd redmine
-$ git checkout 4.1-stable # or something
+$ git checkout 5.0-stable # or something
 $ git clone git@github.com:${YOUR_FORK}/redmine_full_text_search.git plugins/full_text_search
 ```
 
@@ -281,10 +281,10 @@ Choose suitable database configuration:
 $ ln -fs ../plugins/full_text_search/config/database.yml.example.${REDMINE_VERSION}.${RDBMS} config/database.yml
 ```
 
-Here is an example to use Redmine 4.1 and MySQL:
+Here is an example to use Redmine 5.0 and MySQL:
 
 ```console
-$ ln -fs ../plugins/full_text_search/config/database.yml.example.4.1.mysql config/database.yml
+$ ln -fs ../plugins/full_text_search/config/database.yml.example.5.0.mysql config/database.yml
 ```
 
 Run RDBMS.
