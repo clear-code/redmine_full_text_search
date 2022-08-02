@@ -156,7 +156,7 @@ module FullTextSearch
       messages = capture_log do
         attachment = Attachment.generate!(file: file)
       end
-      path = attachment.diskfile
+      path = attachment.filename
       context = {
         attachment: attachment,
         fts_target: attachment.to_fts_target,
@@ -191,7 +191,7 @@ module FullTextSearch
       context = {
         attachment: attachment,
         fts_target: target,
-        path: attachment.diskfile,
+        path: attachment.filename,
         content_type: "text/plain",
       }
       assert_equal([
@@ -221,7 +221,7 @@ module FullTextSearch
       context = {
         attachment: attachment,
         fts_target: target,
-        path: attachment.diskfile,
+        path: attachment.filename,
         content_type: "text/plain",
       }
       assert_equal([
