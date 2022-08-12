@@ -5,6 +5,10 @@ module FullTextSearch
     include PrettyInspectable
     include NullValues
 
+    fixtures :custom_fields
+    fixtures :custom_fields_projects
+    fixtures :custom_fields_trackers
+    fixtures :custom_values
     fixtures :enumerations
     fixtures :issue_statuses
     fixtures :projects
@@ -12,9 +16,21 @@ module FullTextSearch
     fixtures :trackers
     fixtures :users
 
+    def setup
+      @searchable_custom_field = custom_fields(:custom_fields_002)
+    end
+
     def test_save
-      issue = Issue.generate!
-      issue.reload
+      issue = Issue.generate! do |i|
+        i.safe_attributes = {
+          "custom_fields" => [
+            {
+              "id" => @searchable_custom_field.id.to_s,
+              "value" => "Hello",
+            },
+          ],
+        }
+      end
       targets = Target.where(source_id: issue.id,
                              source_type_id: Type.issue.id)
       assert_equal([
@@ -40,12 +56,25 @@ module FullTextSearch
     end
 
     def test_destroy
-      issue = Issue.generate!
-      targets = Target.where(source_id: issue.id,
-                             source_type_id: Type.issue.id)
-      assert_equal(1, targets.size)
+      issue = Issue.generate! do |i|
+        i.safe_attributes = {
+          "custom_fields" => [
+            {
+              "id" => @searchable_custom_field.id.to_s,
+              "value" => "Hello",
+            },
+          ],
+        }
+      end
+      issue_targets = Target.where(source_id: issue.id,
+                                   source_type_id: Type.issue.id)
+      custom_value_targets = Target.where(container_id: issue.id,
+                                          source_type_id: Type.custom_value.id)
+      assert_equal([1, 1],
+                   [issue_targets.size, custom_value_targets.size])
       issue.destroy!
-      assert_equal([], targets.reload.to_a)
+      assert_equal([[], []],
+                   [issue_targets.to_a, custom_value_targets.to_a])
     end
   end
 end

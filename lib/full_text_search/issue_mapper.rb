@@ -38,6 +38,12 @@ module FullTextSearch
       end
       # @record.custom_values
     end
+
+    def destroy_fts_target
+      super
+      Target.where(container_id: @record.id,
+                   container_type_id: Type[@record].id).destroy_all
+    end
   end
 
   class FtsIssueMapper < FtsMapper
