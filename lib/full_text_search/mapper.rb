@@ -96,6 +96,11 @@ module FullTextSearch
 
     def destroy_fts_target
       Target.where(fts_target_keys).destroy_all
+      # We need to destroy targets for custom values because
+      # custom values are associated with "dependent: :delete_all".
+      Target.where(source_type_id: Type.custom_value.id,
+                   container_id: @record.id,
+                   container_type_id: Type[@record].id).destroy_all
     end
 
     private

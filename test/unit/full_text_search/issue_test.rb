@@ -16,21 +16,8 @@ module FullTextSearch
     fixtures :trackers
     fixtures :users
 
-    def setup
-      @searchable_custom_field = custom_fields(:custom_fields_002)
-    end
-
     def test_save
-      issue = Issue.generate! do |i|
-        i.safe_attributes = {
-          "custom_fields" => [
-            {
-              "id" => @searchable_custom_field.id.to_s,
-              "value" => "Hello",
-            },
-          ],
-        }
-      end
+      issue = Issue.generate!
       targets = Target.where(source_id: issue.id,
                              source_type_id: Type.issue.id)
       assert_equal([
@@ -56,15 +43,14 @@ module FullTextSearch
     end
 
     def test_destroy
+      searchable_custom_field = custom_fields(:custom_fields_002)
       issue = Issue.generate! do |i|
-        i.safe_attributes = {
-          "custom_fields" => [
-            {
-              "id" => @searchable_custom_field.id.to_s,
-              "value" => "Hello",
-            },
-          ],
-        }
+        i.custom_fields = [
+          {
+            "id" => searchable_custom_field.id.to_s,
+            "value" => "Hello",
+          },
+        ]
       end
       issue_targets = Target.where(source_id: issue.id,
                                    source_type_id: Type.issue.id)
