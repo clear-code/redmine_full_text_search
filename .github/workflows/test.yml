@@ -1,7 +1,10 @@
 name: Test
 on:
-  - push
-  - pull_request
+  push:
+  pull_request:
+  schedule:
+    - cron: |
+        0 0 * * *
 jobs:
   test:
     name: Redmine ${{ matrix.redmine-version }} & ${{ matrix.rdbms }} & Ruby ${{ matrix.ruby-version }}
