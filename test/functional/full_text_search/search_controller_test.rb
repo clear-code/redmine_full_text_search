@@ -628,7 +628,21 @@ brackets.
         search("redmine", api: true)
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
+        revision14 = @repository.changesets.find_by(revision: "14").filechanges
         items = [
+          [
+            revision11.find_by(path: "/subversion_test/+.md"),
+            {
+              type: "file",
+              title: <<-TITLE.chomp,
+/subversion_test/+.md@14
+              TITLE
+              description: <<-DESCRIPTION,
+See &ly;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
+              DESCRIPTION
+              rank: adjust_slice_score(2),
+            }
+          ],
           [
             revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
             {
