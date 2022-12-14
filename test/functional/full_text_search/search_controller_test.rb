@@ -564,8 +564,7 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
 /subversion_test/+.md@14
               TITLE
               description: <<-DESCRIPTION,
-See &ly;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
-
+See &ly;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.\r
               DESCRIPTION
               rank: adjust_slice_score(2),
             }
@@ -657,8 +656,7 @@ brackets.
 /subversion_test/+.md@14
               TITLE
               description: <<-DESCRIPTION,
-See &ly;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
-
+See &ly;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.\r
               DESCRIPTION
               rank: adjust_slice_score(2),
             }
