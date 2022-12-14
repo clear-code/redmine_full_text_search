@@ -631,7 +631,7 @@ brackets.
         revision14 = @repository.changesets.find_by(revision: "14").filechanges
         items = [
           [
-            revision11.find_by(path: "/subversion_test/+.md"),
+            revision14.find_by(path: "/subversion_test/+.md"),
             {
               type: "file",
               title: <<-TITLE.chomp,
