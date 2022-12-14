@@ -538,12 +538,14 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
         search("redmine")
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
-        revision14 = @repository.changesets.find_by(revision: "14").filechanges
+        revision14 = @repository.changesets.find_by(revision: "14")&.filechanges
         items = [
-          revision14.find_by(path: "/subversion_test/+.md"),
           revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
           revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
         ]
+        if revision14.present?
+          items.unshift(revision14.find_by(path: "/subversion_test/+.md"))
+        end
         assert_select("#search-results") do
           assert_equal(format_items(items),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
@@ -554,21 +556,8 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
         search("redmine", api: true)
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
-        revision14 = @repository.changesets.find_by(revision: "14").filechanges
+        revision14 = @repository.changesets.find_by(revision: "14")&.filechanges
         items = [
-          [
-            revision14.find_by(path: "/subversion_test/+.md"),
-            {
-              type: "file",
-              title: <<-TITLE.chomp,
-/subversion_test/+.md@14
-              TITLE
-              description: <<-DESCRIPTION,
-See &lt;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
-              DESCRIPTION
-              rank: adjust_slice_score(2),
-            }
-          ],
           [
             revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
             {
@@ -601,6 +590,23 @@ brackets.
             },
           ],
         ]
+        if revision14.present?
+          items.unshift(
+            [
+              revision14.find_by(path: "/subversion_test/+.md"),
+              {
+                type: "file",
+                title: <<-TITLE.chomp,
+/subversion_test/+.md@14
+                TITLE
+                description: <<-DESCRIPTION,
+See &lt;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
+                DESCRIPTION
+                rank: adjust_slice_score(2),
+              }
+            ]
+          )
+        end
         assert_equal(format_api_results(items),
                      JSON.parse(response.body))
       end
@@ -630,12 +636,14 @@ brackets.
         search("redmine")
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
-        revision14 = @repository.changesets.find_by(revision: "14").filechanges
+        revision14 = @repository.changesets.find_by(revision: "14")&.filechanges
         items = [
-          revision14.find_by(path: "/subversion_test/+.md"),
           revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
           revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
         ]
+        if revision14.present?
+          items.unshift(revision14.find_by(path: "/subversion_test/+.md"))
+        end
         assert_select("#search-results") do
           assert_equal(format_items(items),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
@@ -646,21 +654,8 @@ brackets.
         search("redmine", api: true)
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
-        revision14 = @repository.changesets.find_by(revision: "14").filechanges
+        revision14 = @repository.changesets.find_by(revision: "14")&.filechanges
         items = [
-          [
-            revision14.find_by(path: "/subversion_test/+.md"),
-            {
-              type: "file",
-              title: <<-TITLE.chomp,
-/subversion_test/+.md@14
-              TITLE
-              description: <<-DESCRIPTION,
-See &lt;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
-              DESCRIPTION
-              rank: adjust_slice_score(2),
-            }
-          ],
           [
             revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
             {
@@ -693,6 +688,23 @@ brackets.
             },
           ],
         ]
+        if revision14.present?
+          items.unshift(
+            [
+              revision14.find_by(path: "/subversion_test/+.md"),
+              {
+                type: "file",
+                title: <<-TITLE.chomp,
+/subversion_test/+.md@14
+                TITLE
+                description: <<-DESCRIPTION,
+See &lt;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
+                DESCRIPTION
+                rank: adjust_slice_score(2),
+              }
+            ]
+          )
+        end
         assert_equal(format_api_results(items),
                      JSON.parse(response.body))
       end
