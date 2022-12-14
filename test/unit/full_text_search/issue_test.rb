@@ -18,6 +18,7 @@ module FullTextSearch
 
     def test_save
       issue = Issue.generate!
+      issue.reload
       targets = Target.where(source_id: issue.id,
                              source_type_id: Type.issue.id)
       assert_equal([
