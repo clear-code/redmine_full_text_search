@@ -37,8 +37,8 @@ module FullTextSearch
       case @record.action
       when "A", "M", "R"
         entry = RepositoryEntry.new(repository,
-                                  @record.path,
-                                  changeset.identifier)
+                                    @record.path,
+                                    changeset.identifier)
         return unless entry.file?
         return if find_newer_fts_targets.exists?
 
