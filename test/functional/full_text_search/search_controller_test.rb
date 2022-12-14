@@ -557,19 +557,19 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
         revision14 = @repository.changesets.find_by(revision: "14").filechanges
         items = [
           [
-            [
-              revision14.find_by(path: "/subversion_test/+.md"),
-              {
-                type: "file",
-                title: <<-TITLE.chomp,
-  /subversion_test/+.md@14
-                TITLE
-                description: <<-DESCRIPTION,
-  See &ly;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
-                DESCRIPTION
-                rank: adjust_slice_score(2),
-              }
-            ],
+            revision14.find_by(path: "/subversion_test/+.md"),
+            {
+              type: "file",
+              title: <<-TITLE.chomp,
+/subversion_test/+.md@14
+              TITLE
+              description: <<-DESCRIPTION,
+See &ly;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
+              DESCRIPTION
+              rank: adjust_slice_score(2),
+            }
+          ],
+          [
             revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
             {
               type: "file",
