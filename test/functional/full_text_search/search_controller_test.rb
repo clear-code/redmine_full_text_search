@@ -538,7 +538,9 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
         search("redmine")
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
+        revision14 = @repository.changesets.find_by(revision: "14").filechanges
         items = [
+          revision14.find_by(path: "/subversion_test/+.md"),
           revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
           revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
         ]
