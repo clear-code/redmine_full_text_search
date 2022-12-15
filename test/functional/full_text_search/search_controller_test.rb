@@ -1037,7 +1037,7 @@ Project: Private child of <span class="keyword">eCookbook</span>
       end
 
       def test_api
-        is_5_0_5_or_later = [Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR, Redmine::VERSION::TINY] <=> [5, 0, 5] >= 0
+        is_5_0_5_or_later = ([Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR, Redmine::VERSION::TINY] <=> [5, 0, 5]) >= 0
         #TODO:Remove this branch check after Redmine 5.0.5 is released.
         is_devel = Redmine::VERSION::BRANCH == "devel"
         if is_devel or is_5_0_5_or_later
