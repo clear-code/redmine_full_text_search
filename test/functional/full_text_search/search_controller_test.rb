@@ -1037,7 +1037,7 @@ Project: Private child of <span class="keyword">eCookbook</span>
       end
 
       def test_api
-        p Redmine::VERSION
+        p [Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR, Redmine::VERSION::TINY]
         if ([Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR, Redmine::VERSION::TINY] <=> [5, 0, 0]) <= 0
           expected = {
             title: <<-TITLE.chomp,
