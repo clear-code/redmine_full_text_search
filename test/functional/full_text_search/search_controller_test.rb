@@ -1037,14 +1037,12 @@ Project: Private child of <span class="keyword">eCookbook</span>
       end
 
       def test_api
-        items = [
-          [
-            WikiPage.find(1),
-            {
-              title: <<-TITLE.chomp,
+        if ([Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR, Redmine::VERSION::TINY] <=> [5, 0, 0]) <= 0
+          expected = {
+            title: <<-TITLE.chomp,
 Wiki: <span class="keyword">CookBook</span>_documentation
-              TITLE
-              description: <<-DESCRIPTION.chomp,
+            TITLE
+            description: <<-DESCRIPTION.chomp,
 <span class="keyword">CookBook</span> documentation
 
 
@@ -1055,9 +1053,34 @@ Page with an inline image
 
 
 \tSome updated documentation here with <span class="keyword">gzipped</span> history
-              DESCRIPTION
-              rank: adjust_slice_score(103),
-            },
+            DESCRIPTION
+            rank: adjust_slice_score(103),
+          }
+        else
+          expected = {
+            title: <<-TITLE.chomp,
+Wiki: <span class="keyword">CookBook</span>_documentation
+            TITLE
+            description: <<-DESCRIPTION.chomp,
+h1. <span class=\"keyword\">CookBook</span> documentation
+
+
+
+Page with an inline image
+
+
+
+
+
+Some updated documentation here with <span class=\"keyword\">gzipped</span> history
+            DESCRIPTION
+            rank: adjust_slice_score(103),
+          }
+        end
+        items = [
+          [
+            WikiPage.find(1),
+            expected,
           ],
         ]
         search("cookbook gzipped", api: true)
