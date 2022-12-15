@@ -1037,6 +1037,7 @@ Project: Private child of <span class="keyword">eCookbook</span>
       end
 
       def test_api
+        p Redmine::VERSION
         if ([Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR, Redmine::VERSION::TINY] <=> [5, 0, 0]) <= 0
           expected = {
             title: <<-TITLE.chomp,
@@ -1064,12 +1065,7 @@ Wiki: <span class="keyword">CookBook</span>_documentation
             description: <<-DESCRIPTION.chomp,
 h1. <span class=\"keyword\">CookBook</span> documentation
 
-
-
 Page with an inline image
-
-
-
 
 
 Some updated documentation here with <span class=\"keyword\">gzipped</span> history
