@@ -1037,30 +1037,17 @@ Project: Private child of <span class="keyword">eCookbook</span>
       end
 
       def test_api
-        is_5_0_5_or_later = ([Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR, Redmine::VERSION::TINY] <=> [5, 0, 5]) >= 0
-        #TODO:Remove this branch check after Redmine 5.0.5 is released.
-        is_devel = Redmine::VERSION::BRANCH == "devel"
-        if is_devel or is_5_0_5_or_later
-          expected = {
-            title: <<-TITLE.chomp,
-Wiki: <span class="keyword">CookBook</span>_documentation
-            TITLE
-            description: <<-DESCRIPTION.chomp,
+        if Setting.text_formatting == "common_mark"
+          description = <<-DESCRIPTION.chomp
 h1. <span class=\"keyword\">CookBook</span> documentation
 
 Page with an inline image
 
 
 Some updated documentation here with <span class=\"keyword\">gzipped</span> history
-            DESCRIPTION
-            rank: adjust_slice_score(103),
-          }
+          DESCRIPTION
         else
-          expected = {
-            title: <<-TITLE.chomp,
-Wiki: <span class="keyword">CookBook</span>_documentation
-            TITLE
-            description: <<-DESCRIPTION.chomp,
+          description = <<-DESCRIPTION.chomp
 <span class="keyword">CookBook</span> documentation
 
 
@@ -1072,13 +1059,18 @@ Page with an inline image
 
 \tSome updated documentation here with <span class="keyword">gzipped</span> history
             DESCRIPTION
-            rank: adjust_slice_score(103),
-          }
         end
+
         items = [
           [
             WikiPage.find(1),
-            expected,
+            {
+              title: <<-TITLE.chomp,
+Wiki: <span class="keyword">CookBook</span>_documentation
+              TITLE
+              description: description,
+              rank: adjust_slice_score(103),
+            },
           ],
         ]
         search("cookbook gzipped", api: true)
