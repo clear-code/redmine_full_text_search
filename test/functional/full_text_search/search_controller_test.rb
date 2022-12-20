@@ -538,10 +538,13 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
         search("redmine")
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
-        items = [
-          revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
-          revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
-        ]
+        changeset14 = @repository.changesets.find_by(revision: "14")
+        items = []
+        if changeset14
+          items << changeset14.filechanges.find_by(path: "/subversion_test/+.md")
+        end
+        items << revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt")
+        items << revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb")
         assert_select("#search-results") do
           assert_equal(format_items(items),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
@@ -552,38 +555,53 @@ Revision 6: Moved <span class="keyword">helloworld</span>.rb from / to /folder.
         search("redmine", api: true)
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
-        items = [
-          [
-            revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
+        changeset14 = @repository.changesets.find_by(revision: "14")
+        items = []
+        if changeset14
+          items << [
+            changeset14.filechanges.find_by(path: "/subversion_test/+.md"),
             {
               type: "file",
               title: <<-TITLE.chomp,
-/subversion_test/[folder_with_brackets]/README.txt@11
+/subversion_test/+.md@14
               TITLE
               description: <<-DESCRIPTION,
-This file should be accessible for <span class="keyword">Redmine</span>, although its folder contains square
-brackets.
+See &lt;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
               DESCRIPTION
               rank: adjust_slice_score(2),
             }
-          ],
-          [
-            revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
-            {
-              type: "file",
-              title: <<-TITLE.chomp,
+          ]
+        end
+        items << [
+          revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
+          {
+            type: "file",
+            title: <<-TITLE.chomp,
+/subversion_test/[folder_with_brackets]/README.txt@11
+            TITLE
+            description: <<-DESCRIPTION,
+This file should be accessible for <span class="keyword">Redmine</span>, although its folder contains square
+brackets.
+            DESCRIPTION
+            rank: adjust_slice_score(2),
+          }
+        ]
+        items << [
+          revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
+          {
+            type: "file",
+            title: <<-TITLE.chomp,
 /subversion_test/folder/subfolder/journals_controller.rb@10
-              TITLE
-              description: <<-DESCRIPTION.chomp,
+            TITLE
+            description: <<-DESCRIPTION.chomp,
 # <span class="keyword">redMine</span> - project management software\r
 # Copyright (C) 2006-2008  Jean-Philippe Lang\r
 #\r
 # This program is free software; you can redistribute it and/or\r
 # modify it under the terms of the GNU Gener
               DESCRIPTION
-              rank: adjust_slice_score(2),
-            },
-          ],
+            rank: adjust_slice_score(2),
+          }
         ]
         assert_equal(format_api_results(items),
                      JSON.parse(response.body))
@@ -614,10 +632,13 @@ brackets.
         search("redmine")
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
-        items = [
-          revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
-          revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
-        ]
+        changeset14 = @repository.changesets.find_by(revision: "14")
+        items = []
+        if changeset14
+          items << changeset14.filechanges.find_by(path: "/subversion_test/+.md")
+        end
+        items << revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt")
+        items << revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb")
         assert_select("#search-results") do
           assert_equal(format_items(items),
                        css_select("dt a").collect {|a| [a.text, a["href"]]})
@@ -628,38 +649,53 @@ brackets.
         search("redmine", api: true)
         revision10 = @repository.changesets.find_by(revision: "10").filechanges
         revision11 = @repository.changesets.find_by(revision: "11").filechanges
-        items = [
-          [
-            revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
+        changeset14 = @repository.changesets.find_by(revision: "14")
+        items = []
+        if changeset14
+          items << [
+            changeset14.filechanges.find_by(path: "/subversion_test/+.md"),
             {
               type: "file",
               title: <<-TITLE.chomp,
-/subversion_test/[folder_with_brackets]/README.txt@11
+/subversion_test/+.md@14
               TITLE
               description: <<-DESCRIPTION,
-This file should be accessible for <span class="keyword">Redmine</span>, although its folder contains square
-brackets.
+See &lt;https://www.<span class="keyword">redmine</span>.org/issues/37718&gt;.
               DESCRIPTION
               rank: adjust_slice_score(2),
             }
-          ],
-          [
-            revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
-            {
-              type: "file",
-              title: <<-TITLE.chomp,
+          ]
+        end
+        items << [
+          revision11.find_by(path: "/subversion_test/[folder_with_brackets]/README.txt"),
+          {
+            type: "file",
+            title: <<-TITLE.chomp,
+/subversion_test/[folder_with_brackets]/README.txt@11
+            TITLE
+            description: <<-DESCRIPTION,
+This file should be accessible for <span class="keyword">Redmine</span>, although its folder contains square
+brackets.
+            DESCRIPTION
+            rank: adjust_slice_score(2),
+          }
+        ]
+        items << [
+          revision10.find_by(path: "/subversion_test/folder/subfolder/journals_controller.rb"),
+          {
+            type: "file",
+            title: <<-TITLE.chomp,
 /subversion_test/folder/subfolder/journals_controller.rb@10
-              TITLE
-              description: <<-DESCRIPTION.chomp,
+            TITLE
+            description: <<-DESCRIPTION.chomp,
 # <span class="keyword">redMine</span> - project management software\r
 # Copyright (C) 2006-2008  Jean-Philippe Lang\r
 #\r
 # This program is free software; you can redistribute it and/or\r
 # modify it under the terms of the GNU Gener
               DESCRIPTION
-              rank: adjust_slice_score(2),
-            },
-          ],
+            rank: adjust_slice_score(2),
+          }
         ]
         assert_equal(format_api_results(items),
                      JSON.parse(response.body))
@@ -993,14 +1029,17 @@ Project: Private child of <span class="keyword">eCookbook</span>
       end
 
       def test_api
-        items = [
-          [
-            WikiPage.find(1),
-            {
-              title: <<-TITLE.chomp,
-Wiki: <span class="keyword">CookBook</span>_documentation
-              TITLE
-              description: <<-DESCRIPTION.chomp,
+        if Setting.text_formatting == "common_mark"
+          description = <<-DESCRIPTION.chomp
+h1. <span class=\"keyword\">CookBook</span> documentation
+
+Page with an inline image
+
+
+Some updated documentation here with <span class=\"keyword\">gzipped</span> history
+          DESCRIPTION
+        else
+          description = <<-DESCRIPTION.chomp
 <span class="keyword">CookBook</span> documentation
 
 
@@ -1011,7 +1050,17 @@ Page with an inline image
 
 
 \tSome updated documentation here with <span class="keyword">gzipped</span> history
-              DESCRIPTION
+            DESCRIPTION
+        end
+
+        items = [
+          [
+            WikiPage.find(1),
+            {
+              title: <<-TITLE.chomp,
+Wiki: <span class="keyword">CookBook</span>_documentation
+              TITLE
+              description: description,
               rank: adjust_slice_score(103),
             },
           ],
