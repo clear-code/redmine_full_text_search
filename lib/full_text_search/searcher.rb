@@ -168,16 +168,19 @@ module FullTextSearch
         conditions << "source_type_id == #{Type.attachment.id}"
       end
 
-      not_target_custom_field_ids =
+      target_custom_field_ids =
         CustomField
           .where(searchable: true)
-          .where.not(id: CustomField.visible(user))
+          .where(id: CustomField.visible(user))
           .pluck(:id)
-      if not_target_custom_field_ids.present?
-        conditions << "&!"
+      
+      conditions << "&&"
+      if target_custom_field_ids.present?
         conditions <<
           "in_values(custom_field_id, " +
-          "#{not_target_custom_field_ids.join(', ')})"
+          "#{target_custom_field_ids.join(', ')})"
+      else
+        conditions << "custom_field_id == 0"
       end
 
       @request.target_search_types.each do |search_type|
