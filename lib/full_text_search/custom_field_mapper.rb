@@ -21,17 +21,16 @@ module FullTextSearch
       end
     end
 
-    def destroy_fts_target
-      p "destroy_fts_target called"
+    def upsert_fts_target(options={})
     end
 
-    def upsert_fts_target(options={})
+    def destroy_fts_target
+      Target.where(source_type_id: Type.custom_value.id,
+                   custom_field_id: @record.id)
+            .destroy_all
     end
   end
 
   class FtsCustomFieldMapper < FtsMapper
-    def id
-      redmine_record.id
-    end
   end
 end
