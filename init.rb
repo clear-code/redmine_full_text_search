@@ -57,6 +57,7 @@ prepare = lambda do
   FullTextSearch::AttachmentMapper
   FullTextSearch::ChangesetMapper
   FullTextSearch::ChangeMapper
+  FullTextSearch::CustomFieldMapper
 
   FullTextSearch::Hooks::SearchIndexOptionsContentBottomHook
   FullTextSearch::Hooks::IssuesShowDescriptionBottomHook
