@@ -48,6 +48,10 @@ module FullTextSearch
       def need_text_extraction?
         redmine_mapper_class.need_text_extraction?
       end
+
+      def have_own_fts_entity?
+        redmine_mapper_class.have_own_fts_entity?
+      end
     end
   end
 
@@ -77,6 +81,10 @@ module FullTextSearch
 
       def need_text_extraction?
         method_defined?(:extract_text)
+      end
+
+      def have_own_fts_entity?
+        true
       end
 
       private

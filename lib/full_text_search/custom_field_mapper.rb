@@ -19,6 +19,10 @@ module FullTextSearch
 
       def not_mapped(redmine_class, options)
       end
+
+      def have_own_fts_entity?
+        false
+      end
     end
 
     def upsert_fts_target(options={})
