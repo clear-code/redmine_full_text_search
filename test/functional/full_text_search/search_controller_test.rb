@@ -716,20 +716,20 @@ brackets.
         issue
       end
 
-      def test_destroyed
-        field = IssueCustomField.new(:name => 'FieldForTestRemoved', :field_format => 'string', 
-                                     :searchable => true, :is_for_all => true,
-                                     :trackers => Tracker.all)
-        assert field.save
+      def test_destroy_issue
+        field = IssueCustomField.generate!(name: "Ephemeral searchable field",
+                                           field_format: "string",
+                                           searchable: true)
         custom_field_values = {
           field.id => "Searchable",
         }
         tracker = field.trackers.first
         project = tracker.projects.first
         issue = generate_issue!(project, custom_field_values)
+
         search("searchable",
-          params: {id: project.id},
-          api: true)
+               params: {id: project.id},
+               api: true)
         items = [
           [
             issue,
@@ -741,11 +741,11 @@ brackets.
         ]
         assert_equal(format_api_results(items),
                      JSON.parse(response.body))
-        
-        assert field.destroy
+
+        field.destroy!
         search("searchable",
-          params: {id: project.id},
-          api: true)
+               params: {id: project.id},
+               api: true)
         assert_equal(format_api_results([]),
                      JSON.parse(response.body))
       end

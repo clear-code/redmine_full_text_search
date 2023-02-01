@@ -80,7 +80,6 @@ module FullTextSearch
 
       resolver = FullTextSearch.resolver
       resolver.each do |redmine_class, mapper_class|
-        next unless mapper_class.have_own_fts_entity?
         new_redmine_records =
           mapper_class.not_mapped_redmine_records(project: options.project)
         label = "#{redmine_class.name}:New"
@@ -106,7 +105,6 @@ module FullTextSearch
 
       all_bar.start
       resolver.each do |redmine_class, mapper_class|
-        next unless mapper_class.have_own_fts_entity?
         new_redmine_records =
           mapper_class.not_mapped_redmine_records(project: options.project)
         bar = bars["#{redmine_class.name}:New"]
