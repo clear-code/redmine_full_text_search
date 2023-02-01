@@ -716,6 +716,40 @@ brackets.
         issue
       end
 
+      def test_destroy_issue
+        field = IssueCustomField.generate!(name: "Ephemeral searchable field",
+                                           field_format: "string",
+                                           searchable: true)
+        custom_field_values = {
+          field.id => "Searchable",
+        }
+        tracker = field.trackers.first
+        project = tracker.projects.first
+        issue = generate_issue!(project, custom_field_values)
+
+        search("searchable",
+               params: {id: project.id},
+               api: true)
+        items = [
+          [
+            issue,
+            {
+              description: %Q[<span class="keyword">Searchable</span>],
+              rank: adjust_slice_score(2),
+            }
+          ],
+        ]
+        assert_equal(format_api_results(items),
+                     JSON.parse(response.body))
+
+        field.destroy!
+        search("searchable",
+               params: {id: project.id},
+               api: true)
+        assert_equal(format_api_results([]),
+                     JSON.parse(response.body))
+      end
+
       def test_scoped
         searchable_custom_field = CustomField.where(searchable: true).first
         tracker = searchable_custom_field.trackers.first

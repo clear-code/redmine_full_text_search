@@ -72,6 +72,7 @@ prepare = lambda do
   FullTextSearch.resolver.each do |redmine_class, mapper_class|
     mapper_class.attach(redmine_class)
   end
+  FullTextSearch::CustomFieldCallbacks.attach
   Issue.include(FullTextSearch::SimilarSearcher::Model)
   Journal.include(FullTextSearch::SimilarSearcher::Model)
   SearchController.helper(FullTextSearch::Hooks::SearchHelper)
