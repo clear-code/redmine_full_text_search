@@ -32,7 +32,7 @@
     </p>
 
     <fieldset class="collapsible collapsed">
-      <legend onclick="toggleFieldset(this);"><%= l(:label_options) %></legend>
+      <legend onclick="toggleFieldset(this);" class="icon icon-collapsed"><%= l(:label_options) %></legend>
       <div id="options-content" style="display:none;">
         <p><%= project_select_tag %></p>
         <p><label><%= form.check_box "titles_only", name: "titles_only" %>
