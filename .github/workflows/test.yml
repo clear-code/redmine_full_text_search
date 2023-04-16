@@ -118,6 +118,7 @@ jobs:
       - name: Install
         run: |
           cd ../redmine
+          echo 'gem "webrick"' >> Gemfile.local
           bundle install
           bin/rails db:create
           bin/rails generate_secret_token
