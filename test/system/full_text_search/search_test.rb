@@ -36,7 +36,7 @@ module FullTextSearch
       end
 
       if Object.const_defined?(:Webdrivers)
-        if Gem::Version.new(Webdrivers::VERSION) < "5.3.0"
+        if Gem::Version.new(Webdrivers::VERSION) < Gem::Version.new("5.3.0")
           skip("Webdrivers < 5.3.0 doesn't work. " +
                "See also: https://github.com/titusfortner/webdrivers/pull/251")
         end
