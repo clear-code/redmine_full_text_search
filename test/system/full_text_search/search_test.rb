@@ -35,6 +35,13 @@ module FullTextSearch
         skip("Redmine 4.1 or earlier can't work with recent Selenium")
       end
 
+      if Object.const_defined?(:Webdrivers)
+        if Gem::Version.new(Webdrivers::VERSION) < "5.3.0"
+          skip("Webdrivers < 5.3.0 doesn't work. " +
+               "See also: https://github.com/titusfortner/webdrivers/pull/251")
+        end
+      end
+
       Target.destroy_all
       batch_runner = BatchRunner.new(show_progress: false)
       batch_runner.synchronize
