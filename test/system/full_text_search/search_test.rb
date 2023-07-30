@@ -1,7 +1,7 @@
 begin
   require File.expand_path("../../../application_system_test_case", __FILE__)
 rescue => error
-  if error.name == "Webdrivers::VersionError"
+  if error.class.name == "Webdrivers::VersionError"
     puts("Webdrivers < 5.3.0 doesn't work. " +
          "See also: https://github.com/titusfortner/webdrivers/pull/251")
     puts("#{error.class}: #{error}")
