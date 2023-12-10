@@ -65,6 +65,7 @@ module FullTextSearch
         fts_target.container_type_id = Type.repository.id
         fts_target.project_id = repository.project_id
         fts_target.last_modified_at = changeset.committed_on
+        fts_target.created_at = changeset.committed_on
         fts_target.tag_ids = extract_tag_ids_from_path(fts_target.title)
         if fts_target.changed?
           prepare_text_extraction(fts_target)

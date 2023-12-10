@@ -67,6 +67,7 @@ JOIN projects
       fts_target.container_type_id = Type[customized].id
       # TODO: This may not be updated when issue or project is updated.
       fts_target.last_modified_at = customized.updated_on
+      fts_target.created_at = customized.created_on
       fts_target.save!
     end
   end

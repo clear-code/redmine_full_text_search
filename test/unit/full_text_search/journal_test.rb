@@ -25,6 +25,7 @@ module FullTextSearch
                        "source_id" => journal.id,
                        "source_type_id" => Type.journal.id,
                        "last_modified_at" => journal.created_on,
+                       "created_at" => journal.created_on,
                        "title" => null_string,
                        "tag_ids" => [
                          Tag.user(journal.user_id).id,

@@ -35,6 +35,7 @@ module FullTextSearch
       fts_target.title = @record.short_comments&.strip
       fts_target.content = @record.long_comments&.strip
       fts_target.last_modified_at = @record.committed_on
+      fts_target.created_at = @record.committed_on
       fts_target.save!
     end
   end
