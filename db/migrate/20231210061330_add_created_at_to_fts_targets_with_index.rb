@@ -1,7 +1,7 @@
 # For auto load
 FullTextSearch::Migration
 
-class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[6.1]
+class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
   def up
     add_column :fts_targets, :created_at, :timestamp
 
