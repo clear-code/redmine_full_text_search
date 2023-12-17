@@ -286,7 +286,7 @@ module FullTextSearch
                          [
                            "updated at",
                            expected_search_path,
-                           common_search_options.merge("order_target" => "date",
+                           common_search_options.merge("order_target" => "last_modified_at",
                                                        "order_type" => "desc"),
                          ],
                          [

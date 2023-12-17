@@ -242,7 +242,7 @@ module FullTextSearch
         direction = ""
       end
       case @request.order_target
-      when "date"
+      when "last_modified_at"
         [
           "#{direction}last_modified_at",
         ]
