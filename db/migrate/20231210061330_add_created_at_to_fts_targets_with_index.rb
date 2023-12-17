@@ -3,6 +3,8 @@ FullTextSearch::Migration
 
 class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
   def up
+    return if !table_exists?(:fts_targets)
+
     add_column :fts_targets, :created_at, :timestamp
 
     ActiveRecord::Base.transaction do
@@ -39,6 +41,8 @@ class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
   end
 
   def down
+    return if !table_exists?(:fts_targets)
+
     if Redmine::Database.mysql?
       remove_index :fts_targets, :created_at
     else
