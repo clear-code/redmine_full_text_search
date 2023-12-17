@@ -8,10 +8,10 @@ class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
     ActiveRecord::Base.transaction do
       update_created_at_for_changes
       update_created_at_using_last_modified_at
-      update_created_at_using_created_on("Issue", "issues")
-      update_created_at_using_created_on("Message", "messages")
-      update_created_at_using_created_on("Project", "projects")
-      update_created_at_using_created_on("WikiPage", "wiki_pages")
+      update_created_at_using_created_on('Issue', 'issues')
+      update_created_at_using_created_on('Message', 'messages')
+      update_created_at_using_created_on('Project', 'projects')
+      update_created_at_using_created_on('WikiPage', 'wiki_pages')
     end
 
     if Redmine::Database.mysql?
@@ -66,27 +66,53 @@ class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
 
   private
 
+  class TmpTarget < ActiveRecord::Base
+    self.table_name = 'fts_targets'
+  end
+
+  class TmpType < ActiveRecord::Base
+    self.table_name = 'fts_types'
+  end
+
+  class TmpChange < ActiveRecord::Base
+    self.table_name = 'changes'
+  end
+
+  class TmpChangeset < ActiveRecord::Base
+    self.table_name = 'changesets'
+  end
+
   def update_created_at_for_changes
-    execute <<-SQL
-      UPDATE fts_targets
-      SET created_at = (SELECT committed_on FROM changesets WHERE changesets.id = (SELECT changeset_id FROM changes WHERE changes.id = fts_targets.source_id))
-      WHERE fts_targets.source_type_id = (SELECT id FROM fts_types WHERE name = 'Change')
-    SQL
+    change_type = TmpType.find_by(name: 'Change')
+    return unless change_type
+
+    TmpTarget.where(source_type_id: change_type.id).in_batches do |targets|
+      targets.each do |target|
+        change = TmpChange.find_by(id: target.source_id)
+        changeset = TmpChangeset.find_by(id: change.changeset_id)
+        target.update(created_at: changeset.committed_on)
+      end
+    end
   end
 
   def update_created_at_using_last_modified_at
-    execute <<-SQL
-      UPDATE fts_targets
-      SET created_at = last_modified_at
-      WHERE fts_targets.source_type_id IN (SELECT id FROM fts_types WHERE name IN ('CustomValue', 'Attachment', 'Changeset', 'Document', 'Journal', 'News'));
-    SQL
+    TmpType.where(name: ['CustomValue', 'Attachment', 'Changeset', 'Document', 'Journal', 'News']).pluck(:id).each do |type_id|
+      TmpTarget.where(source_type_id: type_id).in_batches do |targets|
+        targets.update_all('created_at = last_modified_at')
+      end
+    end
   end
 
   def update_created_at_using_created_on(type_name, table_name)
-    execute <<-SQL
-      UPDATE fts_targets
-      SET created_at = (SELECT created_on FROM #{table_name} WHERE #{table_name}.id = fts_targets.source_id)
-      WHERE fts_targets.source_type_id = (SELECT id FROM fts_types WHERE name = '#{type_name}')
-    SQL
+    type = TmpType.find_by(name: type_name)
+    return unless type
+
+    tmp_source_model = Class.new(ActiveRecord::Base) { self.table_name = table_name }
+    TmpTarget.where(source_type_id: type.id).in_batches do |targets|
+      targets.each do |target|
+        source_record = tmp_source_model.find_by(id: target.source_id)
+        target.update(created_at: source_record.created_on)
+      end
+    end
   end
 end
