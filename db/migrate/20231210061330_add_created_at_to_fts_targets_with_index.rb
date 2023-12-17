@@ -8,12 +8,8 @@ class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
     add_column :fts_targets, :created_at, :timestamp
 
     ActiveRecord::Base.transaction do
-      update_created_at_for_changes
       update_created_at_using_last_modified_at
-      update_created_at_using_created_on('Issue', 'issues')
-      update_created_at_using_created_on('Message', 'messages')
-      update_created_at_using_created_on('Project', 'projects')
-      update_created_at_using_created_on('WikiPage', 'wiki_pages')
+      update_created_at_using_created_on
     end
 
     if Redmine::Database.mysql?
@@ -78,44 +74,32 @@ class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
     self.table_name = 'fts_types'
   end
 
-  class TmpChange < ActiveRecord::Base
-    self.table_name = 'changes'
-  end
-
-  class TmpChangeset < ActiveRecord::Base
-    self.table_name = 'changesets'
-  end
-
-  def update_created_at_for_changes
-    change_type = TmpType.find_by(name: 'Change')
-    return unless change_type
-
-    TmpTarget.where(source_type_id: change_type.id).in_batches do |targets|
-      targets.each do |target|
-        change = TmpChange.find_by(id: target.source_id)
-        changeset = TmpChangeset.find_by(id: change.changeset_id)
-        target.update(created_at: changeset.committed_on)
-      end
-    end
-  end
-
   def update_created_at_using_last_modified_at
-    TmpType.where(name: ['CustomValue', 'Attachment', 'Changeset', 'Document', 'Journal', 'News']).pluck(:id).each do |type_id|
+    types = ['Attachment', 'Change', 'Changeset', 'CustomValue', 'Document', 'Journal', 'News']
+
+    TmpType.where(name: types).pluck(:id).each do |type_id|
       TmpTarget.where(source_type_id: type_id).in_batches do |targets|
         targets.update_all('created_at = last_modified_at')
       end
     end
   end
 
-  def update_created_at_using_created_on(type_name, table_name)
-    type = TmpType.find_by(name: type_name)
-    return unless type
+  def update_created_at_using_created_on
+    types = ['Issue', 'Message', 'Project', 'WikiPage']
 
-    tmp_source_model = Class.new(ActiveRecord::Base) { self.table_name = table_name }
-    TmpTarget.where(source_type_id: type.id).in_batches do |targets|
-      targets.each do |target|
-        source_record = tmp_source_model.find_by(id: target.source_id)
-        target.update(created_at: source_record.created_on)
+    types.each do |type_name|
+      type = TmpType.find_by(name: type_name)
+      return unless type
+
+      table_name = type.name.underscore.pluralize
+      TmpTarget.where(source_type_id: type.id).in_batches do |targets|
+        tmp_source_model = Class.new(ActiveRecord::Base) { self.table_name = table_name }
+        source_model_with_created_on = tmp_source_model.where(id: targets.select(:source_id))
+                                                       .pluck(:id, :created_on)
+                                                       .to_h
+        targets.each do |target|
+          target.update(created_at: source_model_with_created_on[target.source_id])
+        end
       end
     end
   end
