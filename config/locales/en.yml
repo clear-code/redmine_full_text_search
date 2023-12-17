@@ -5,6 +5,7 @@ en:
   label_full_text_search_result_order_type: Sort order
   label_full_text_search_order_target_score: score
   label_full_text_search_order_target_last_modified_at: updated at
+  label_full_text_search_order_target_registered_at: created at
   label_full_text_search_order_type_asc: asc
   label_full_text_search_order_type_desc: desc
   label_full_text_search_display_score: Display score

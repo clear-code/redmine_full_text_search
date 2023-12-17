@@ -226,6 +226,7 @@ module FullTextSearch
         "content_snippets",
         "id",
         "last_modified_at",
+        "registered_at",
         "project_id",
         "source_id",
         "source_type_id",
@@ -245,6 +246,10 @@ module FullTextSearch
       when "last_modified_at"
         [
           "#{direction}last_modified_at",
+        ]
+      when "registered_at"
+        [
+          "#{direction}registered_at",
         ]
       else
         # TODO: -_score is useful?
@@ -302,6 +307,7 @@ module FullTextSearch
         # Rails.logger.debug(title: record["title_digest"],
         #                    description: record["description_digest"])
         record["last_modified_at"] += Target.time_offset
+        record["registered_at"] += Target.time_offset
         record["highlighted_title"] = record["highlighted_title"].html_safe
         record["content_snippets"] = record["content_snippets"].collect do |snippet|
           snippet.html_safe

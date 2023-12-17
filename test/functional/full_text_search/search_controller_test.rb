@@ -290,6 +290,12 @@ module FullTextSearch
                                                        "order_type" => "desc"),
                          ],
                          [
+                           "created at",
+                           expected_search_path,
+                           common_search_options.merge("order_target" => "registered_at",
+                                                       "order_type" => "desc"),
+                         ],
+                         [
                            "asc",
                            expected_search_path,
                            common_search_options.merge("order_target" => "score",
