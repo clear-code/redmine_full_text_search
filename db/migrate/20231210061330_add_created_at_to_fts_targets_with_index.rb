@@ -72,33 +72,38 @@ class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
   class FtsType < ActiveRecord::Base
   end
 
+  class Issue < ActiveRecord::Base
+  end
+
+  class Message < ActiveRecord::Base
+  end
+
+  class Project < ActiveRecord::Base
+  end
+
+  class WikiPage < ActiveRecord::Base
+  end
+
   def update_created_at_using_last_modified_at
     types = ['Attachment', 'Change', 'Changeset', 'CustomValue', 'Document', 'Journal', 'News']
 
-    FtsType.where(name: types).pluck(:id).each do |type_id|
-      FtsTarget.where(source_type_id: type_id).in_batches do |targets|
-        targets.update_all('created_at = last_modified_at')
-      end
-    end
+    FtsTarget.where(source_type_id: FtsType.where(name: types).select(:id))
+             .update_all(created_at: FtsTarget.arel_table[:last_modified_at])
   end
 
   def update_created_at_using_created_on
     types = ['Issue', 'Message', 'Project', 'WikiPage']
 
     types.each do |type_name|
-      type = FtsType.find_by(name: type_name)
-      return unless type
+      source_table = type_name.constantize.arel_table
+      fts_targets_table = FtsTarget.arel_table
 
-      table_name = type.name.underscore.pluralize
-      FtsTarget.where(source_type_id: type.id).in_batches do |targets|
-        tmp_source_model = Class.new(ActiveRecord::Base) { self.table_name = table_name }
-        source_model_with_created_on = tmp_source_model.where(id: targets.select(:source_id))
-                                                       .pluck(:id, :created_on)
-                                                       .to_h
-        targets.each do |target|
-          target.update(created_at: source_model_with_created_on[target.source_id])
-        end
-      end
+      subquery_for_created_on = source_table.project(source_table[:created_on])
+                                            .where(source_table[:id].eq(fts_targets_table[:source_id]))
+                                            .to_sql
+
+      FtsTarget.where(source_type_id: FtsType.where(name: type_name).select(:id))
+               .update_all("created_at = (#{subquery_for_created_on})")
     end
   end
 end
