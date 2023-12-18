@@ -66,19 +66,17 @@ class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
 
   private
 
-  class TmpTarget < ActiveRecord::Base
-    self.table_name = 'fts_targets'
+  class FtsTarget < ActiveRecord::Base
   end
 
-  class TmpType < ActiveRecord::Base
-    self.table_name = 'fts_types'
+  class FtsType < ActiveRecord::Base
   end
 
   def update_created_at_using_last_modified_at
     types = ['Attachment', 'Change', 'Changeset', 'CustomValue', 'Document', 'Journal', 'News']
 
-    TmpType.where(name: types).pluck(:id).each do |type_id|
-      TmpTarget.where(source_type_id: type_id).in_batches do |targets|
+    FtsType.where(name: types).pluck(:id).each do |type_id|
+      FtsTarget.where(source_type_id: type_id).in_batches do |targets|
         targets.update_all('created_at = last_modified_at')
       end
     end
@@ -88,11 +86,11 @@ class AddCreatedAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
     types = ['Issue', 'Message', 'Project', 'WikiPage']
 
     types.each do |type_name|
-      type = TmpType.find_by(name: type_name)
+      type = FtsType.find_by(name: type_name)
       return unless type
 
       table_name = type.name.underscore.pluralize
-      TmpTarget.where(source_type_id: type.id).in_batches do |targets|
+      FtsTarget.where(source_type_id: type.id).in_batches do |targets|
         tmp_source_model = Class.new(ActiveRecord::Base) { self.table_name = table_name }
         source_model_with_created_on = tmp_source_model.where(id: targets.select(:source_id))
                                                        .pluck(:id, :created_on)
