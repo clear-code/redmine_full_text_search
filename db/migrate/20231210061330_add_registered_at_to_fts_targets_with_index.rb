@@ -85,24 +85,24 @@ class AddRegisteredAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
   end
 
   def update_registered_at_using_last_modified_at
-    types = ['Attachment', 'Change', 'Changeset', 'CustomValue', 'Document', 'Journal', 'News']
+    type_names = [Attachment, Change, Changeset, CustomValue, Document, Journal, News].map(&:name)
 
-    FtsTarget.where(source_type_id: FtsType.where(name: types).select(:id))
+    FtsTarget.where(source_type_id: FtsType.where(name: type_names).select(:id))
              .update_all(registered_at: FtsTarget.arel_table[:last_modified_at])
   end
 
   def update_registered_at_using_created_on
-    types = ['Issue', 'Message', 'Project', 'WikiPage']
+    types = [Issue, Message, Project, WikiPage]
 
-    types.each do |type_name|
-      source_table = type_name.constantize.arel_table
+    types.each do |type|
+      source_table = type.arel_table
       fts_targets_table = FtsTarget.arel_table
 
       subquery_for_created_on = source_table.project(source_table[:created_on])
                                             .where(source_table[:id].eq(fts_targets_table[:source_id]))
                                             .to_sql
 
-      FtsTarget.where(source_type_id: FtsType.where(name: type_name).select(:id))
+      FtsTarget.where(source_type_id: FtsType.where(name: type.name).select(:id))
                .update_all("registered_at = (#{subquery_for_created_on})")
     end
   end
