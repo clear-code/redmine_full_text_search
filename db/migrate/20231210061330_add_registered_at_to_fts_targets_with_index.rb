@@ -93,16 +93,11 @@ class AddRegisteredAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
 
   def update_registered_at_using_created_on
     types = [Issue, Message, Project, WikiPage]
-
     types.each do |type|
-      source_table = type.arel_table
-      fts_targets_table = FtsTarget.arel_table
-
-      subquery_for_created_on = source_table.project(source_table[:created_on])
-                                            .where(source_table[:id].eq(fts_targets_table[:source_id]))
-                                            .to_sql
-
-      FtsTarget.where(source_type_id: FtsType.where(name: type.name).select(:id))
+      subquery_for_created_on = type.where(type.arel_table[:id].eq(FtsTarget.arel_table[:source_id]))
+                                    .select(:created_on)
+                                    .to_sql
+      FtsTarget.where(source_type_id: FtsType.where(name: type.table_name.singularize.camelize).select(:id))
                .update_all("registered_at = (#{subquery_for_created_on})")
     end
   end
