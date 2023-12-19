@@ -50,7 +50,7 @@ JOIN projects
       tag_ids << Tag.issue_status(issue.status_id).id if issue.status_id
       fts_target.tag_ids = tag_ids
       fts_target.last_modified_at = @record.created_on
-      fts_target.created_at = @record.created_on
+      fts_target.registered_at = @record.created_on
       fts_target.save!
     end
   end

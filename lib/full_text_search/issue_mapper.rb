@@ -30,7 +30,7 @@ module FullTextSearch
       tag_ids << Tag.issue_status(@record.status_id).id if @record.status_id
       fts_target.tag_ids = tag_ids
       fts_target.last_modified_at = @record.updated_on
-      fts_target.created_at = @record.created_on
+      fts_target.registered_at = @record.created_on
       fts_target.save!
       return unless options[:recursive]
 

@@ -27,7 +27,7 @@ module FullTextSearch
       fts_target.title = @record.name
       fts_target.content = @record.description
       fts_target.last_modified_at = @record.updated_on
-      fts_target.created_at = @record.created_on
+      fts_target.registered_at = @record.created_on
       tag_ids = []
       if @record.identifier
         tag_ids << Tag.identifier(@record.identifier).id

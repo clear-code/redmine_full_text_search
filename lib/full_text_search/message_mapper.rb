@@ -27,7 +27,7 @@ module FullTextSearch
       fts_target.title = @record.subject
       fts_target.content = @record.content
       fts_target.last_modified_at = @record.updated_on
-      fts_target.created_at = @record.created_on
+      fts_target.registered_at = @record.created_on
       fts_target.save!
     end
   end

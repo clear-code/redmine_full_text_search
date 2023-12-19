@@ -28,7 +28,7 @@ module FullTextSearch
                        "source_id" => attachment.id,
                        "source_type_id" => Type.attachment.id,
                        "last_modified_at" => attachment.created_on,
-                       "created_at" => attachment.created_on,
+                       "registered_at" => attachment.created_on,
                        "title" => filename,
                        "is_private" => issue.is_private,
                        "content" => [

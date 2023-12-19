@@ -26,7 +26,7 @@ module FullTextSearch
                        "source_id" => changeset.id,
                        "source_type_id" => Type.changeset.id,
                        "last_modified_at" => changeset.committed_on,
-                       "created_at" => changeset.committed_on,
+                       "registered_at" => changeset.committed_on,
                        "is_private" => null_boolean,
                        "title" => "Fix a memory leak",
                        "content" => "This is critical.",
