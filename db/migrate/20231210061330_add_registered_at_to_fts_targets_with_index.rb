@@ -85,7 +85,7 @@ class AddRegisteredAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
   end
 
   def update_registered_at_using_last_modified_at
-    type_names = [Attachment, Change, Changeset, CustomValue, Document, Journal, News].map(&:name)
+    type_names = ['Attachment', 'Change', 'Changeset', 'CustomValue', 'Document', 'Journal', 'News']
 
     FtsTarget.where(source_type_id: FtsType.where(name: type_names).select(:id))
              .update_all(registered_at: FtsTarget.arel_table[:last_modified_at])
