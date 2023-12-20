@@ -98,7 +98,7 @@ class AddRegisteredAtToFtsTargetsWithIndex < ActiveRecord::Migration[5.2]
                                     .select(:created_on)
                                     .to_sql
       FtsTarget.where(source_type_id: FtsType.where(name: type.table_name.singularize.camelize).select(:id))
-               .update_all("registered_at = (#{subquery_for_created_on})")
+               .update_all(registered_at: Arel.sql("(#{subquery_for_created_on})"))
     end
   end
 end
