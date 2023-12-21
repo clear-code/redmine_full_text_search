@@ -61,6 +61,7 @@ JOIN projects
       fts_target.title = @record.filename
       fts_target.content = @record.description
       fts_target.last_modified_at = @record.created_on
+      fts_target.registered_at = @record.created_on
       tag_ids = []
       case @record.container_type
       when "Issue"

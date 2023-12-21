@@ -27,6 +27,7 @@ module FullTextSearch
                        "source_id" => issue.id,
                        "source_type_id" => Type.issue.id,
                        "last_modified_at" => issue.updated_on,
+                       "registered_at" => issue.created_on,
                        "title" => issue.subject,
                        "content" => issue.description || "",
                        "tag_ids" => [
