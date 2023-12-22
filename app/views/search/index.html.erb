@@ -56,11 +56,11 @@
             </label>
             <label>
               <%= form.radio_button "order_target", "last_modified_at", name: "order_target" %>
-              <%= l(:label_full_text_search_order_target_last_modified_at) %>
+              <%= l(:label_full_text_search_order_target_last_modified_time) %>
             </label>
             <label>
               <%= form.radio_button "order_target", "registered_at", name: "order_target" %>
-              <%= l(:label_full_text_search_order_target_registered_at) %>
+              <%= l(:label_full_text_search_order_target_registered_time) %>
             </label>
           </p>
           <p>
@@ -106,13 +106,13 @@
         <li>
           <%= link_to_unless(@search_request.order_target == "last_modified_at",
                              tag.i(class: "fas fa-clock") + " " +
-                               l(:label_full_text_search_order_target_last_modified_at),
+                               l(:label_full_text_search_order_target_last_modified_time),
                              url_for(@search_request.to_params(order_target: "last_modified_at"))) %>
         </li>
         <li>
           <%= link_to_unless(@search_request.order_target == "registered_at",
                              tag.i(class: "far fa-clock") + " " +
-                               l(:label_full_text_search_order_target_registered_at),
+                               l(:label_full_text_search_order_target_registered_time),
                              url_for(@search_request.to_params(order_target: "registered_at"))) %>
         </li>
       </ul>
