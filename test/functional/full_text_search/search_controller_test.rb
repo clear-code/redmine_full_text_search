@@ -284,13 +284,13 @@ module FullTextSearch
           assert_equal([
                          ["score", nil, nil],
                          [
-                           "updated at",
+                           "last modified",
                            expected_search_path,
                            common_search_options.merge("order_target" => "last_modified_at",
                                                        "order_type" => "desc"),
                          ],
                          [
-                           "created at",
+                           "registered",
                            expected_search_path,
                            common_search_options.merge("order_target" => "registered_at",
                                                        "order_type" => "desc"),
