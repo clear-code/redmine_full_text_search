@@ -215,13 +215,18 @@ module FullTextSearch
           datetime ||= changeset.committed_on
         end
         datetime ||= item.updated_on if item.respond_to?(:updated_on)
-        datetime ||= item.created_on if item.respond_to?(:created_on)
+        if item.respond_to?(:created_on)
+          datetime ||= item.created_on
+          registered_at = item.created_on
+        end
         {
           "id" => item.id,
           "title" => detail[:title] || item_title(item),
           "type" => detail[:type] || item.class.name.underscore.dasherize,
           "url" => item_url(item),
           "description" => detail[:description] || "",
+          "last_modified_at" => datetime&.iso8601,
+          "registered_at" => registered_at&.iso8601 || datetime&.iso8601,
           "datetime" => datetime&.iso8601,
           "rank" => detail[:rank],
         }
