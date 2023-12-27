@@ -243,7 +243,9 @@ module FullTextSearch
         direction = ""
       end
       case @request.order_target
-      when "last_modified_time"
+      # TODO: Supporting the `date` parameter for backward compatibility,
+      # but it will be deprecated in the future. Use `last_modified_time` instead.
+      when "data", "last_modified_time"
         [
           "#{direction}last_modified_at",
         ]
