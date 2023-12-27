@@ -243,11 +243,11 @@ module FullTextSearch
         direction = ""
       end
       case @request.order_target
-      when "last_modified_at"
+      when "last_modified_time"
         [
           "#{direction}last_modified_at",
         ]
-      when "registered_at"
+      when "registered_time"
         [
           "#{direction}registered_at",
         ]

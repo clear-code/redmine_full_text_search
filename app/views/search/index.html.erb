@@ -55,11 +55,11 @@
               <%= l(:label_full_text_search_order_target_score) %>
             </label>
             <label>
-              <%= form.radio_button "order_target", "last_modified_at", name: "order_target" %>
+              <%= form.radio_button "order_target", "last_modified_time", name: "order_target" %>
               <%= l(:label_full_text_search_order_target_last_modified_time) %>
             </label>
             <label>
-              <%= form.radio_button "order_target", "registered_at", name: "order_target" %>
+              <%= form.radio_button "order_target", "registered_time", name: "order_target" %>
               <%= l(:label_full_text_search_order_target_registered_time) %>
             </label>
           </p>
@@ -104,16 +104,16 @@
                              url_for(@search_request.to_params(order_target: "score"))) %>
         </li>
         <li>
-          <%= link_to_unless(@search_request.order_target == "last_modified_at",
+          <%= link_to_unless(@search_request.order_target == "last_modified_time",
                              tag.i(class: "fas fa-pen") + " " +
                                l(:label_full_text_search_order_target_last_modified_time),
-                             url_for(@search_request.to_params(order_target: "last_modified_at"))) %>
+                             url_for(@search_request.to_params(order_target: "last_modified_time"))) %>
         </li>
         <li>
-          <%= link_to_unless(@search_request.order_target == "registered_at",
+          <%= link_to_unless(@search_request.order_target == "registered_time",
                              tag.i(class: "fas fa-calendar") + " " +
                                l(:label_full_text_search_order_target_registered_time),
-                             url_for(@search_request.to_params(order_target: "registered_at"))) %>
+                             url_for(@search_request.to_params(order_target: "registered_time"))) %>
         </li>
       </ul>
     </div>

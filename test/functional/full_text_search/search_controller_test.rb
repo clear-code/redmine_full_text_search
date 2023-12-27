@@ -291,13 +291,13 @@ module FullTextSearch
                          [
                            "last modified",
                            expected_search_path,
-                           common_search_options.merge("order_target" => "last_modified_at",
+                           common_search_options.merge("order_target" => "last_modified_time",
                                                        "order_type" => "desc"),
                          ],
                          [
                            "registered",
                            expected_search_path,
-                           common_search_options.merge("order_target" => "registered_at",
+                           common_search_options.merge("order_target" => "registered_time",
                                                        "order_type" => "desc"),
                          ],
                          [
