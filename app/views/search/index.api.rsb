@@ -8,6 +8,7 @@ api.array :results, api_meta(:total_count => @result_set.n_hits,
       api.type             record.event_type
       api.url              url_for(record.event_url(:only_path => false))
       api.description      record.event_content_snippets.join("\n")
+      # TODO: 'datetime' is deprecated but maintained for backward compatibility. Use 'last_modified_at' or 'registered_at' explicitly.
       api.datetime         record.event_datetime
       api.last_modified_at record.last_modified_at
       api.registered_at    record.registered_at

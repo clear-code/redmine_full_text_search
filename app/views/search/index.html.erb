@@ -55,7 +55,9 @@
               <%= l(:label_full_text_search_order_target_score) %>
             </label>
             <label>
-              <%= form.radio_button "order_target", "last_modified_time", name: "order_target" %>
+              <!-- TODO: 'date' is deprecated but maintained for backward compatibility. -->
+              <!-- Use 'last_modified_time' or 'registered_time' explicitly. -->
+              <%= form.radio_button "order_target", "last_modified_time", checked: ["date", "last_modified_time"].include?(@search_request.order_target), name: "order_target" %>
               <%= l(:label_full_text_search_order_target_last_modified_time) %>
             </label>
             <label>
@@ -104,7 +106,9 @@
                              url_for(@search_request.to_params(order_target: "score"))) %>
         </li>
         <li>
-          <%= link_to_unless(@search_request.order_target == "last_modified_time",
+          <!-- TODO: 'date' is deprecated but maintained for backward compatibility. -->
+          <!-- Use 'last_modified_time' or 'registered_time' explicitly. -->
+          <%= link_to_unless(["date", "last_modified_time"].include?(@search_request.order_target),
                              tag.i(class: "fas fa-pen") + " " +
                                l(:label_full_text_search_order_target_last_modified_time),
                              url_for(@search_request.to_params(order_target: "last_modified_time"))) %>
