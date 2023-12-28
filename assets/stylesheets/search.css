@@ -82,6 +82,11 @@ ol.search-snippets li {
   padding: 0.25em 0;
 }
 
+.last-modified::after {
+  content: '|';
+  padding: 0 0.25em;
+}
+
 .keyword {
   background-color: #FCFD8D;
 }
