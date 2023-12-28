@@ -57,7 +57,10 @@
             <label>
               <%# 'date' is deprecated but maintained for backward compatibility. %>
               <%# Use 'last_modified_time' or 'registered_time' explicitly. %>
-              <%= form.radio_button "order_target", "last_modified_time", checked: ["date", "last_modified_time"].include?(@search_request.order_target), name: "order_target" %>
+              <%= form.radio_button "order_target",
+                                    "last_modified_time",
+                                    checked: ["date", "last_modified_time"].include?(@search_request.order_target),
+                                    name: "order_target" %>
               <%= l(:label_full_text_search_order_target_last_modified_time) %>
             </label>
             <label>
