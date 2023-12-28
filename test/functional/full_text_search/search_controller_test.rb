@@ -197,26 +197,26 @@ module FullTextSearch
     def format_api_results(items, total_count: nil)
       results = items.collect do |item, detail|
         item.reload
-        datetime = nil
+        last_modified_at = nil
         if item.respond_to?(:customized)
           customized = item.customized
           customized.reload
           if customized.respond_to?(:updated_on)
-            datetime ||= customized.updated_on
+            last_modified_at ||= customized.updated_on
           end
           if customized.respond_to?(:created_on)
-            datetime ||= customized.created_on
+            last_modified_at ||= customized.created_on
           end
         end
-        datetime ||= item.committed_on if item.respond_to?(:committed_on)
+        last_modified_at ||= item.committed_on if item.respond_to?(:committed_on)
         if item.respond_to?(:changeset)
           changeset = item.changeset
           changeset.reload
-          datetime ||= changeset.committed_on
+          last_modified_at ||= changeset.committed_on
         end
-        datetime ||= item.updated_on if item.respond_to?(:updated_on)
+        last_modified_at ||= item.updated_on if item.respond_to?(:updated_on)
         if item.respond_to?(:created_on)
-          datetime ||= item.created_on
+          last_modified_at ||= item.created_on
           registered_at = item.created_on
         end
         {
@@ -225,9 +225,9 @@ module FullTextSearch
           "type" => detail[:type] || item.class.name.underscore.dasherize,
           "url" => item_url(item),
           "description" => detail[:description] || "",
-          "last_modified_at" => datetime&.iso8601,
-          "registered_at" => registered_at&.iso8601 || datetime&.iso8601,
-          "datetime" => datetime&.iso8601,
+          "last_modified_at" => last_modified_at&.iso8601,
+          "registered_at" => registered_at&.iso8601 || last_modified_at&.iso8601,
+          "datetime" => last_modified_at&.iso8601,
           "rank" => detail[:rank],
         }
       end
