@@ -243,7 +243,7 @@ module FullTextSearch
         direction = ""
       end
       case @request.order_target
-      # TODO: 'date' is deprecated but maintained for backward compatibility.
+      # 'date' is deprecated but maintained for backward compatibility.
       # Use 'last_modified_time' or 'registered_time' explicitly.
       when "date", "last_modified_time"
         [
