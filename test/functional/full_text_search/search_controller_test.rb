@@ -218,6 +218,8 @@ module FullTextSearch
         if item.respond_to?(:created_on)
           last_modified_at ||= item.created_on
           registered_at = item.created_on
+        else
+          registered_at = last_modified_at
         end
         {
           "id" => item.id,
@@ -226,7 +228,7 @@ module FullTextSearch
           "url" => item_url(item),
           "description" => detail[:description] || "",
           "last_modified_at" => last_modified_at&.iso8601,
-          "registered_at" => registered_at&.iso8601 || last_modified_at&.iso8601,
+          "registered_at" => registered_at&.iso8601,
           "datetime" => last_modified_at&.iso8601,
           "rank" => detail[:rank],
         }
