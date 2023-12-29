@@ -3,13 +3,17 @@ api.array :results, api_meta(:total_count => @result_set.n_hits,
                              :limit => @search_request.limit) do
   @result_set.each do |record|
     api.result do
-      api.id          record.event_id
-      api.title       record.event_highlighted_title
-      api.type        record.event_type
-      api.url         url_for(record.event_url(:only_path => false))
-      api.description record.event_content_snippets.join("\n")
-      api.datetime    record.event_datetime
-      api.rank        record.rank
+      api.id               record.event_id
+      api.title            record.event_highlighted_title
+      api.type             record.event_type
+      api.url              url_for(record.event_url(:only_path => false))
+      api.description      record.event_content_snippets.join("\n")
+      # 'datetime' is deprecated but maintained for backward compatibility.
+      # Use 'last_modified_at' or 'registered_at' explicitly.
+      api.datetime         record.event_datetime
+      api.last_modified_at record.last_modified_at
+      api.registered_at    record.registered_at
+      api.rank             record.rank
     end
   end
 end

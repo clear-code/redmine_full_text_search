@@ -197,32 +197,39 @@ module FullTextSearch
     def format_api_results(items, total_count: nil)
       results = items.collect do |item, detail|
         item.reload
-        datetime = nil
+        last_modified_at = nil
         if item.respond_to?(:customized)
           customized = item.customized
           customized.reload
           if customized.respond_to?(:updated_on)
-            datetime ||= customized.updated_on
+            last_modified_at ||= customized.updated_on
           end
           if customized.respond_to?(:created_on)
-            datetime ||= customized.created_on
+            last_modified_at ||= customized.created_on
           end
         end
-        datetime ||= item.committed_on if item.respond_to?(:committed_on)
+        last_modified_at ||= item.committed_on if item.respond_to?(:committed_on)
         if item.respond_to?(:changeset)
           changeset = item.changeset
           changeset.reload
-          datetime ||= changeset.committed_on
+          last_modified_at ||= changeset.committed_on
         end
-        datetime ||= item.updated_on if item.respond_to?(:updated_on)
-        datetime ||= item.created_on if item.respond_to?(:created_on)
+        last_modified_at ||= item.updated_on if item.respond_to?(:updated_on)
+        if item.respond_to?(:created_on)
+          last_modified_at ||= item.created_on
+          registered_at = item.created_on
+        else
+          registered_at = last_modified_at
+        end
         {
           "id" => item.id,
           "title" => detail[:title] || item_title(item),
           "type" => detail[:type] || item.class.name.underscore.dasherize,
           "url" => item_url(item),
           "description" => detail[:description] || "",
-          "datetime" => datetime&.iso8601,
+          "last_modified_at" => last_modified_at&.iso8601,
+          "registered_at" => registered_at&.iso8601,
+          "datetime" => last_modified_at&.iso8601,
           "rank" => detail[:rank],
         }
       end
@@ -284,9 +291,15 @@ module FullTextSearch
           assert_equal([
                          ["score", nil, nil],
                          [
-                           "updated at",
+                           "last modified",
                            expected_search_path,
-                           common_search_options.merge("order_target" => "date",
+                           common_search_options.merge("order_target" => "last_modified_time",
+                                                       "order_type" => "desc"),
+                         ],
+                         [
+                           "registered",
+                           expected_search_path,
+                           common_search_options.merge("order_target" => "registered_time",
                                                        "order_type" => "desc"),
                          ],
                          [

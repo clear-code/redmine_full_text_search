@@ -226,6 +226,7 @@ module FullTextSearch
         "content_snippets",
         "id",
         "last_modified_at",
+        "registered_at",
         "project_id",
         "source_id",
         "source_type_id",
@@ -242,9 +243,15 @@ module FullTextSearch
         direction = ""
       end
       case @request.order_target
-      when "date"
+      # 'date' is deprecated but maintained for backward compatibility.
+      # Use 'last_modified_time' or 'registered_time' explicitly.
+      when "date", "last_modified_time"
         [
           "#{direction}last_modified_at",
+        ]
+      when "registered_time"
+        [
+          "#{direction}registered_at",
         ]
       else
         # TODO: -_score is useful?
@@ -302,6 +309,7 @@ module FullTextSearch
         # Rails.logger.debug(title: record["title_digest"],
         #                    description: record["description_digest"])
         record["last_modified_at"] += Target.time_offset
+        record["registered_at"] += Target.time_offset
         record["highlighted_title"] = record["highlighted_title"].html_safe
         record["content_snippets"] = record["content_snippets"].collect do |snippet|
           snippet.html_safe

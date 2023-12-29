@@ -55,8 +55,17 @@
               <%= l(:label_full_text_search_order_target_score) %>
             </label>
             <label>
-              <%= form.radio_button "order_target", "date", name: "order_target" %>
-              <%= l(:label_full_text_search_order_target_date) %>
+              <%# 'date' is deprecated but maintained for backward compatibility. %>
+              <%# Use 'last_modified_time' or 'registered_time' explicitly. %>
+              <%= form.radio_button "order_target",
+                                    "last_modified_time",
+                                    checked: ["date", "last_modified_time"].include?(@search_request.order_target),
+                                    name: "order_target" %>
+              <%= l(:label_full_text_search_order_target_last_modified_time) %>
+            </label>
+            <label>
+              <%= form.radio_button "order_target", "registered_time", name: "order_target" %>
+              <%= l(:label_full_text_search_order_target_registered_time) %>
             </label>
           </p>
           <p>
@@ -100,10 +109,18 @@
                              url_for(@search_request.to_params(order_target: "score"))) %>
         </li>
         <li>
-          <%= link_to_unless(@search_request.order_target == "date",
-                             tag.i(class: "fas fa-clock") + " " +
-                               l(:label_full_text_search_order_target_date),
-                             url_for(@search_request.to_params(order_target: "date"))) %>
+          <%# 'date' is deprecated but maintained for backward compatibility. %>
+          <%# Use 'last_modified_time' or 'registered_time' explicitly. %>
+          <%= link_to_unless(["date", "last_modified_time"].include?(@search_request.order_target),
+                             tag.i(class: "fas fa-pen") + " " +
+                               l(:label_full_text_search_order_target_last_modified_time),
+                             url_for(@search_request.to_params(order_target: "last_modified_time"))) %>
+        </li>
+        <li>
+          <%= link_to_unless(@search_request.order_target == "registered_time",
+                             tag.i(class: "fas fa-calendar") + " " +
+                               l(:label_full_text_search_order_target_registered_time),
+                             url_for(@search_request.to_params(order_target: "registered_time"))) %>
         </li>
       </ul>
     </div>
@@ -179,7 +196,15 @@
               <li><%= snippet %></li>
             <% end %>
           </ol>
-        <span class="author"><%= format_time(e.event_datetime) %></span></dd>
+          <span class="last-modified">
+            <i class="fas fa-pen"></i>:
+            <%= format_time(e.last_modified_at) %>
+          </span>
+          <span class="registered">
+            <i class="fas fa-calendar"></i>:
+            <%= format_time(e.registered_at) %>
+          </span>
+        </dd>
       <% end %>
     </dl>
 
