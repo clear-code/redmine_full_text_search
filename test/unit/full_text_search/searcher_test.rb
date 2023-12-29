@@ -83,7 +83,7 @@ module FullTextSearch
                    targets.collect(&:source_record).sort_by(&:id))
     end
 
-    def test_results_ordered_by_descending_registered_time
+    def test_order_registered_time_desc
       parameters = {
         order_target: "registered_time",
         order_type: "desc",
@@ -100,7 +100,7 @@ module FullTextSearch
       assert_equal(ordered_news, searched_news)
     end
 
-    def test_results_ordered_by_ascending_registered_time
+    def test_order_registered_time_asc
       parameters = {
         order_target: "registered_time",
         order_type: "asc",
