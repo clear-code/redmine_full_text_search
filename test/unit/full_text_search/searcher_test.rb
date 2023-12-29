@@ -82,5 +82,41 @@ module FullTextSearch
       assert_equal([issue],
                    targets.collect(&:source_record).sort_by(&:id))
     end
+
+    def test_results_ordered_by_descending_registered_time
+      parameters = {
+        order_target: "registered_time",
+        order_type: "desc",
+        search_id: @project.id,
+        news: "1",
+        attachments: "0",
+        limit: "-1"
+      }
+      targets = search(parameters).records
+      searched_news_ids = targets.collect(&:source_id)
+      ordered_news = @project
+                       .news
+                       .order(created_on: :desc)
+                       .ids
+      assert_equal(ordered_news, searched_news_ids)
+    end
+
+    def test_results_ordered_by_ascending_registered_time
+      parameters = {
+        order_target: "registered_time",
+        order_type: "asc",
+        search_id: @project.id,
+        news: "1",
+        attachments: "0",
+        limit: "-1"
+      }
+      targets = search(parameters).records
+      searched_news_ids = targets.collect(&:source_id)
+      ordered_news = @project
+                       .news
+                       .order(created_on: :asc)
+                       .ids
+      assert_equal(ordered_news, searched_news_ids)
+    end
   end
 end
