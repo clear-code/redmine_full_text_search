@@ -93,12 +93,11 @@ module FullTextSearch
         limit: "-1"
       }
       targets = search(parameters).records
-      searched_news_ids = targets.collect(&:source_id)
+      searched_news = targets.collect(&:source_record)
       ordered_news = @project
                        .news
                        .order(created_on: :desc)
-                       .ids
-      assert_equal(ordered_news, searched_news_ids)
+      assert_equal(ordered_news, searched_news)
     end
 
     def test_results_ordered_by_ascending_registered_time
@@ -111,12 +110,11 @@ module FullTextSearch
         limit: "-1"
       }
       targets = search(parameters).records
-      searched_news_ids = targets.collect(&:source_id)
+      searched_news = targets.collect(&:source_record)
       ordered_news = @project
                        .news
                        .order(created_on: :asc)
-                       .ids
-      assert_equal(ordered_news, searched_news_ids)
+      assert_equal(ordered_news, searched_news)
     end
   end
 end
