@@ -87,7 +87,6 @@ module FullTextSearch
       parameters = {
         order_target: "registered_time",
         order_type: "desc",
-        search_id: @project.id,
         news: "1",
         attachments: "0",
         limit: "-1"
@@ -104,7 +103,6 @@ module FullTextSearch
       parameters = {
         order_target: "registered_time",
         order_type: "asc",
-        search_id: @project.id,
         news: "1",
         attachments: "0",
         limit: "-1"
