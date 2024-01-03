@@ -146,5 +146,41 @@ module FullTextSearch
                        .order(created_on: :asc)
       assert_equal(ordered_news, searched_news)
     end
+
+    def test_order_score_desc
+      Issue.destroy_all
+      issue_with_high_score = Issue.generate!(description: "score score score")
+      issue_with_middle_score = Issue.generate!(description: "score score")
+      issue_with_low_score = Issue.generate!(description: "score")
+      parameters = {
+        q: "score",
+        order_target: "score",
+        order_type: "desc",
+        issues: "1",
+        limit: "-1"
+      }
+      targets = search(parameters).records
+      searched_issues = targets.collect(&:source_record)
+      ordered_issues = [issue_with_high_score, issue_with_middle_score, issue_with_low_score]
+      assert_equal(ordered_issues, searched_issues)
+    end
+
+    def test_order_score_asc
+      Issue.destroy_all
+      issue_with_high_score = Issue.generate!(description: "score score score")
+      issue_with_middle_score = Issue.generate!(description: "score score")
+      issue_with_low_score = Issue.generate!(description: "score")
+      parameters = {
+        q: "score",
+        order_target: "score",
+        order_type: "asc",
+        issues: "1",
+        limit: "-1"
+      }
+      targets = search(parameters).records
+      searched_issues = targets.collect(&:source_record)
+      ordered_issues = [issue_with_low_score, issue_with_middle_score, issue_with_high_score]
+      assert_equal(ordered_issues, searched_issues)
+    end
   end
 end
