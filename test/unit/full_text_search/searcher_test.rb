@@ -149,11 +149,11 @@ module FullTextSearch
 
     def test_order_score_desc
       Issue.destroy_all
-      issue_with_high_score = Issue.generate!(description: "score score score")
-      issue_with_middle_score = Issue.generate!(description: "score score")
-      issue_with_low_score = Issue.generate!(description: "score")
+      issue_with_high_score = Issue.generate!(description: "a(z a(z a(z")
+      issue_with_middle_score = Issue.generate!(description: "a(z a(z")
+      issue_with_low_score = Issue.generate!(description: "a(z")
       parameters = {
-        q: "score",
+        q: "a(z",
         order_target: "score",
         order_type: "desc",
         issues: "1",
@@ -167,11 +167,11 @@ module FullTextSearch
 
     def test_order_score_asc
       Issue.destroy_all
-      issue_with_high_score = Issue.generate!(description: "score score score")
-      issue_with_middle_score = Issue.generate!(description: "score score")
-      issue_with_low_score = Issue.generate!(description: "score")
+      issue_with_high_score = Issue.generate!(description: "a(z a(z a(z")
+      issue_with_middle_score = Issue.generate!(description: "a(z a(z")
+      issue_with_low_score = Issue.generate!(description: "a(z")
       parameters = {
-        q: "score",
+        q: "a(z",
         order_target: "score",
         order_type: "asc",
         issues: "1",
