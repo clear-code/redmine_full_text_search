@@ -87,64 +87,64 @@ module FullTextSearch
       parameters = {
         order_target: "registered_time",
         order_type: "desc",
-        news: "1",
+        messages: "1",
         attachments: "0",
         limit: "-1"
       }
       targets = search(parameters).records
-      searched_news = targets.collect(&:source_record)
-      ordered_news = @project
-                       .news
-                       .order(created_on: :desc)
-      assert_equal(ordered_news, searched_news)
+      searched_messages = targets.collect(&:source_record)
+      ordered_messages = Message
+                           .visible(@user)
+                           .order(created_on: :desc)
+      assert_equal(ordered_messages, searched_messages)
     end
 
     def test_order_registered_time_asc
       parameters = {
         order_target: "registered_time",
         order_type: "asc",
-        news: "1",
+        messages: "1",
         attachments: "0",
         limit: "-1"
       }
       targets = search(parameters).records
-      searched_news = targets.collect(&:source_record)
-      ordered_news = @project
-                       .news
-                       .order(created_on: :asc)
-      assert_equal(ordered_news, searched_news)
+      searched_messages = targets.collect(&:source_record)
+      ordered_messages = Message
+                           .visible(@user)
+                           .order(created_on: :asc)
+      assert_equal(ordered_messages, searched_messages)
     end
 
     def test_order_last_modified_time_desc
       parameters = {
         order_target: "last_modified_time",
         order_type: "desc",
-        news: "1",
+        messages: "1",
         attachments: "0",
         limit: "-1"
       }
       targets = search(parameters).records
-      searched_news = targets.collect(&:source_record)
-      ordered_news = @project
-                       .news
-                       .order(created_on: :desc)
-      assert_equal(ordered_news, searched_news)
+      searched_messages = targets.collect(&:source_record)
+      ordered_messages = Message
+                           .visible(@user)
+                           .order(updated_on: :desc)
+      assert_equal(ordered_messages, searched_messages)
     end
 
     def test_order_last_modified_time_asc
       parameters = {
         order_target: "last_modified_time",
         order_type: "asc",
-        news: "1",
+        messages: "1",
         attachments: "0",
         limit: "-1"
       }
       targets = search(parameters).records
-      searched_news = targets.collect(&:source_record)
-      ordered_news = @project
-                       .news
-                       .order(created_on: :asc)
-      assert_equal(ordered_news, searched_news)
+      searched_messages = targets.collect(&:source_record)
+      ordered_messages = Message
+                           .visible(@user)
+                           .order(updated_on: :asc)
+      assert_equal(ordered_messages, searched_messages)
     end
 
     def test_order_score_desc
