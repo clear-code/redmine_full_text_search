@@ -87,32 +87,100 @@ module FullTextSearch
       parameters = {
         order_target: "registered_time",
         order_type: "desc",
-        news: "1",
+        messages: "1",
         attachments: "0",
         limit: "-1"
       }
       targets = search(parameters).records
-      searched_news = targets.collect(&:source_record)
-      ordered_news = @project
-                       .news
-                       .order(created_on: :desc)
-      assert_equal(ordered_news, searched_news)
+      searched_messages = targets.collect(&:source_record)
+      ordered_messages = Message
+                           .visible(@user)
+                           .order(created_on: :desc)
+      assert_equal(ordered_messages, searched_messages)
     end
 
     def test_order_registered_time_asc
       parameters = {
         order_target: "registered_time",
         order_type: "asc",
-        news: "1",
+        messages: "1",
         attachments: "0",
         limit: "-1"
       }
       targets = search(parameters).records
-      searched_news = targets.collect(&:source_record)
-      ordered_news = @project
-                       .news
-                       .order(created_on: :asc)
-      assert_equal(ordered_news, searched_news)
+      searched_messages = targets.collect(&:source_record)
+      ordered_messages = Message
+                           .visible(@user)
+                           .order(created_on: :asc)
+      assert_equal(ordered_messages, searched_messages)
+    end
+
+    def test_order_last_modified_time_desc
+      parameters = {
+        order_target: "last_modified_time",
+        order_type: "desc",
+        messages: "1",
+        attachments: "0",
+        limit: "-1"
+      }
+      targets = search(parameters).records
+      searched_messages = targets.collect(&:source_record)
+      ordered_messages = Message
+                           .visible(@user)
+                           .order(updated_on: :desc)
+      assert_equal(ordered_messages, searched_messages)
+    end
+
+    def test_order_last_modified_time_asc
+      parameters = {
+        order_target: "last_modified_time",
+        order_type: "asc",
+        messages: "1",
+        attachments: "0",
+        limit: "-1"
+      }
+      targets = search(parameters).records
+      searched_messages = targets.collect(&:source_record)
+      ordered_messages = Message
+                           .visible(@user)
+                           .order(updated_on: :asc)
+      assert_equal(ordered_messages, searched_messages)
+    end
+
+    def test_order_score_desc
+      Issue.destroy_all
+      issue_with_middle_score = Issue.generate!(description: "word word")
+      issue_with_low_score = Issue.generate!(description: "word")
+      issue_with_high_score = Issue.generate!(description: "word word word")
+      parameters = {
+        q: "word",
+        order_target: "score",
+        order_type: "desc",
+        issues: "1",
+        limit: "-1"
+      }
+      targets = search(parameters).records
+      searched_issues = targets.collect(&:source_record)
+      ordered_issues = [issue_with_high_score, issue_with_middle_score, issue_with_low_score]
+      assert_equal(ordered_issues, searched_issues)
+    end
+
+    def test_order_score_asc
+      Issue.destroy_all
+      issue_with_middle_score = Issue.generate!(description: "word word")
+      issue_with_high_score = Issue.generate!(description: "word word word")
+      issue_with_low_score = Issue.generate!(description: "word")
+      parameters = {
+        q: "word",
+        order_target: "score",
+        order_type: "asc",
+        issues: "1",
+        limit: "-1"
+      }
+      targets = search(parameters).records
+      searched_issues = targets.collect(&:source_record)
+      ordered_issues = [issue_with_low_score, issue_with_middle_score, issue_with_high_score]
+      assert_equal(ordered_issues, searched_issues)
     end
   end
 end
