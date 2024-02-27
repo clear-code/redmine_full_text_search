@@ -1,4 +1,4 @@
 module FullTextSearch
-  class IssueContent < ActiveRecord::Base
+  class IssueContent < ApplicationRecord
   end
 end

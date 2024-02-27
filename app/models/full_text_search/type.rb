@@ -1,5 +1,5 @@
 module FullTextSearch
-  class Type < ActiveRecord::Base
+  class Type < ApplicationRecord
     self.table_name = :fts_types
 
     class << self

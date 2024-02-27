@@ -1,5 +1,5 @@
 module FullTextSearch
-  class TagType < ActiveRecord::Base
+  class TagType < ApplicationRecord
     self.table_name = :fts_tag_types
     has_many :tags, foreign_key: "type_id"
 
