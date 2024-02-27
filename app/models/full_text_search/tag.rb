@@ -1,5 +1,5 @@
 module FullTextSearch
-  class Tag < ActiveRecord::Base
+  class Tag < ApplicationRecord
     self.table_name = :fts_tags
     belongs_to :type, class_name: "FullTextSearch::TagType"
 

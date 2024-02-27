@@ -1,4 +1,4 @@
-class FtsQueryExpansion < ActiveRecord::Base
+class FtsQueryExpansion < ApplicationRecord
   if respond_to?(:connection_db_config)
     adapter = connection_db_config.adapter
   else
