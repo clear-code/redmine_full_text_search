@@ -21,7 +21,14 @@ ${RUBY:-ruby} bin/rails db:create
 ${RUBY:-ruby} bin/rails db:migrate
 ${RUBY:-ruby} bin/rails redmine:load_default_data REDMINE_LANG=en
 ${RUBY:-ruby} bin/rails redmine:plugins:migrate
-${RUBY:-ruby} bin/rails db:structure:dump
+
+rails_version_major=$(grep "^gem 'rails'" Gemfile | grep -o '[0-9]*' | head -n1)
+if [ ${rails_version_major} -ge 6 ]; then
+  ${RUBY:-ruby} bin/rails db:schema:dump
+else
+  ${RUBY:-ruby} bin/rails db:structure:dump
+fi
+
 ${RUBY:-ruby} bin/rails runner '
 u = User.find(1)
 u.password = u.password_confirmation = "adminadmin"
