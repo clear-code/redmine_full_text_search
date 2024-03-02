@@ -5,7 +5,7 @@ Redmine::Plugin.register :full_text_search do
   version '1.0.4'
   url 'https://github.com/clear-code/redmine_full_text_search'
   author_url 'https://github.com/clear-code'
-  directory __dir__
+  directory File.dirname(File.absolute_path(__FILE__))
   settings partial: "settings/full_text_search"
 end
 
