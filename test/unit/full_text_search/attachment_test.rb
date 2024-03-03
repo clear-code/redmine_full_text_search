@@ -104,7 +104,11 @@ module FullTextSearch
     def fixture_file_path(name)
       dir = File.dirname(__FILE__)
       path = Pathname(File.join(dir, "..", "..", "files", name)).expand_path
-      fixture_path = Pathname(self.class.fixture_path)
+      fixture_path = if self.class.respond_to?(:fixture_paths=)
+                       Pathname(self.class.fixture_paths.first)
+                     else
+                       Pathname(self.class.fixture_path)
+                     end
       fixture_path += "files" if Rails::VERSION::MAJOR >= 6
       path.relative_path_from(fixture_path)
     end
