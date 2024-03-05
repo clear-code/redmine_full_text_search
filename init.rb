@@ -5,6 +5,10 @@ Redmine::Plugin.register :full_text_search do
   version '1.0.4'
   url 'https://github.com/clear-code/redmine_full_text_search'
   author_url 'https://github.com/clear-code'
+  # We can't use __dir__ here because ensuring plugin path is correctly registered even when symbolic links are used.
+  # For example, _dir__ and __FILE__ are the followings using `ln -s /redmine/real_path_to_plugin/ /redmine/symlink_path_to_plugin/`:
+  #   * __dir__: /redmine/real_path_to_plugin/
+  #   * __FILE__: ./symlink_path_to_plugin/init.rb
   directory File.dirname(File.absolute_path(__FILE__))
   settings partial: "settings/full_text_search"
 end
