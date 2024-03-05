@@ -5,7 +5,27 @@ Redmine::Plugin.register :full_text_search do
   version '1.0.4'
   url 'https://github.com/clear-code/redmine_full_text_search'
   author_url 'https://github.com/clear-code'
-  directory __dir__
+  # We can't use __dir__ here because we ensure that plugin directory path is a path in Redmine directory
+  # even when we use a symbolic link to place this plugin into redmine/plugins/. If we don't use symbolic
+  # like like the following, we can use __dir__ here:
+  #
+  #   $ git clone https://github.com/clear-code/redmine_full_text_search.git redmine/plugins/full_text_search
+  #
+  # But __dir__ doesn't work when we use a symbolic link:
+  #
+  #   $ git clone https://github.com/clear-code/redmine_full_text_search.git
+  #   $ cd redmine/plugins
+  #   $ ln -s ../../redmine_full_text_search full_text_search
+  #
+  # In this case, __dir__ and __FILE__ are the followings:
+  #
+  #   __dir__: /tmp/redmine_full_text_search
+  #   __FILE__: ./full_text_search/init.rb
+  #
+  # Note that "/tmp/redmine_full_text_search" isn't a path in Redmine's plugin directory (redmine/plugins/).
+  # Redmine assumes that this is a path in Redmine's plugin directory. So we need to compute this from
+  # __FILE__ not __dir__.
+  directory File.dirname(File.absolute_path(__FILE__))
   settings partial: "settings/full_text_search"
 end
 
