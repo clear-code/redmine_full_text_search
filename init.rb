@@ -6,8 +6,8 @@ Redmine::Plugin.register :full_text_search do
   url 'https://github.com/clear-code/redmine_full_text_search'
   author_url 'https://github.com/clear-code'
   # We can't use __dir__ here because we ensure that plugin directory path is a path in Redmine directory
-  # even when we use a symbolic link to place this plugin into redmine/plugins/. If we don't use symbolic
-  # like like the following, we can use __dir__ here:
+  # even when we use a symbolic link to place this plugin into redmine/plugins/. If we don't use a symbolic
+  # link like the following, we can use __dir__ here:
   #
   #   $ git clone https://github.com/clear-code/redmine_full_text_search.git redmine/plugins/full_text_search
   #
