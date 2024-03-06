@@ -1,8 +1,6 @@
-# For backward compatibility with Redmine <= v5.x.
-# ApplicationRecord is inherited from ActiveRecord Models instead of ActiveRecord::Base in Redmine > 5.x
+# For backward compatibility with Redmine < 6.
+# ApplicationRecord is inherited from ActiveRecord Models instead of ActiveRecord::Base in Redmine > 6.
 # ref: https://www.redmine.org/issues/38975
 unless defined?(ApplicationRecord)
-  class ApplicationRecord < ActiveRecord::Base
-    self.abstract_class = true
-  end
+  ApplicationRecord = ActiveRecord::Base
 end
