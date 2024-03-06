@@ -1,5 +1,5 @@
 module FullTextSearch
-  class Target < ActiveRecord::Base
+  class Target < ApplicationRecord
     self.table_name = :fts_targets
 
     if respond_to?(:connection_db_config)
