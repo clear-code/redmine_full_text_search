@@ -102,7 +102,7 @@ module FullTextSearch
     end
 
     def fixture_file_path(name)
-      Pathname(File.join(File.dirname(__FILE__), "..", "..", "files", name)).expand_path
+      File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "files", name))
     end
 
     def capture_log
