@@ -102,13 +102,7 @@ module FullTextSearch
     end
 
     def fixture_file_path(name)
-      dir = File.dirname(__FILE__)
-      path = Pathname(File.join(dir, "..", "..", "files", name)).expand_path
-      return path if Rails::VERSION::MAJOR >= 7
-
-      fixture_path = Pathname(self.class.fixture_path)
-      fixture_path += "files" if Rails::VERSION::MAJOR >= 6
-      path.relative_path_from(fixture_path)
+      Pathname(File.join(File.dirname(__FILE__), "..", "..", "files", name)).expand_path
     end
 
     def capture_log
