@@ -219,7 +219,7 @@ Mroonga isn't installed, install Mroonga like the following:
 $ mysql -u root -p < /usr/share/mroonga/install.sql
 ```
 
-Destruct tables explictly for this plugin:
+Destruct tables explicitly for this plugin:
 
 ```console
 $ mysql -u root -p ${database_name}
