@@ -64,6 +64,12 @@ module FullTextSearch
         find_or_create_by(type_id: type.id,
                           name: user_id.to_s)
       end
+
+      def label(label)
+        type = TagType.label
+        find_or_create_by(type_id: type.id,
+                          name: label)
+      end
     end
 
     def value
