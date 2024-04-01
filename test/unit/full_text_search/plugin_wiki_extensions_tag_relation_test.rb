@@ -44,7 +44,7 @@ module FullTextSearch
       )
     end
 
-    def test_save_add_wiki_et_tag
+    def test_save_when_adding_wiki_extensions_tag
       wiki_ext_tags = WikiExtensionsTag.
         all.
         collect{ |tag| [tag.id, tag.name] }.
