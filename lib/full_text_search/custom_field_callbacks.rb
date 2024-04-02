@@ -3,7 +3,7 @@ module FullTextSearch
   # :dependent => :delete_all` relation. We need `after_destroy`
   # callback to synchronize `CustomFieldValue` and
   # `FullTextSearch::Target(source_type_id: Type.custom_value.id)` but
-  # `after_destory` callback doesn't exist with `:dependent =>
+  # `after_destroy` callback doesn't exist with `:dependent =>
   # :delete_all`.
   class CustomFieldCallbacks
     class << self
