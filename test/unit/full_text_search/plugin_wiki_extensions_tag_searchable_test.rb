@@ -23,7 +23,7 @@
 require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
-  class PluginWikiExtensionsTagRelationTest < ActiveSupport::TestCase
+  class PluginWikiExtensionsTagSearchableText < ActiveSupport::TestCase
     fixtures :projects
     fixtures :wikis
 

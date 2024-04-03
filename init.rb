@@ -107,7 +107,7 @@ prepare = lambda do
   if defined?(WikiExtensionsTagRelation)
     # Wiki Extensions tags
     # https://github.com/haru/redmine_wiki_extensions
-    FullTextSearch::PluginWikiExtensionsTagRelationCallbacks.attach
+    WikiExtensionsTagRelation.include(FullTextSearch::PluginWikiExtensionsTagSearchable)
   end
 end
 
