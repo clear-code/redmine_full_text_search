@@ -19,7 +19,7 @@ ja:
   label_extension: 拡張子
   label_text_extraction: テキスト抽出
   label_identifier: ID
-  label_label: タグ
+  label_label: ラベル
   label:
     full_text_search:
       drilldown:

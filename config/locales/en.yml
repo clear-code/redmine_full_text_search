@@ -19,7 +19,7 @@ en:
   label_extension: Extension
   label_text_extraction: Text extraction
   label_identifier: ID
-  label_label: Tags
+  label_label: Label
   label:
     full_text_search:
       drilldown:
