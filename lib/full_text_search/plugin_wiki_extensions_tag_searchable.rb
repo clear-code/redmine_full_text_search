@@ -12,21 +12,25 @@ module FullTextSearch
 
     private
 
-    def fts_after_create
-      fts_target = Target.find_by(
-        source_id: self.wiki_page_id,
+    def find_fts_target
+      Target.find_by(
+        source_id: wiki_page_id,
         source_type_id: Type.wiki_page.id)
-      tag_id = Tag.label(self.tag.name).id
-      fts_target.tag_ids = fts_target.tag_ids.concat([tag_id])
+    end
+
+    def find_fts_tag_label_id
+      Tag.label(tag.name).id
+    end
+
+    def fts_after_create
+      fts_target = find_fts_target
+      fts_target.tag_ids = fts_target.tag_ids + [find_fts_tag_label_id]
       fts_target.save!
     end
 
     def fts_after_destroy
-      fts_target = Target.find_by(
-        source_id: self.wiki_page_id,
-        source_type_id: Type.wiki_page.id)
-      tag_ids = fts_target.tag_ids - [Tag.label(self.tag.name).id]
-      fts_target.tag_ids = tag_ids
+      fts_target = find_fts_target
+      fts_target.tag_ids = fts_target.tag_ids - [find_fts_tag_label_id]
       fts_target.save!
     end
   end
