@@ -24,13 +24,13 @@ module FullTextSearch
 
     def fts_after_create
       fts_target = find_fts_target
-      fts_target.tag_ids = fts_target.tag_ids + [find_fts_tag_label_id]
+      fts_target.tag_ids |= [find_fts_tag_label_id]
       fts_target.save!
     end
 
     def fts_after_destroy
       fts_target = find_fts_target
-      fts_target.tag_ids = fts_target.tag_ids - [find_fts_tag_label_id]
+      fts_target.tag_ids -= [find_fts_tag_label_id]
       fts_target.save!
     end
   end
