@@ -27,6 +27,10 @@ module FullTextSearch
       def user
         find_or_create_by(name: "user")
       end
+
+      def label
+        find_or_create_by(name: "label")
+      end
     end
   end
 end

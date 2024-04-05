@@ -139,6 +139,13 @@ jobs:
             config/database.yml
           cp plugins/full_text_search/config/initializers/schema_format.rb \
             config/initializers/schema_format.rb
+
+          # This is for testing tag support for Wiki Extensions.
+          git clone \
+            --depth 1 \
+            https://github.com/haru/redmine_wiki_extensions.git \
+            plugins/redmine_wiki_extensions
+          cp plugins/redmine_wiki_extensions/{Gemfile_for_test,Gemfile}
       - name: Install
         run: |
           cd ../redmine
@@ -151,6 +158,6 @@ jobs:
       - name: Test
         run: |
           cd ../redmine
-          RAILS_ENV=test bin/rails redmine:plugins:test
+          RAILS_ENV=test bin/rails redmine:plugins:test NAME=full_text_search
           bin/rails redmine:plugins:migrate NAME=full_text_search VERSION=0
           bin/rails redmine:plugins:migrate NAME=full_text_search

@@ -102,6 +102,13 @@ prepare = lambda do
   FullTextSearch::Tag
   FullTextSearch::TagType
   FullTextSearch::Type
+
+  # Support plugins
+  if defined?(WikiExtensionsTagRelation)
+    # Wiki Extensions tags
+    # https://github.com/haru/redmine_wiki_extensions
+    WikiExtensionsTagRelation.include(FullTextSearch::PluginWikiExtensionsTagSearchable)
+  end
 end
 
 # We need to initialize explicitly with Redmine 5.0 or later.
