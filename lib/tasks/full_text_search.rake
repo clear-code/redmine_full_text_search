@@ -25,11 +25,7 @@ namespace :full_text_search do
     queue_adapter = ActiveJob::Base.queue_adapter
     case queue_adapter
     when ActiveJob::QueueAdapters::AsyncAdapter
-      scheduler = queue_adapter.instance_variable_get(:@scheduler)
-      executor = scheduler.executor
-      while executor.queue_length > 0
-        sleep(1)
-      end
+      queue_adapter.shutdown
     end
   end
 
