@@ -1,5 +1,27 @@
 # Redmine FullTextSearch
 
+## 1.0.4 - 2024-05-xx
+
+Because it has been a long time since the last release, please excuse this list of commit logs.
+
+  * Search by tags in Wiki Extensions (#137)
+  * Support Redmine v5.1 (#123)
+  * Enable sort function by registered time on the search page (#119)
+  * Add support for Redmine X UX plugin (#112)
+  * Add missing icon classes for search options (#110)
+  * Add support for destroying a custom field (#109)
+  * project custom_field: fix a bug that orphan custom values may be remained
+  * issue custom_field: fix a bug that orphan custom values may be remained
+  * Drop support for Redmine 4.1
+  * Add support for redmica_s3
+  * Add support for Redmine 5.0
+  * Drop support for Redmine 4.0
+  * mroogna: fix Mroonga version check
+  * Use ActiveModel::Type::Value
+  * Use Int64 for fts_targets.tag_ids
+  * Add an option whether include `search_id` and `search_n` in URL. (#88)
+  * Fix a bug that project related targets aren't found for normal users
+
 ## 1.0.3 - 2019-08-23
 
 ### Improvements
