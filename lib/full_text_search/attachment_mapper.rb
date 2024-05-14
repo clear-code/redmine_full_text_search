@@ -109,7 +109,7 @@ JOIN projects
         else
           input = nil
         end
-        extractor.extract(disk_path, input, content_type)
+        extractor.extract(Pathname(disk_path), input, content_type)
       end
       set_extracted_content(fts_target,
                             content,
