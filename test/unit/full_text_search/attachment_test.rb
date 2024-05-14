@@ -161,7 +161,7 @@ module FullTextSearch
         content_type: content_type,
       }
       error_message = "ChupaText::EncryptedError: " +
-                      "Encrypted data: <#{attachment.diskfile}>(#{content_type})"
+                      "Encrypted data: <file://#{attachment.diskfile}>(#{content_type})"
       assert_equal([
                      [
                        :error,
