@@ -1,6 +1,6 @@
 # Redmine FullTextSearch
 
-## 1.0.4 - 2024-05-xx
+## 1.0.4 - 2024-05-16
 
 Because it has been a long time since the last release, please excuse this list of commit logs.
 
