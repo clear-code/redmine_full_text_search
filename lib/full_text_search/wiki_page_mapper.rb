@@ -35,10 +35,18 @@ module FullTextSearch
       else
         fts_target.content = nil
       end
-      fts_target.tag_ids = tag_ids
+      fts_target.tag_ids = tag_ids | plugin_wiki_extensions_tag_ids
       fts_target.last_modified_at = @record.updated_on
       fts_target.registered_at = @record.created_on
       fts_target.save!
+    end
+
+    private
+    def plugin_wiki_extensions_tag_ids
+      return [] unless @record.respond_to?(:wiki_ext_tags)
+      @record.wiki_ext_tags.collect do |tag|
+        Tag.label(tag.name).id
+      end
     end
   end
 
