@@ -7,7 +7,7 @@ on:
         0 0 * * *
 jobs:
   test:
-    name: Redmine ${{ matrix.redmine-version }} & ${{ matrix.rdbms }} & Ruby ${{ matrix.ruby-version }}
+    name: Redmine ${{ matrix.redmine-version }} & ${{ matrix.rdbms }} & Ruby ${{ matrix.ruby-version }}${{ matrix.with-wiki-extensions == 'yes' && ' & Wiki Extensions' || '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -59,6 +59,10 @@ jobs:
           - redmine-version: "5.1"
             ruby-version: "3.2"
             rdbms: "MySQL"
+          - redmine-version: "5.1"
+            ruby-version: "3.2"
+            rdbms: "MySQL"
+            with-wiki-extensions: "yes"
           - redmine-version: "5.1"
             ruby-version: "3.2"
             rdbms: "PostgreSQL"
@@ -140,12 +144,16 @@ jobs:
           cp plugins/full_text_search/config/initializers/schema_format.rb \
             config/initializers/schema_format.rb
 
+      - name: Install Wiki Extensions
+        run: |
           # This is for testing tag support for Wiki Extensions.
           git clone \
             --depth 1 \
             https://github.com/haru/redmine_wiki_extensions.git \
-            plugins/redmine_wiki_extensions
-          cp plugins/redmine_wiki_extensions/{Gemfile_for_test,Gemfile}
+            ../redmine/plugins/redmine_wiki_extensions
+          cp ../redmine/plugins/redmine_wiki_extensions/{Gemfile_for_test,Gemfile}
+        if: matrix.with-wiki-extensions == 'yes'
+
       - name: Install
         run: |
           cd ../redmine
