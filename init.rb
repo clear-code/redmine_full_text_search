@@ -40,78 +40,60 @@ Redmine::MenuManager.map :admin_menu do |menu|
             html: {class: "icon icon-magnifier"}
 end
 
-if Rails.version < "6"
-  autoload_paths = [
-    File.join(__dir__, "app", "jobs"),
-    File.join(__dir__, "app", "types"),
-  ]
-  Rails.application.config.autoload_paths += autoload_paths
-  if Rails.application.config.eager_load
-    Rails.application.config.eager_load_paths += autoload_paths
-  end
-end
-
 require_relative "config/initializers/chupa_text"
 
-prepare = lambda do
-  FullTextSearch::Settings
-  FullTextSearch::Tracer
-  FullTextSearch::Resolver
-  FullTextSearch::TextExtractor
-  FullTextSearch::MarkupParser
-  FullTextSearch::BatchRunner
-  FullTextSearch::RepositoryEntry
+FullTextSearch::Settings
+FullTextSearch::Tracer
+FullTextSearch::Resolver
+FullTextSearch::TextExtractor
+FullTextSearch::MarkupParser
+FullTextSearch::BatchRunner
+FullTextSearch::RepositoryEntry
 
-  FullTextSearch::ScmAdapterCatIo
-  FullTextSearch::ScmAdapterAllFileEntries
+FullTextSearch::ScmAdapterCatIo
+FullTextSearch::ScmAdapterAllFileEntries
 
-  # Order by priority on synchronize
-  FullTextSearch::JournalMapper
-  FullTextSearch::IssueMapper
-  FullTextSearch::WikiPageMapper
-  FullTextSearch::CustomValueMapper
-  FullTextSearch::ProjectMapper
-  FullTextSearch::NewsMapper
-  FullTextSearch::DocumentMapper
-  FullTextSearch::MessageMapper
-  FullTextSearch::AttachmentMapper
-  FullTextSearch::ChangesetMapper
-  FullTextSearch::ChangeMapper
+# Order by priority on synchronize
+FullTextSearch::JournalMapper
+FullTextSearch::IssueMapper
+FullTextSearch::WikiPageMapper
+FullTextSearch::CustomValueMapper
+FullTextSearch::ProjectMapper
+FullTextSearch::NewsMapper
+FullTextSearch::DocumentMapper
+FullTextSearch::MessageMapper
+FullTextSearch::AttachmentMapper
+FullTextSearch::ChangesetMapper
+FullTextSearch::ChangeMapper
 
-  FullTextSearch::Hooks::SearchIndexOptionsContentBottomHook
-  FullTextSearch::Hooks::IssuesShowDescriptionBottomHook
-  FullTextSearch::Hooks::SimilarIssuesHelper
+FullTextSearch::Hooks::SearchIndexOptionsContentBottomHook
+FullTextSearch::Hooks::IssuesShowDescriptionBottomHook
+FullTextSearch::Hooks::SimilarIssuesHelper
 
-  FullTextSearch::Searcher
-  FullTextSearch::SimilarSearcher
+FullTextSearch::Searcher
+FullTextSearch::SimilarSearcher
 
-  class << Setting
-    prepend FullTextSearch::SettingsObjectize
-  end
-
-  FullTextSearch.resolver.each do |redmine_class, mapper_class|
-    mapper_class.attach(redmine_class)
-  end
-  FullTextSearch::CustomFieldCallbacks.attach
-  Issue.include(FullTextSearch::SimilarSearcher::Model)
-  Journal.include(FullTextSearch::SimilarSearcher::Model)
-  SearchController.helper(FullTextSearch::Hooks::SearchHelper)
-  SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
-  IssuesController.helper(FullTextSearch::Hooks::SimilarIssuesHelper)
-
-  FullTextSearch::Tag
-  FullTextSearch::TagType
-  FullTextSearch::Type
-
-  # Support plugins
-  if defined?(WikiExtensionsTagRelation)
-    # Wiki Extensions tags
-    # https://github.com/haru/redmine_wiki_extensions
-    WikiExtensionsTagRelation.include(FullTextSearch::PluginWikiExtensionsTagSearchable)
-  end
+class << Setting
+  prepend FullTextSearch::SettingsObjectize
 end
 
-# We need to initialize explicitly with Redmine 5.0 or later.
-prepare.call if Redmine.const_defined?(:PluginLoader)
+FullTextSearch.resolver.each do |redmine_class, mapper_class|
+  mapper_class.attach(redmine_class)
+end
+FullTextSearch::CustomFieldCallbacks.attach
+Issue.include(FullTextSearch::SimilarSearcher::Model)
+Journal.include(FullTextSearch::SimilarSearcher::Model)
+SearchController.helper(FullTextSearch::Hooks::SearchHelper)
+SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
+IssuesController.helper(FullTextSearch::Hooks::SimilarIssuesHelper)
 
-Rails.application.config.to_prepare(&prepare)
+FullTextSearch::Tag
+FullTextSearch::TagType
+FullTextSearch::Type
+
+# Support plugins
+if defined?(WikiExtensionsTagRelation)
+  # Wiki Extensions tags
+  # https://github.com/haru/redmine_wiki_extensions
+  WikiExtensionsTagRelation.include(FullTextSearch::PluginWikiExtensionsTagSearchable)
+end
