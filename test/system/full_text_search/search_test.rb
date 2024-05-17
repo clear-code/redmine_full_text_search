@@ -42,10 +42,6 @@ module FullTextSearch
     fixtures :wikis
 
     setup do
-      if ([Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR] <=> [4, 1]) <= 0
-        skip("Redmine 4.1 or earlier can't work with recent Selenium")
-      end
-
       if Object.const_defined?(:Webdrivers)
         if Gem::Version.new(Webdrivers::VERSION) < Gem::Version.new("5.3.0")
           skip("Webdrivers < 5.3.0 doesn't work. " +
