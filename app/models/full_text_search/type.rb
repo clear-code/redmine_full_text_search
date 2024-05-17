@@ -3,7 +3,7 @@ module FullTextSearch
     self.table_name = :fts_types
 
     class << self
-      def normalize_key(key)
+      private def normalize_key(key)
         case key
         when Class
           key.name.underscore
