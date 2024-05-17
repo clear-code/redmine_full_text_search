@@ -54,6 +54,7 @@ JOIN projects
     def upsert_fts_target(options={})
       # container is not specified when initial upload
       return if @record.container_type.nil?
+      return unless Type.available?(@record.container_type)
 
       fts_target = find_fts_target
       fts_target.source_id = @record.id
