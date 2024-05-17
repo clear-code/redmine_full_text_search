@@ -3,21 +3,25 @@ module FullTextSearch
     self.table_name = :fts_types
 
     class << self
-      def [](key)
+      def normalize_key(key)
         case key
         when Class
-          __send__(key.name.underscore)
+          key.name.underscore
         when ActiveRecord::Base
-          __send__(key.class.name.underscore)
+          key.class.name.underscore
         when /\A[A-Z]/
-          __send__(key.underscore)
+          key.underscore
         else
-          __send__(key.singularize)
+          key.singularize
         end
       end
 
+      def [](key)
+        __send__(normalize_key(key))
+      end
+
       def available?(name)
-        respond_to?(name.singularize)
+        respond_to?(normalize_key(name))
       end
 
       def attachment
