@@ -1,5 +1,21 @@
 # Redmine FullTextSearch
 
+## 2.0.0 - 2024-05-27
+
+### Improvements
+
+  * Dropped support for Redmine 4.
+
+  * Wiki Extensions plugin tag data to be synchronized with `full_text_search:synchronize`.
+
+### Fixed
+
+  * Suppress errors when plugins use `Attachment`.
+
+    * Skipped because of unknown `container_type` causing an error.
+
+  * Fixed an error in Wiki Extensions plugin tag import.
+
 ## 1.0.4 - 2024-05-16
 
 Because it has been a long time since the last release, please excuse this list of commit logs.
