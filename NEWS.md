@@ -1,5 +1,11 @@
 # Redmine FullTextSearch
 
+## 2.0.1 - 2024-05-27
+
+### Improvements
+
+  * Supported specifying update targets in `full_text_search:target:reload`.
+
 ## 2.0.0 - 2024-05-27
 
 ### Improvements

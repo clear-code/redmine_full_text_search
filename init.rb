@@ -2,7 +2,7 @@ Redmine::Plugin.register :full_text_search do
   name 'Full Text Search plugin'
   author 'ClearCode Inc.'
   description 'This plugin provides full text search for Redmine'
-  version '2.0.0'
+  version '2.0.1'
   url 'https://github.com/clear-code/redmine_full_text_search'
   author_url 'https://github.com/clear-code'
   # We can't use __dir__ here because we ensure that plugin directory path is a path in Redmine directory
