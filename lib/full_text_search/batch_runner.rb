@@ -317,7 +317,8 @@ module FullTextSearch
 
       def type
         raw_type = super
-        Type[raw_type] if Type.available?(raw_type)
+        return nil if raw_type.blank?
+        Type[raw_type]
       end
 
       def upsert
