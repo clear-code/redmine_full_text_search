@@ -5,42 +5,51 @@ module FullTextSearch
     end
 
     def synchronize(project: nil,
+                    type: nil,
                     upsert: nil,
                     extract_text: nil)
-      options = Options.new(project, upsert, extract_text)
+      options = Options.new(project, type, upsert, extract_text)
       synchronize_fts_targets_internal(options)
     end
 
     def synchronize_fts_targets(project: nil,
+                                type: nil,
                                 upsert: nil,
                                 extract_text: nil)
-      options = Options.new(project, upsert, extract_text)
+      options = Options.new(project, type, upsert, extract_text)
       synchronize_fts_targets_internal(options)
     end
 
     def synchronize_repositories(project: nil,
+                                 type: nil,
                                  upsert: nil,
                                  extract_text: nil)
-      options = Options.new(project, upsert, extract_text)
+      options = Options.new(project, type, upsert, extract_text)
       synchronize_repositories_internal(options)
     end
 
     def synchronize_similar_issues(project: nil,
+                                   type: nil,
                                    upsert: nil,
                                    extract_text: nil)
-      options = Options.new(project, upsert, extract_text)
+      options = Options.new(project, type, upsert, extract_text)
       synchronize_similar_issues_internal(options)
     end
 
     def reload_fts_targets(project: nil,
+                           type: nil,
                            upsert: nil,
                            extract_text: nil)
-      options = Options.new(project, upsert, extract_text)
+      options = Options.new(project, type, upsert, extract_text)
       if options.project
         targets = Target.where(project_id: options.project.id)
       else
         targets = Target.all
       end
+      if options.type
+        targets = targets.where(source_type_id: options.type.id)
+      end
+
       bar = create_progress_bar("FullTextSearch::Target",
                                 total: targets.count)
       bar.start
@@ -293,6 +302,7 @@ module FullTextSearch
     end
 
     class Options < Struct.new(:project,
+                               :type,
                                :upsert,
                                :extract_text)
       def project
@@ -303,6 +313,11 @@ module FullTextSearch
         else
           raw_project
         end
+      end
+
+      def type
+        raw_type = super
+        Type[raw_type] if Type.available?(raw_type)
       end
 
       def upsert

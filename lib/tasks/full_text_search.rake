@@ -33,9 +33,11 @@ namespace :full_text_search do
     upsert = ENV["UPSERT"] || "immediate"
     extract_text = ENV["EXTRACT_TEXT"] || "immediate"
     project = ENV["PROJECT"]
+    type = ENV["TYPE"]
     batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
     block.call(batch_runner,
                project: project,
+               type: type,
                upsert: upsert.to_sym,
                extract_text: extract_text.to_sym)
     wait_queue.call
