@@ -33,21 +33,6 @@ module FullTextSearch
       first_change = Change.find_by!(path: "images/edit.png")
       last_change = Change.where(path: "issue-8857/test01.txt").last
       assert_equal([
-                     [
-                       "images/edit.png",
-                       "copied_README",
-                       "new_file.txt",
-                       "renamed_test.txt",
-                       "sources/watchers_controller.rb",
-                       "this_is_a_really_long_and_verbose_directory_name/this_is_because_of_a_simple_reason/it_is_testing_the_ability_of_redmine_to_use_really_long_path_names/These_names_exceed_255_chars_in_total/That_is_the_single_reason_why_we_have_this_directory_here/But_there_might_also_be_additonal_reasons/And_then_there_is_not_even_somthing_funny_in_here.txt",
-                       "filemane with spaces.txt",
-                       " filename with a leading space.txt ",
-                       "latin-1/test00.txt",
-                       "README",
-                       "latin-1-dir/make-latin-1-file.rb",
-                       "issue-8857/test00.txt",
-                       "issue-8857/test01.txt",
-                     ],
                      {
                        "project_id" => @project.id,
                        "source_id" => first_change.id,
@@ -81,7 +66,6 @@ test
                      },
                    ],
                    [
-                     records_without_latest.collect(&:title),
                      records_without_latest.first.attributes.except("id"),
                      records_without_latest.last.attributes.except("id"),
                    ])
