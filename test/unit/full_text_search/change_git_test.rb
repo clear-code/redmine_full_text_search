@@ -26,13 +26,27 @@ module FullTextSearch
       repository.fetch_changesets
       target_records = Target.
                          where(container_id: repository.id,
-                               container_type_id: Type.repository.id,
-                               # Use only old data for stable test
-                               last_modified_at: ..Time.parse("2024-07-01T00:00:00Z")).
+                               container_type_id: Type.repository.id).
+                         # Use only old data for stable test
+                         where.not(title: "new_file.txt").
                          order(source_id: :asc)
       first_change = Change.find_by!(path: "images/edit.png")
       last_change = Change.where(path: "issue-8857/test01.txt").last
       assert_equal([
+                     [
+                       "images/edit.png",
+                       "copied_README",
+                       "renamed_test.txt",
+                       "sources/watchers_controller.rb",
+                       "this_is_a_really_long_and_verbose_directory_name/this_is_because_of_a_simple_reason/it_is_testing_the_ability_of_redmine_to_use_really_long_path_names/These_names_exceed_255_chars_in_total/That_is_the_single_reason_why_we_have_this_directory_here/But_there_might_also_be_additonal_reasons/And_then_there_is_not_even_somthing_funny_in_here.txt",
+                       "filemane with spaces.txt",
+                       " filename with a leading space.txt ",
+                       "latin-1/test00.txt",
+                       "README",
+                       "latin-1-dir/make-latin-1-file.rb",
+                       "issue-8857/test00.txt",
+                       "issue-8857/test01.txt",
+                     ],
                      {
                        "project_id" => @project.id,
                        "source_id" => first_change.id,
@@ -66,6 +80,7 @@ test
                      },
                    ],
                    [
+                     target_records.collect(&:title),
                      target_records.first.attributes.except("id"),
                      target_records.last.attributes.except("id"),
                    ])
