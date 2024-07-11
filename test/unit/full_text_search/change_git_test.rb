@@ -28,6 +28,8 @@ module FullTextSearch
                   where(container_id: repository.id,
                         container_type_id: Type.repository.id).
                   order(source_id: :asc)
+      # Latest test data about Git Repository isn't update except for Redmine master so we removed it here. 
+      records_without_latest = records[0...-1]
       first_change = Change.find_by!(path: "images/edit.png")
       last_change = Change.where(path: "issue-8857/test01.txt").last
       assert_equal([
@@ -79,9 +81,9 @@ test
                      },
                    ],
                    [
-                     records.collect(&:title),
-                     records.first.attributes.except("id"),
-                     records.last.attributes.except("id"),
+                     records_without_latest.collect(&:title),
+                     records_without_latest.first.attributes.except("id"),
+                     records_without_latest.last.attributes.except("id"),
                    ])
     end
   end
