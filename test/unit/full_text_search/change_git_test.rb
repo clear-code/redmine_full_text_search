@@ -24,14 +24,12 @@ module FullTextSearch
       repository = Repository::Git.create(:project => @project,
                                           :url => url)
       repository.fetch_changesets
-      records = Target.
-                  where(container_id: repository.id,
-                        container_type_id: Type.repository.id).
-                  order(source_id: :asc)
-      # Latest test data about Git Repository isn't update except for Redmine master so we removed it here. 
-      records_without_latest = records.
-                                 where("last_modified_at < ?",
-                                       Time.parse("2024-07-01T00:00:00Z"))
+      target_records = Target.
+                         where(container_id: repository.id,
+                               container_type_id: Type.repository.id,
+                               # Use only old data for stable test
+                               last_modified_at: ..Time.parse("2024-07-01T00:00:00Z")).
+                         order(source_id: :asc)
       first_change = Change.find_by!(path: "images/edit.png")
       last_change = Change.where(path: "issue-8857/test01.txt").last
       assert_equal([
@@ -68,8 +66,8 @@ test
                      },
                    ],
                    [
-                     records_without_latest.first.attributes.except("id"),
-                     records_without_latest.last.attributes.except("id"),
+                     target_records.first.attributes.except("id"),
+                     target_records.last.attributes.except("id"),
                    ])
     end
   end
