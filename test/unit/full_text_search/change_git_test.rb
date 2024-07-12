@@ -43,6 +43,7 @@ module FullTextSearch
                                 "is_private" => null_boolean,
                                 "tag_ids" => [Tag.extension("png").id],
                               }
+      # Only the current Redmine master uses the updated Git repository test data.
       if Redmine::VERSION::BRANCH == "stable"
         last_change = Change.where(path: "issue-8857/test01.txt").last
         expected_titles = [
