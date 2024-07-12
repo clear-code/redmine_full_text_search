@@ -24,10 +24,10 @@ module FullTextSearch
       repository = Repository::Git.create(:project => @project,
                                           :url => url)
       repository.fetch_changesets
-      target_records = Target.
-                         where(container_id: repository.id,
-                               container_type_id: Type.repository.id).
-                         order(source_id: :asc)
+      records = Target.
+                  where(container_id: repository.id,
+                        container_type_id: Type.repository.id).
+                  order(source_id: :asc)
       first_change = Change.find_by!(path: "images/edit.png")
       expected_first_change = {
                                 "project_id" => @project.id,
@@ -117,9 +117,9 @@ test
                      expected_last_change,
                    ],
                    [
-                     target_records.collect(&:title),
-                     target_records.first.attributes.except("id"),
-                     target_records.last.attributes.except("id"),
+                     records.collect(&:title),
+                     records.first.attributes.except("id"),
+                     records.last.attributes.except("id"),
                    ])
     end
   end
