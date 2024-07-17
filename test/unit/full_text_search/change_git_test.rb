@@ -44,7 +44,7 @@ module FullTextSearch
         "tag_ids" => [Tag.extension("png").id],
       }
       # Redmine master over v5.2 uses the updated Git repository test data.
-      if ([Redmine::VERSION::MAJOR, Redmine::VERSION::MINOR] <=> [5, 2]) == -1 &&
+      if Gem::Version.new(Redmine::VERSION.to_s) < Gem::Version.new("5.2") &&
          Redmine::VERSION::BRANCH != "devel"
         last_change = Change.where(path: "issue-8857/test01.txt").last
         expected_titles = [
