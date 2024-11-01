@@ -24,7 +24,8 @@ module FullTextSearch
             .joins(:changeset)
             .group("changesets.repository_id, changes.path")
             .select("MAX(changes.id) as id")
-        super.where(id: source_ids)
+        super.where(action: ["A", "M", "R"],
+                    id: source_ids)
       end
     end
 
