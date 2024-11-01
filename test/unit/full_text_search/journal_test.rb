@@ -20,7 +20,7 @@ module FullTextSearch
                              source_type_id: Type.journal.id)
       issue = journal.journalized
       # Redmine 5.0 doesn't have updated_on
-      if journal.resond_to?(:updated_on)
+      if journal.respond_to?(:updated_on)
         last_modified_at = journal.updated_on
       else
         last_modified_at = journal.created_on
