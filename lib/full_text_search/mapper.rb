@@ -163,6 +163,22 @@ module FullTextSearch
         nil
       end
     end
+
+    if ActiveRecord::Base.respond_to?(:connection_db_config)
+      adapter = ActiveRecord::Base.connection_db_config.adapter
+    else
+      adapter = ActiveRecord::Base.connection_config[:adapter]
+    end
+    if adapter == "mysql2"
+      # MySQL's TEXT type has 65535 size limit.
+      def normalize_text(text)
+        text[0, 65535]
+      end
+    else
+      def normalize_text(text)
+        text
+      end
+    end
   end
 
   class FtsMapper

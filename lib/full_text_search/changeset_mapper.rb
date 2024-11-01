@@ -32,8 +32,8 @@ module FullTextSearch
       if @record.user
         fts_target.tag_ids = [Tag.user(@record.user.id).id]
       end
-      fts_target.title = @record.short_comments&.strip
-      fts_target.content = @record.long_comments&.strip
+      fts_target.title = normalize_text(@record.short_comments&.strip)
+      fts_target.content = normalize_text(@record.long_comments&.strip)
       fts_target.last_modified_at = @record.committed_on
       fts_target.registered_at = @record.committed_on
       fts_target.save!
