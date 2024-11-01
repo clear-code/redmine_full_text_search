@@ -7,7 +7,7 @@ This plugin provides the following features:
 
 ## Requirements
 
-* [Mroonga](http://mroonga.org/) or
+* [Mroonga](https://mroonga.org/) or
   [PGroonga](https://pgroonga.github.io/): RDBMS plugins for full text search.
 
 If you're using MySQL or MariaDB, you need Mroonga 9.03 or later.
@@ -27,7 +27,7 @@ Groonga 9.0.3 or later.
 
 See [PGroonga document](https://pgroonga.github.io/install/)
 
-See [Mroonga document](http://mroonga.org/docs/install.html)
+See [Mroonga document](https://mroonga.org/docs/install.html)
 
 ### Install ChupaText server (optional)
 
