@@ -19,12 +19,18 @@ module FullTextSearch
       targets = Target.where(source_id: journal.id,
                              source_type_id: Type.journal.id)
       issue = journal.journalized
+      # Redmine 5.0 doesn't have updated_on
+      if journal.resond_to?(:updated_on)
+        last_modified_at = journal.updated_on
+      else
+        last_modified_at = journal.created_on
+      end
       assert_equal([
                      {
                        "project_id" => issue.project_id,
                        "source_id" => journal.id,
                        "source_type_id" => Type.journal.id,
-                       "last_modified_at" => journal.updated_on,
+                       "last_modified_at" => last_modified_at,
                        "registered_at" => journal.created_on,
                        "title" => null_string,
                        "tag_ids" => [
