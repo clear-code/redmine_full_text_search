@@ -16,8 +16,10 @@ module FullTextSearch
         textilizable(object, attribute, options)
       end
       document = Document.new
-      parser = Nokogiri::HTML::SAX::Parser.new(document)
-      parser.parse(html)
+      if html.presence
+        parser = Nokogiri::HTML::SAX::Parser.new(document)
+        parser.parse(html)
+      end
       [document.text.strip, document.tag_ids]
     end
 
