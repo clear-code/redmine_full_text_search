@@ -16,6 +16,7 @@ module FullTextSearch
         textilizable(object, attribute, options)
       end
       return ["", []] unless html.present?
+
       document = Document.new
       parser = Nokogiri::HTML::SAX::Parser.new(document)
       parser.parse(html)
