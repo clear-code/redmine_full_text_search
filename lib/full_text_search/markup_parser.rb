@@ -15,11 +15,10 @@ module FullTextSearch
       html = with_user(User.admin.first) do
         textilizable(object, attribute, options)
       end
+      return ["", []] unless html.present?
       document = Document.new
-      if html.presence
-        parser = Nokogiri::HTML::SAX::Parser.new(document)
-        parser.parse(html)
-      end
+      parser = Nokogiri::HTML::SAX::Parser.new(document)
+      parser.parse(html)
       [document.text.strip, document.tag_ids]
     end
 
