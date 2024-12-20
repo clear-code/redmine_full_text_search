@@ -119,9 +119,10 @@ jobs:
           esac
       - name: Install dependencies
         run: |
+          sudo apt update
+          sudo apt install -y subversion
           case ${RDBMS} in
             postgresql)
-              sudo apt update
               sudo apt install -y postgresql-client
               ;;
           esac
