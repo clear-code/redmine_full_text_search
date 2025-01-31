@@ -3,8 +3,8 @@ require File.expand_path("../../../test_helper", __FILE__)
 module FullTextSearch
   class SearcherTest < ActiveSupport::TestCase
     setup do
-      if Gem::Version.new(Redmine::VERSION) < Gem::Version.new("5.1")
-        skip("Need Redmine 5.1 or later")
+      unless IssueQuery.method_defined?(:sql_for_any_searchable_field)
+        skip("Required feature 'sql_for_any_searchable_field' does not exist.")
       end
     end
 

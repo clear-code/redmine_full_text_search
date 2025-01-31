@@ -91,7 +91,7 @@ FullTextSearch::Tag
 FullTextSearch::TagType
 FullTextSearch::Type
 
-if Gem::Version.new(Redmine::VERSION) > Gem::Version.new("5.1")
+if IssueQuery.method_defined?(:sql_for_any_searchable_field)
   FullTextSearch::Hooks::IssueAnySearchable
   IssueQuery.prepend(FullTextSearch::Hooks::IssueAnySearchable)
 end
