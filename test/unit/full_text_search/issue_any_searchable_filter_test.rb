@@ -23,14 +23,14 @@ module FullTextSearch
             :operator => "~",
             :values => ["Groonga"]
           }
-        }
+        },
+        :sort_criteria => [["id", "asc"]]
       )
-      searched_issues = Issue.where(query.statement).order(:id)
       issues_with_searched_keywords = [
         issue_with_searched_word_in_subject,
         issue_with_searched_word_in_description
       ]
-      assert_equal(issues_with_searched_keywords, searched_issues)
+      assert_equal(issues_with_searched_keywords, query.issues)
     end
   end
 end
