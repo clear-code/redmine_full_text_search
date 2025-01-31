@@ -2,6 +2,12 @@ require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
   class SearcherTest < ActiveSupport::TestCase
+    setup do
+      if Gem::Version.new(Redmine::VERSION) < Gem::Version.new("5.1")
+        skip("Need Redmine 5.1 or later")
+      end
+    end
+
     def test_filter_any_searchable
       Issue.destroy_all
       issue_with_searched_word_in_subject = Issue.generate!(subject: "Groonga")

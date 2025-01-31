@@ -69,7 +69,6 @@ FullTextSearch::ChangeMapper
 FullTextSearch::Hooks::SearchIndexOptionsContentBottomHook
 FullTextSearch::Hooks::IssuesShowDescriptionBottomHook
 FullTextSearch::Hooks::SimilarIssuesHelper
-FullTextSearch::Hooks::IssueAnySearchable
 
 FullTextSearch::Searcher
 FullTextSearch::SimilarSearcher
@@ -87,11 +86,15 @@ Journal.include(FullTextSearch::SimilarSearcher::Model)
 SearchController.helper(FullTextSearch::Hooks::SearchHelper)
 SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
 IssuesController.helper(FullTextSearch::Hooks::SimilarIssuesHelper)
-IssueQuery.prepend(FullTextSearch::Hooks::IssueAnySearchable)
 
 FullTextSearch::Tag
 FullTextSearch::TagType
 FullTextSearch::Type
+
+if Gem::Version.new(Redmine::VERSION) > Gem::Version.new("5.1")
+  FullTextSearch::Hooks::IssueAnySearchable
+  IssueQuery.prepend(FullTextSearch::Hooks::IssueAnySearchable)
+end
 
 # Support plugins
 if defined?(WikiExtensionsTagRelation)
