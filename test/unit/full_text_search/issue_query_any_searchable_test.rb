@@ -1,7 +1,7 @@
 require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
-  class SearcherTest < ActiveSupport::TestCase
+  class IssueQueryAnySearchableTest < ActiveSupport::TestCase
     setup do
       unless IssueQuery.method_defined?(:sql_for_any_searchable_field)
         skip("Required feature 'sql_for_any_searchable_field' does not exist.")

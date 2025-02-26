@@ -92,7 +92,7 @@ FullTextSearch::TagType
 FullTextSearch::Type
 
 if IssueQuery.method_defined?(:sql_for_any_searchable_field)
-  IssueQuery.prepend(FullTextSearch::Hooks::IssueAnySearchable)
+  IssueQuery.prepend(FullTextSearch::Hooks::IssueQueryAnySearchable)
 end
 
 # Support plugins
