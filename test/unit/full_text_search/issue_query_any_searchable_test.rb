@@ -8,7 +8,7 @@ module FullTextSearch
       end
     end
 
-    def test_filter_any_searchable
+    def test_match_subject_or_description
       Issue.destroy_all
       issue_with_searched_word_in_subject = Issue.generate!(subject: "Groonga")
       issue_with_searched_word_in_description =
