@@ -19,7 +19,6 @@ module FullTextSearch
           content.subject = record.subject
           content.content = create_content(record.id)
           content.status_id = record.status_id
-          content.is_private = record.is_private
           content.save!
         when Journal
           issue_id = record.journalized_id
