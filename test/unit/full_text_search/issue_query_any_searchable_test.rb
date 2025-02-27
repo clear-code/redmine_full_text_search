@@ -10,16 +10,11 @@ module FullTextSearch
 
     def test_or_one_word
       Issue.destroy_all
-      issue_with_searched_word_in_subject = Issue.generate!(subject: "Groonga")
-      issue_with_searched_word_in_description =
-        Issue.generate!(description: "Groonga")
-      issue_without_searched_word =
-        Issue.generate!(subject: "no-keyword",
-                        description: "no-keyword")
-      issue_has_journal_with_searched_word =
-        Issue.generate!(subject: "no-keyword",
-                        description: "no-keyword")
-      issue_has_journal_with_searched_word.journals.create!(notes: "Groonga")
+      subject_groonga = Issue.generate!(subject: "Groonga")
+      description_groonga = Issue.generate!(description: "Groonga")
+      without_groonga = Issue.generate!(subject: "no-keyword",
+                                        description: "no-keyword")
+      journal_groonga = Issue.generate!.journals.create!(notes: "Groonga")
       query = IssueQuery.new(
         :name => "_",
         :filters => {
@@ -31,9 +26,9 @@ module FullTextSearch
         :sort_criteria => [["id", "asc"]]
       )
       issues_with_searched_keywords = [
-        issue_with_searched_word_in_subject,
-        issue_with_searched_word_in_description,
-        issue_has_journal_with_searched_word
+        subject_groonga,
+        description_groonga,
+        journal_groonga.issue
       ]
       assert_equal(issues_with_searched_keywords, query.issues)
     end
