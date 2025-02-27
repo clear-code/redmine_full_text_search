@@ -8,7 +8,7 @@ module FullTextSearch
       end
     end
 
-    def test_match_subject_or_description
+    def test_or_one_word
       Issue.destroy_all
       issue_with_searched_word_in_subject = Issue.generate!(subject: "Groonga")
       issue_with_searched_word_in_description =
@@ -16,6 +16,10 @@ module FullTextSearch
       issue_without_searched_word =
         Issue.generate!(subject: "no-keyword",
                         description: "no-keyword")
+      issue_has_journal_with_searched_word =
+        Issue.generate!(subject: "no-keyword",
+                        description: "no-keyword")
+      issue_has_journal_with_searched_word.journals.create!(notes: "Groonga")
       query = IssueQuery.new(
         :name => "_",
         :filters => {
@@ -28,7 +32,8 @@ module FullTextSearch
       )
       issues_with_searched_keywords = [
         issue_with_searched_word_in_subject,
-        issue_with_searched_word_in_description
+        issue_with_searched_word_in_description,
+        issue_has_journal_with_searched_word
       ]
       assert_equal(issues_with_searched_keywords, query.issues)
     end
