@@ -25,12 +25,12 @@ module FullTextSearch
         },
         :sort_criteria => [["id", "asc"]]
       )
-      issues_with_searched_keywords = [
+      expected_issues = [
         subject_groonga,
         description_groonga,
         journal_groonga.issue
       ]
-      assert_equal(issues_with_searched_keywords, query.issues)
+      assert_equal(expected_issues, query.issues)
     end
   end
 end
