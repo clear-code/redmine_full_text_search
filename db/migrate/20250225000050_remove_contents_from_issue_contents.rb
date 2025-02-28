@@ -3,7 +3,7 @@ FullTextSearch::Migration
 
 class RemoveContentsFromIssueContents < ActiveRecord::Migration[5.2]
   def up
-    return if !table_exists?(:issue_contents)
+    return unless table_exists?(:issue_contents)
 
     if Redmine::Database.mysql?
       remove_index :issue_contents, :contents
@@ -38,7 +38,7 @@ class RemoveContentsFromIssueContents < ActiveRecord::Migration[5.2]
   end
 
   def down
-    return if !table_exists?(:issue_contents)
+    return unless table_exists?(:issue_contents)
 
     if Redmine::Database.mysql?
       remove_index :issue_contents, :content
