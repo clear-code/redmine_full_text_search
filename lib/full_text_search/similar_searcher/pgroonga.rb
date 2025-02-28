@@ -18,7 +18,7 @@ module FullTextSearch
                    ARRAY[
                      'table', pgroonga_table_name('#{similar_issues_index_name}'),
                      'output_columns', 'issue_id, _score',
-                     'filter', '(contents *S ' || pgroonga_escape(:desc) || ') && issue_id != :id' || ' && #{filter_condition(user, project_ids)}',
+                     'filter', '(content *S ' || pgroonga_escape(:desc) || ') && issue_id != :id' || ' && #{filter_condition(user, project_ids)}',
                      'limit', ':limit',
                      'sort_keys', '-_score'
                    ]
