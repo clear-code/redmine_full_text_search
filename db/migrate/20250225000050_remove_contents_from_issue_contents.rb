@@ -18,8 +18,8 @@ class RemoveContentsFromIssueContents < ActiveRecord::Migration[5.2]
     end
     remove_column :issue_contents, :contents, :text
     remove_column :issue_contents, :is_private, :boolean
-    contents_limit = Redmine::Database.mysql? ? 16.megabytes : nil
-    add_column :issue_contents, :content, :text, limit: contents_limit
+    content_limit = Redmine::Database.mysql? ? 16.megabytes : nil
+    add_column :issue_contents, :content, :text, limit: content_limit
 
     # TODO: Replace 'TokenMecab' with a multilingual morphological based tokenizer
     # when available. See also: groonga/groonga#1941.
