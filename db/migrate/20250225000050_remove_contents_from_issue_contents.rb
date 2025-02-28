@@ -2,6 +2,12 @@
 FullTextSearch::Migration
 
 class RemoveContentsFromIssueContents < ActiveRecord::Migration[5.2]
+  if Redmine::Database.mysql?
+    include FullTextSearch::Mroonga
+  else
+    include FullTextSearch::Pgroonga
+  end
+
   def up
     return unless table_exists?(:issue_contents)
 
@@ -32,7 +38,7 @@ class RemoveContentsFromIssueContents < ActiveRecord::Migration[5.2]
                 using: "PGroonga",
                 with: [
                   "tokenizer = 'TokenMecab'",
-                  "normalizer = 'NormalizerNFKC121'",
+                  "normalizer = '#{normalizer}'",
                 ].join(", ")
     end
   end
@@ -69,6 +75,21 @@ class RemoveContentsFromIssueContents < ActiveRecord::Migration[5.2]
                   "tokenizer = 'TokenMecab'",
                   "normalizer = 'NormalizerNFKC121'",
                 ].join(", ")
+    end
+  end
+
+  private
+
+  def normalizer
+    version = Gem::Version.new(self.class.groonga_version)
+    if version >= Gem::Version.new("14.1.3")
+      "NormalizerNFKC"
+    elsif version >= Gem::Version.new("13.0.0")
+      "NormalizerNFKC150"
+    elsif version >= Gem::Version.new("10.0.9")
+      "NormalizerNFKC130"
+    else
+      "NormalizerNFKC121"
     end
   end
 end
