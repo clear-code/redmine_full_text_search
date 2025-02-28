@@ -75,7 +75,7 @@ class RemoveContentsFromIssueContents < ActiveRecord::Migration[5.2]
                 using: "PGroonga",
                 with: [
                   "tokenizer = 'TokenMecab'",
-                  "normalizer = 'NormalizerNFKC121'",
+                  "normalizer = '#{normalizer}'",
                 ].join(", ")
     end
   end
