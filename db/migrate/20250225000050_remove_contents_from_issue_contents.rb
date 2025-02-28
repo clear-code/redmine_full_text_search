@@ -1,7 +1,7 @@
 # For auto load
 FullTextSearch::Migration
 
-class RemoveContentsFromIssueContents < ActiveRecord::Migration[5.2]
+class RemoveContentsFromIssueContents < ActiveRecord::Migration[6.1]
   if Redmine::Database.mysql?
     include FullTextSearch::Mroonga
   else
