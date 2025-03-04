@@ -10,17 +10,17 @@ module FullTextSearch
 
     def test_or_one_word
       Issue.destroy_all
-      subject_groonga = Issue.generate!(subject: "Groonga")
-      description_groonga = Issue.generate!(description: "Groonga")
+      subject_groonga = Issue.generate!(subject: "ぐるんが")
+      description_groonga = Issue.generate!(description: "ぐるんが")
       without_groonga = Issue.generate!(subject: "no-keyword",
                                         description: "no-keyword")
-      journal_groonga = Issue.generate!.journals.create!(notes: "Groonga")
+      journal_groonga = Issue.generate!.journals.create!(notes: "ぐるんが")
       query = IssueQuery.new(
         :name => "_",
         :filters => {
           "any_searchable" => {
             :operator => "~",
-            :values => ["Groonga"]
+            :values => ["ぐるんが"]
           }
         },
         :sort_criteria => [["id", "asc"]]
@@ -29,6 +29,39 @@ module FullTextSearch
         subject_groonga,
         description_groonga,
         journal_groonga.issue
+      ]
+      assert_equal(expected_issues, query.issues)
+    end
+
+    def test_and_two_words
+      Issue.destroy_all
+      subject_groonga_description_pgroonga =
+        Issue.generate!(subject: "ぐるんが",
+                        description: "ぴーじーるんが")
+      subject_pgroonga_description_groonga =
+        Issue.generate!(subject: "ぴーじーるんが",
+                        description: "ぐるんが")
+      subject_groonga = Issue.generate!(description: "ぐるんが")
+      description_pgroonga = Issue.generate!(description: "ぴーじーるんが")
+      without_keywords = Issue.generate!(subject: "no-keyword",
+                                         description: "no-keyword")
+      subject_pgroonga_journal_groonga =
+        Issue.generate!(subject: "ぴーじーるんが")
+             .journals.create!(notes: "ぐるんが")
+      query = IssueQuery.new(
+        :name => "_",
+        :filters => {
+          "any_searchable" => {
+            :operator => "~",
+            :values => ["ぐるんが ぴーじーるんが"]
+          }
+        },
+        :sort_criteria => [["id", "asc"]]
+      )
+      expected_issues = [
+        subject_groonga_description_pgroonga,
+        subject_pgroonga_description_groonga,
+        subject_pgroonga_journal_groonga.issue
       ]
       assert_equal(expected_issues, query.issues)
     end
