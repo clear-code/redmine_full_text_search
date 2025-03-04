@@ -76,7 +76,7 @@ module FullTextSearch
       end
 
       def build_issue_id_condition(issue_ids, operator)
-        return '!~' ? '1=1' : '1=0' if issue_ids.empty?
+        return operator == '!~' ? '1=1' : '1=0' if issue_ids.empty?
 
         if operator == '!~'
           "#{Issue.table_name}.id NOT IN (#{issue_ids.join(',')})"
