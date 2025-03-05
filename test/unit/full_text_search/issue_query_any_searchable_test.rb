@@ -6,6 +6,9 @@ module FullTextSearch
       unless IssueQuery.method_defined?(:sql_for_any_searchable_field)
         skip("Required feature 'sql_for_any_searchable_field' does not exist.")
       end
+      unless Redmine::Database.postgresql?
+        skip("Required PGroonga now. We will support Mroonga soon.")
+      end
       User.current = nil
     end
 
