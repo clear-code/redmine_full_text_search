@@ -99,7 +99,7 @@ module FullTextSearch
           },
           "project_id" => {
             :operator => "=",
-            :values => ['mine']
+            :values => ["mine"]
           },
         },
         :sort_criteria => [["id", "asc"]]

@@ -26,14 +26,14 @@ module FullTextSearch
       def compute_target_project_ids
         if respond_to?(:project) && project
           [project.id]
-        elsif has_filter?('project_id')
-          case values_for('project_id').first
-          when 'mine'
+        elsif has_filter?("project_id")
+          case values_for("project_id").first
+          when "mine"
             User.current.projects.ids
-          when 'bookmarks'
+          when "bookmarks"
             User.current.bookmarked_project_ids
           else
-            values_for('project_id')
+            values_for("project_id")
           end
         else
           []
@@ -44,7 +44,7 @@ module FullTextSearch
         target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
         target_ids &= project_ids if project_ids.present?
         if target_ids.present?
-          "in_values(project_id, #{target_ids.join(',')})"
+          "in_values(project_id, #{target_ids.join(",")})"
         else
           "1==1"
         end
