@@ -8,8 +8,7 @@ module FullTextSearch
         # - filter by match leves('~', '*~')
         # - attached or not
         query = value.first
-        filter_condition = build_filter_condition(User.current,
-                                                  compute_target_project_ids)
+        filter_condition = build_filter_condition
         response = self.class.connection.select_value(
           build_any_searchable_query(query, filter_condition)
         )
@@ -24,29 +23,32 @@ module FullTextSearch
       private
 
       def compute_target_project_ids
-        if respond_to?(:project) && project
-          [project.id]
-        elsif has_filter?("project_id")
-          case values_for("project_id").first
-          when "mine"
-            User.current.projects.ids
-          when "bookmarks"
-            User.current.bookmarked_project_ids
-          else
-            values_for("project_id")
-          end
-        else
-          []
-        end
+        target_ids = Project.allowed_to(User.current, :view_issues).pluck(:id)
+        compute_target_ids = if respond_to?(:project) && project
+                               [project.id]
+                             elsif has_filter?("project_id")
+                               case values_for("project_id").first
+                               when "mine"
+                                 User.current.projects.ids
+                               when "bookmarks"
+                                 User.current.bookmarked_project_ids
+                               else
+                                 values_for("project_id")
+                               end
+                             else
+                               []
+                             end
+        target_ids &= compute_target_ids if compute_target_ids.present?
+        target_ids
       end
 
       def build_filter_condition(user, project_ids)
-        target_ids = Project.allowed_to(user, :view_issues).pluck(:id)
-        target_ids &= project_ids if project_ids.present?
+        condtion = +""
+        target_ids = compute_target_project_ids
         if target_ids.present?
-          "in_values(project_id, #{target_ids.join(",")})"
+          condtion += "in_values(project_id, #{target_ids.join(",")})"
         else
-          "1==1"
+          condtion += "1==1"
         end
       end
 
