@@ -160,5 +160,54 @@ module FullTextSearch
       ]
       assert_equal(expected_issues, query.issues)
     end
+
+    def test_and_two_words_for_open_issues_within_my_projects
+      Issue.destroy_all
+      my_user = User.find(1)
+      project = Project.generate!
+      User.add_to_project(my_user, project)
+
+      # User's project issues.
+      subject_groonga_description_pgroonga =
+        Issue.generate!(project: project,
+                        subject: "ぐるんが",
+                        description: "ぴーじーるんが")
+      without_keywords = Issue.generate!(project: project,
+                                         subject: "no-keyword",
+                                         description: "no-keyword")
+      subject_pgroonga_journal_groonga =
+        Issue.generate!(project: project, subject: "ぴーじーるんが")
+             .journals.create!(notes: "ぐるんが")
+      # Closed issue.
+      closed_subject_pgroonga_description_groonga =
+        Issue.generate!(project: project,
+                        subject: "ぴーじーるんが",
+                        description: "ぐるんが")
+             .close!
+
+      User.current = my_user
+      query = IssueQuery.new(
+        :name => "_",
+        :filters => {
+          "any_searchable" => {
+            :operator => "~",
+            :values => ["ぐるんが ぴーじーるんが"]
+          },
+          "project_id" => {
+            :operator => "=",
+            :values => ["mine"]
+          },
+          'status_id' => {
+            :operator => 'o'
+          }
+        },
+        :sort_criteria => [["id", "asc"]]
+      )
+      expected_issues = [
+        subject_groonga_description_pgroonga,
+        subject_pgroonga_journal_groonga.issue
+      ]
+      assert_equal(expected_issues, query.issues)
+    end
   end
 end

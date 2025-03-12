@@ -1,10 +1,11 @@
 module FullTextSearch
   module Hooks
     module IssueQueryAnySearchable
+      include FullTextSearch::ConditionBuilder
+
       def sql_for_any_searchable_field(field, operator, value)
         # TODO: Implement AND searches across multiple fields.
         ## TODO List
-        # - filter by open or closed issue
         # - filter by match leves('~', '*~')
         # - attached or not
         query = value.first
@@ -42,14 +43,24 @@ module FullTextSearch
         target_ids
       end
 
-      def build_filter_condition(user, project_ids)
-        condtion = +""
-        target_ids = compute_target_project_ids
-        if target_ids.present?
-          condtion += "in_values(project_id, #{target_ids.join(",")})"
-        else
-          condtion += "1==1"
+      def compute_target_issue_ids
+        return unless has_filter?('status_id')
+        staus_opened = operator_for('status_id') == 'o'
+        Issue.visible.open(staus_opened).ids
+      end
+
+      def build_filter_condition
+        conditions = []
+        target_project_ids = compute_target_project_ids
+        if target_project_ids.present?
+          conditions << "in_values(project_id, #{target_project_ids.join(",")})"
         end
+        target_issue_ids = compute_target_issue_ids
+        if target_issue_ids.present?
+          conditions << "in_values(issue_id, #{target_issue_ids.join(",")})"
+        end
+        conditions += "1==1" if conditions.empty?
+        build_condition("&&", conditions)
       end
 
       def any_searchable_issues_index_name
