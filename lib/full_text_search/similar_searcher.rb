@@ -60,6 +60,13 @@ module FullTextSearch
                                record.id,
                                "destroy",
                                issue_id: record.journalized_id)
+            when Attachment
+              return unless record.container_type == Issue.name
+              FullTextSearch::UpdateIssueContentJob
+                .perform_later(record.class.name,
+                               record.id,
+                               "destroy",
+                               issue_id: record.container_id)
             end
           end
         end

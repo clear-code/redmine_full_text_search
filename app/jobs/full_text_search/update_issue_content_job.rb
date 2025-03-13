@@ -35,6 +35,11 @@ module FullTextSearch
           FullTextSearch::IssueContent
             .where(issue_id: issue_id)
             .update_all(content: create_content(issue_id, excludes: [record_id]))
+        when "Attachment"
+          issue_id = options[:issue_id]
+          FullTextSearch::IssueContent
+            .where(issue_id: issue_id)
+            .update_all(content: create_content(issue_id, excludes: [record_id]))
         end
       end
     end
@@ -47,7 +52,14 @@ module FullTextSearch
                 .reject {|j| j.notes.blank? || excludes.include?(j.id) }
                 .sort_by(&:id)
                 .map(&:notes)
+      attachment_contents = issue.attachments
+                              .order(:id)
+                              .reject {|a| excludes.include?(a.id) }
+                              .collect {|a| [a.filename, a.description] }
+                              .flatten
+                              .compact
       content.concat(notes)
+      content.concat(attachment_contents)
       content.join("\n")
     end
   end
