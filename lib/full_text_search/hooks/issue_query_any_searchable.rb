@@ -16,9 +16,17 @@ module FullTextSearch
 
         command = Groonga::Command.find("select").new("select", {})
         r = Groonga::Client::Response.parse(command, response)
-        issue_ids = r.records.map { |row| row["issue_id"] }
-
-        build_issue_id_condition(issue_ids, operator)
+        if r.success?
+          issue_ids = r.records.map { |row| row["issue_id"] }
+          build_issue_id_condition(issue_ids, operator)
+        else
+          if Rails.env.production?
+            logger.warn(r.message)
+            []
+          else
+            raise r.message
+          end
+        end
       end
 
       private
