@@ -209,5 +209,7 @@ module FullTextSearch
       ]
       assert_equal(expected_issues, query.issues)
     end
+
+    # TODO: Add test case to search the attachment's filename and description.
   end
 end

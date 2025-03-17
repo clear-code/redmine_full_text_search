@@ -4,10 +4,6 @@ module FullTextSearch
       include FullTextSearch::ConditionBuilder
 
       def sql_for_any_searchable_field(field, operator, value)
-        # TODO: Implement AND searches across multiple fields.
-        ## TODO List
-        # - filter by match leves('~', '*~')
-        # - attached or not
         query = value.first
         filter_condition = build_filter_condition
         response = self.class.connection.select_value(
