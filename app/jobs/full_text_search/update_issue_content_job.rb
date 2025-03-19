@@ -52,14 +52,13 @@ module FullTextSearch
                 .reject {|j| j.notes.blank? || excludes.include?(j.id) }
                 .sort_by(&:id)
                 .map(&:notes)
-      attachment_contents = issue.attachments
-                              .order(:id)
-                              .reject {|a| excludes.include?(a.id) }
-                              .collect {|a| [a.filename, a.description] }
-                              .flatten
-                              .compact
       content.concat(notes)
-      content.concat(attachment_contents)
+      issue.attachments.order(:id)
+                       .reject {|a| excludes.include?(a.id) }
+                       .each do |attachment|
+        content << attachment.filename if attachment.filename.present?
+        content << attachment.description if attachment.description.present?
+      end
       content.join("\n")
     end
   end
