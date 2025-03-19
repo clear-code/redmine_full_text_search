@@ -39,7 +39,7 @@ module FullTextSearch
           issue_id = options[:issue_id]
           FullTextSearch::IssueContent
             .where(issue_id: issue_id)
-            .update_all(content: create_content(issue_id, excludes: [record_id]))
+            .update_all(content: create_content(issue_id))
         end
       end
     end
@@ -53,9 +53,7 @@ module FullTextSearch
                 .sort_by(&:id)
                 .map(&:notes)
       content.concat(notes)
-      issue.attachments.order(:id)
-                       .reject {|a| excludes.include?(a.id) }
-                       .each do |attachment|
+      issue.attachments.order(:id).each do |attachment|
         content << attachment.filename if attachment.filename.present?
         content << attachment.description if attachment.description.present?
       end
