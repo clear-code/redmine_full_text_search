@@ -34,6 +34,17 @@ module FullTextSearch
             build_condition("||", conditions)
           end
         end
+
+        def similar_query
+          query = [subject, description]
+          notes = journals.sort_by(&:id).map(&:notes)
+          query.concat(notes)
+          attachments.order(:id).each do |attachment|
+            query << attachment.filename if attachment.filename.present?
+            query << attachment.description if attachment.description.present?
+          end
+          query.join("\n")
+        end
       end
 
       # Add callbacks to Issue
