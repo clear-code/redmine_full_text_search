@@ -11,20 +11,19 @@ module FullTextSearch
 
       module InstanceMethods
         def similar_issues(user: User.current, project_ids: [], limit: 5)
-          desc = [subject, description, journals.sort_by(&:id).map(&:notes)].flatten.join("\n")
           sql = <<-SQL.strip_heredoc
           select mroonga_command(
                    'select',
                    'table', 'issue_contents',
                    'output_columns', 'issue_id, _score',
-                   'filter', CONCAT('(content *S "', mroonga_escape(:query), '") && issue_id != :id', ' && #{filter_condition(user, project_ids)}'),
-                   'limit', ':limit',
+                   'filter', CONCAT('(content *S "', mroonga_escape(:query), '") && issue_id != ', :id, ' && #{filter_condition(user, project_ids)}'),
+                   'limit', :limit,
                    'sort_keys', '-_score'
                  )
           SQL
           r = nil
           ActiveSupport::Notifications.instrument("groonga.similar.search", sql: sql) do
-            r = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, query: similar_query, id: id, limit: limit]))
+            r = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, query: similar_query, id: id.to_s, limit: limit.to_s]))
           end
           # NOTE: Hack to use Groonga::Client::Response.parse
           # Raise Mysql2::Error if error occurred
