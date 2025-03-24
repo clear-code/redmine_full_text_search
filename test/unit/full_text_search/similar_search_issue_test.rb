@@ -5,6 +5,7 @@ module FullTextSearch
     include ActiveJob::TestHelper
 
     def setup
+      IssueContent.destroy_all
       User.current = User.find(1)
       @project = Project.generate!
       User.add_to_project(User.current, @project)
@@ -74,7 +75,7 @@ module FullTextSearch
         {
           '1' => {
             'file' => mock_file_with_options(
-              :original_filename => "Groonga 解説資料 最新版")}
+              :original_filename => "高速に検索 オープンソース! 最新情報")}
         }
       )
       perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
@@ -86,7 +87,7 @@ module FullTextSearch
         {
           '1' => {
             'file' => mock_file_with_options(
-              :original_filename => "PGroonga 解説資料 最新版")}
+              :original_filename => "組み込んで高速に検索 オープンソース! 最新情報")}
         }
       )
       perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
