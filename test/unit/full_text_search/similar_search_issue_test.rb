@@ -4,6 +4,9 @@ module FullTextSearch
   class SimilarSearchIssueTest < ActiveSupport::TestCase
     include ActiveJob::TestHelper
 
+    fixtures :roles
+    fixtures :users
+
     def setup
       IssueContent.destroy_all
       User.current = User.find(1)
