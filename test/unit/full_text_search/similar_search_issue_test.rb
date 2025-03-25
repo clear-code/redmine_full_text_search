@@ -72,9 +72,9 @@ module FullTextSearch
 
     def test_same_structure_with_attachment
       set_tmp_attachments_directory
-      fts_engine_groonga_latest =
+      fts_engine_groonga =
         Issue.generate!(project: @project, subject: "ぐるんが")
-      fts_engine_groonga_latest.save_attachments(
+      fts_engine_groonga.save_attachments(
         [
           {
             "file" => mock_file_with_options(:original_filename => "test.txt"),
@@ -83,11 +83,11 @@ module FullTextSearch
         ]
       )
       perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
-        fts_engine_groonga_latest.save!
+        fts_engine_groonga.save!
       end
-      fts_engine_pgroonga_latest =
+      fts_engine_pgroonga =
         Issue.generate!(project: @project, subject: "ぴーじーるんが")
-      fts_engine_pgroonga_latest.save_attachments(
+      fts_engine_pgroonga.save_attachments(
         [
           {
             "file" => mock_file_with_options(:original_filename => "test.txt"),
@@ -96,19 +96,19 @@ module FullTextSearch
         ]
       )
       perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
-        fts_engine_pgroonga_latest.save!
+        fts_engine_pgroonga.save!
       end
       similar_issues =
-        fts_engine_groonga_latest
+        fts_engine_groonga
           .similar_issues(project_ids: [@project.id])
-      assert_equal([fts_engine_pgroonga_latest],
+      assert_equal([fts_engine_pgroonga],
                    similar_issues)
 
       perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
-        fts_engine_groonga_latest.attachments.first.destroy
+        fts_engine_groonga.attachments.first.destroy
       end
       similar_issues =
-        fts_engine_groonga_latest
+        fts_engine_groonga
           .reload
           .similar_issues(project_ids: [@project.id])
       assert_equal([], similar_issues)
