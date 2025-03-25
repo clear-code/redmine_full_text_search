@@ -75,11 +75,12 @@ module FullTextSearch
       fts_engine_groonga_latest =
         Issue.generate!(project: @project, subject: "ぐるんが")
       fts_engine_groonga_latest.save_attachments(
-        {
-          '1' => {
-            'file' => mock_file_with_options(
-              :original_filename => "高速に検索 オープンソース! 最新情報")}
-        }
+        [
+          {
+            "file" => mock_file_with_options(:original_filename => "test.txt"),
+            "description" => "高速に検索 オープンソース! 最新情報"
+          }
+        ]
       )
       perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
         fts_engine_groonga_latest.save!
@@ -87,11 +88,12 @@ module FullTextSearch
       fts_engine_pgroonga_latest =
         Issue.generate!(project: @project, subject: "ぴーじーるんが")
       fts_engine_pgroonga_latest.save_attachments(
-        {
-          '1' => {
-            'file' => mock_file_with_options(
-              :original_filename => "組み込んで高速に検索 オープンソース! 最新情報")}
-        }
+        [
+          {
+            "file" => mock_file_with_options(:original_filename => "test.txt"),
+            "description" => "組み込んで高速に検索 オープンソース! 最新情報"
+          }
+        ]
       )
       perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
         fts_engine_pgroonga_latest.save!
