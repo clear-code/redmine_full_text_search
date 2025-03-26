@@ -12,7 +12,7 @@ module FullTextSearch
     def queue_sync(action, options = {})
       FullTextSearch::UpdateIssueContentJob.perform_later(
         self.class.name,
-        self.id,
+        id,
         action,
         options
       )
@@ -23,8 +23,8 @@ module FullTextSearch
     end
 
     def queue_sync_on_destroy
-      return if self.container_type != Issue.name
-      queue_sync("destroy", issue_id: self.container_id)
+      return if container_type != Issue.name
+      queue_sync("destroy", issue_id: container_id)
     end
   end
 end

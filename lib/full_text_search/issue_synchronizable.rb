@@ -12,7 +12,7 @@ module FullTextSearch
     def queue_sync(action, options = {})
       FullTextSearch::UpdateIssueContentJob.perform_later(
         self.class.name,
-        self.id,
+        id,
         action,
         options
       )
