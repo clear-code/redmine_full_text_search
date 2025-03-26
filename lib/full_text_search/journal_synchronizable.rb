@@ -1,5 +1,5 @@
 module FullTextSearch
-  module IssueContentSynchronizable
+  module JournalSynchronizable
     extend ActiveSupport::Concern
 
     included do
@@ -23,16 +23,7 @@ module FullTextSearch
     end
 
     def queue_sync_on_destroy
-      case self
-      when Issue
-        queue_sync("destroy")
-      when Journal
-        queue_sync("destroy", issue_id: self.journalized_id)
-      when Attachment
-        if self.container_type == Issue.name
-          queue_sync("destroy", issue_id: self.container_id)
-        end
-      end
+      queue_sync("destroy", issue_id: self.journalized_id)
     end
   end
 end
