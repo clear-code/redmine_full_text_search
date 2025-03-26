@@ -17,7 +17,7 @@ module FullTextSearch
                    ARRAY[
                      'table', pgroonga_table_name('#{similar_issues_index_name}'),
                      'output_columns', 'issue_id, _score',
-                     'filter', '(content *S ' || pgroonga_escape(:query) || ') && issue_id != :id' || ' && #{filter_condition(user, project_ids)}',
+                     'filter', '(content *S ' || pgroonga_escape(:term) || ') && issue_id != :id' || ' && #{filter_condition(user, project_ids)}',
                      'limit', ':limit',
                      'sort_keys', '-_score'
                    ]
@@ -25,7 +25,7 @@ module FullTextSearch
           SQL
           response = nil
           ActiveSupport::Notifications.instrument("groonga.similar.search", sql: sql) do
-            response = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, query: similar_query, id: id, limit: limit]))
+            response = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, term: similar_term, id: id, limit: limit]))
           end
           command = Groonga::Command.find("select").new("select", {})
           r = Groonga::Client::Response.parse(command, response)

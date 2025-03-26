@@ -31,15 +31,15 @@ module FullTextSearch
           end
         end
 
-        def similar_query
-          query = [subject, description]
+        def similar_term
+          terms = [subject, description]
           notes = journals.sort_by(&:id).map(&:notes)
-          query.concat(notes)
+          terms.concat(notes)
           attachments.order(:id).each do |attachment|
-            query << attachment.filename if attachment.filename.present?
-            query << attachment.description if attachment.description.present?
+            terms << attachment.filename if attachment.filename.present?
+            terms << attachment.description if attachment.description.present?
           end
-          query.join("\n")
+          terms.join("\n")
         end
       end
     end
