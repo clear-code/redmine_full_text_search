@@ -9,12 +9,11 @@ module FullTextSearch
 
     private
 
-    def queue_sync(action, options = {})
+    def queue_sync(action)
       FullTextSearch::UpdateIssueContentJob.perform_later(
         self.class.name,
         id,
-        action,
-        options
+        action
       )
     end
 
