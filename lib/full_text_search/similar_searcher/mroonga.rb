@@ -29,14 +29,14 @@ module FullTextSearch
                    'select',
                    'table', 'issue_contents',
                    'output_columns', 'issue_id, _score',
-                   'filter', CONCAT('(content *S "', mroonga_escape(:term), '") && issue_id != ', :id, ' && #{filter_condition(user, project_ids)}'),
+                   'filter', CONCAT('(content *S "', mroonga_escape(:content), '") && issue_id != ', :id, ' && #{filter_condition(user, project_ids)}'),
                    'limit', :limit,
                    'sort_keys', '-_score'
                  )
           SQL
           r = nil
           ActiveSupport::Notifications.instrument("groonga.similar.search", sql: sql) do
-            r = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, term: similar_term, id: id.to_s, limit: limit.to_s]))
+            r = self.class.connection.select_value(ActiveRecord::Base.send(:sanitize_sql_array, [sql, content: similar_content, id: id.to_s, limit: limit.to_s]))
           end
           # NOTE: Hack to use Groonga::Client::Response.parse
           # Raise Mysql2::Error if error occurred
