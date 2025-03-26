@@ -11,6 +11,19 @@ module FullTextSearch
 
       module InstanceMethods
         def similar_issues(user: User.current, project_ids: [], limit: 5)
+          # NOTE: The sanitize_sql_array method in the MySQL adapter is not
+          # schema-aware. It quotes numeric parameters as strings to prevent
+          # query manipulation attacks. However, if numeric parameters like :id
+          # and :limit are not explicitly converted to strings beforehand, this
+          # can lead to a syntax error.
+          #
+          # For example, without the explicit conversion, the following error is
+          # caused
+          #
+          #   ...'limit', ''5'', 'sor' at line 5
+          #
+          # To prevent such syntax errors, we explicitly convert numeric
+          # parameters to strings before passing them to sanitize_sql_array.
           sql = <<-SQL.strip_heredoc
           select mroonga_command(
                    'select',
