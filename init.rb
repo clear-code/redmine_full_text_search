@@ -81,8 +81,10 @@ FullTextSearch.resolver.each do |redmine_class, mapper_class|
   mapper_class.attach(redmine_class)
 end
 FullTextSearch::CustomFieldCallbacks.attach
+Attachment.include(FullTextSearch::AttachmentSynchronizable)
+Issue.include(FullTextSearch::IssueSynchronizable)
 Issue.include(FullTextSearch::SimilarSearcher::Model)
-Journal.include(FullTextSearch::SimilarSearcher::Model)
+Journal.include(FullTextSearch::JournalSynchronizable)
 SearchController.helper(FullTextSearch::Hooks::SearchHelper)
 SearchController.prepend(FullTextSearch::Hooks::ControllerSearchIndex)
 IssuesController.helper(FullTextSearch::Hooks::SimilarIssuesHelper)

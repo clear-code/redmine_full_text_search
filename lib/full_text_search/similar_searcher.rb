@@ -3,10 +3,6 @@ module FullTextSearch
     module Model
       def self.included(base)
         base.include(InstanceMethods)
-        base.class_eval do
-          after_commit Callbacks
-          after_destroy Callbacks
-        end
         if base.respond_to?(:connection_db_config)
           adapter = base.connection_db_config.adapter
         else
@@ -34,34 +30,16 @@ module FullTextSearch
             build_condition("||", conditions)
           end
         end
-      end
 
-      # Add callbacks to Issue
-      class Callbacks
-        class << self
-          def after_commit(record)
-            FullTextSearch::UpdateIssueContentJob
-              .perform_later(record.class.name,
-                             record.id,
-                             "commit")
+        def similar_content
+          contents = [subject, description]
+          notes = journals.sort_by(&:id).map(&:notes)
+          contents.concat(notes)
+          attachments.order(:id).each do |attachment|
+            contents << attachment.filename if attachment.filename.present?
+            contents << attachment.description if attachment.description.present?
           end
-
-          def after_destroy(record)
-            # TODO: Refine
-            case record
-            when Issue
-              FullTextSearch::UpdateIssueContentJob
-                .perform_later(record.class.name,
-                               record.id,
-                               "destroy")
-            when Journal
-              FullTextSearch::UpdateIssueContentJob
-                .perform_later(record.class.name,
-                               record.id,
-                               "destroy",
-                               issue_id: record.journalized_id)
-            end
-          end
+          contents.join("\n")
         end
       end
     end
