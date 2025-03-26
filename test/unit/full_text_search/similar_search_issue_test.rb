@@ -77,7 +77,8 @@ module FullTextSearch
       fts_engine_groonga.save_attachments(
         [
           {
-            "file" => mock_file_with_options(:original_filename => "test.txt"),
+            "file" => mock_file_with_options(
+              :original_filename => "groonga-latest.txt"),
             "description" => "高速に検索 オープンソース! 最新情報"
           }
         ]
@@ -90,7 +91,8 @@ module FullTextSearch
       fts_engine_pgroonga.save_attachments(
         [
           {
-            "file" => mock_file_with_options(:original_filename => "test.txt"),
+            "file" => mock_file_with_options(
+              :original_filename => "pgroonga-latest.txt"),
             "description" => "組み込んで高速に検索 オープンソース! 最新情報"
           }
         ]
