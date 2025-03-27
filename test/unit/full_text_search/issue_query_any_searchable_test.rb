@@ -2,6 +2,8 @@ require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
   class IssueQueryAnySearchableTest < ActiveSupport::TestCase
+    include ActiveJob::TestHelper
+
     setup do
       unless IssueQuery.method_defined?(:sql_for_any_searchable_field)
         skip("Required feature 'sql_for_any_searchable_field' does not exist.")
@@ -15,11 +17,23 @@ module FullTextSearch
     end
 
     def test_or_one_word
-      subject_groonga = Issue.generate!(subject: "ぐるんが")
-      description_groonga = Issue.generate!(description: "ぐるんが")
-      without_groonga = Issue.generate!(subject: "no-keyword",
-                                        description: "no-keyword")
-      journal_groonga = Issue.generate!.journals.create!(notes: "ぐるんが")
+      subject_groonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "ぐるんが")
+        end
+      description_groonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(description: "ぐるんが")
+        end
+      without_groonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "no-keyword",
+                          description: "no-keyword")
+        end
+      journal_groonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!.journals.create!(notes: "ぐるんが")
+        end
       query = IssueQuery.new(
         :name => "_",
         :filters => {
@@ -40,18 +54,33 @@ module FullTextSearch
 
     def test_and_two_words
       subject_groonga_description_pgroonga =
-        Issue.generate!(subject: "ぐるんが",
-                        description: "ぴーじーるんが")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "ぐるんが",
+                          description: "ぴーじーるんが")
+        end
       subject_pgroonga_description_groonga =
-        Issue.generate!(subject: "ぴーじーるんが",
-                        description: "ぐるんが")
-      subject_groonga = Issue.generate!(description: "ぐるんが")
-      description_pgroonga = Issue.generate!(description: "ぴーじーるんが")
-      without_keywords = Issue.generate!(subject: "no-keyword",
-                                         description: "no-keyword")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "ぴーじーるんが",
+                          description: "ぐるんが")
+        end
+      subject_groonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(description: "ぐるんが")
+        end
+      description_pgroonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(description: "ぴーじーるんが")
+        end
+      without_keywords =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "no-keyword",
+                          description: "no-keyword")
+        end
       subject_pgroonga_journal_groonga =
-        Issue.generate!(subject: "ぴーじーるんが")
-             .journals.create!(notes: "ぐるんが")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "ぴーじーるんが")
+              .journals.create!(notes: "ぐるんが")
+        end
       query = IssueQuery.new(
         :name => "_",
         :filters => {
@@ -72,18 +101,33 @@ module FullTextSearch
 
     def test_not_and_two_words
       subject_groonga_description_pgroonga =
-        Issue.generate!(subject: "ぐるんが",
-                        description: "ぴーじーるんが")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "ぐるんが",
+                          description: "ぴーじーるんが")
+        end
       subject_pgroonga_description_groonga =
-        Issue.generate!(subject: "ぴーじーるんが",
-                        description: "ぐるんが")
-      subject_groonga = Issue.generate!(description: "ぐるんが")
-      description_pgroonga = Issue.generate!(description: "ぴーじーるんが")
-      without_keywords = Issue.generate!(subject: "no-keyword",
-                                         description: "no-keyword")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "ぴーじーるんが",
+                          description: "ぐるんが")
+        end
+      subject_groonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(description: "ぐるんが")
+        end
+      description_pgroonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(description: "ぴーじーるんが")
+        end
+      without_keywords =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "no-keyword",
+                          description: "no-keyword")
+        end
       subject_pgroonga_journal_groonga =
-        Issue.generate!(subject: "ぴーじーるんが")
-             .journals.create!(notes: "ぐるんが")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "ぴーじーるんが")
+              .journals.create!(notes: "ぐるんが")
+        end
       query = IssueQuery.new(
         :name => "_",
         :filters => {
@@ -109,19 +153,28 @@ module FullTextSearch
 
       # User's project issues.
       subject_groonga_description_pgroonga =
-        Issue.generate!(project: project,
-                        subject: "ぐるんが",
-                        description: "ぴーじーるんが")
-      without_keywords = Issue.generate!(project: project,
-                                         subject: "no-keyword",
-                                         description: "no-keyword")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: project,
+                          subject: "ぐるんが",
+                          description: "ぴーじーるんが")
+        end
+      without_keywords =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: project,
+                          subject: "no-keyword",
+                          description: "no-keyword")
+        end
       subject_pgroonga_journal_groonga =
-        Issue.generate!(project: project, subject: "ぴーじーるんが")
-             .journals.create!(notes: "ぐるんが")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: project, subject: "ぴーじーるんが")
+               .journals.create!(notes: "ぐるんが")
+        end
       # Another project issue.
       subject_pgroonga_description_groonga =
-             Issue.generate!(subject: "ぴーじーるんが",
-                             description: "ぐるんが")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(subject: "ぴーじーるんが",
+                          description: "ぐるんが")
+        end
 
       User.current = my_user
       query = IssueQuery.new(
@@ -154,21 +207,29 @@ module FullTextSearch
 
       # User's bookmarked project issues.
       subject_groonga_description_pgroonga =
-        Issue.generate!(project: bookmarked_project,
-                        subject: "ぐるんが",
-                        description: "ぴーじーるんが")
-      without_keywords = Issue.generate!(project: bookmarked_project,
-                                         subject: "no-keyword",
-                                         description: "no-keyword")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: bookmarked_project,
+                          subject: "ぐるんが",
+                          description: "ぴーじーるんが")
+        end
+      without_keywords =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: bookmarked_project,
+                          subject: "no-keyword",
+                          description: "no-keyword")
+        end
       subject_pgroonga_journal_groonga =
-        Issue.generate!(project: bookmarked_project, subject: "ぴーじーるんが")
-             .journals.create!(notes: "ぐるんが")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: bookmarked_project, subject: "ぴーじーるんが")
+              .journals.create!(notes: "ぐるんが")
+        end
       # Another project issue.
       subject_pgroonga_description_groonga =
-             Issue.generate!(project: no_bookmarked_project,
-                             subject: "ぴーじーるんが",
-                             description: "ぐるんが")
-
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: no_bookmarked_project,
+                          subject: "ぴーじーるんが",
+                          description: "ぐるんが")
+        end
       User.current = bookmark_user
       query = IssueQuery.new(
         :name => "_",
@@ -198,22 +259,30 @@ module FullTextSearch
 
       # User's project issues.
       subject_groonga_description_pgroonga =
-        Issue.generate!(project: project,
-                        subject: "ぐるんが",
-                        description: "ぴーじーるんが")
-      without_keywords = Issue.generate!(project: project,
-                                         subject: "no-keyword",
-                                         description: "no-keyword")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: project,
+                          subject: "ぐるんが",
+                          description: "ぴーじーるんが")
+        end
+      without_keywords =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: project,
+                          subject: "no-keyword",
+                          description: "no-keyword")
+        end
       subject_pgroonga_journal_groonga =
-        Issue.generate!(project: project, subject: "ぴーじーるんが")
-             .journals.create!(notes: "ぐるんが")
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: project, subject: "ぴーじーるんが")
+               .journals.create!(notes: "ぐるんが")
+        end
       # Closed issue.
       closed_subject_pgroonga_description_groonga =
-        Issue.generate!(project: project,
-                        subject: "ぴーじーるんが",
-                        description: "ぐるんが")
-             .close!
-
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          Issue.generate!(project: project,
+                          subject: "ぴーじーるんが",
+                          description: "ぐるんが")
+               .close!
+        end
       User.current = my_user
       query = IssueQuery.new(
         :name => "_",
