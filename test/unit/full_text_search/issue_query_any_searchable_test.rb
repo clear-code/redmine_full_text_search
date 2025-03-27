@@ -11,9 +11,13 @@ module FullTextSearch
       unless Redmine::Database.postgresql?
         skip("Required PGroonga now. We will support Mroonga soon.")
       end
-      Issue.destroy_all
       IssueContent.destroy_all
       User.current = nil
+      perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+        Attachment.destroy_all
+        Issue.destroy_all
+        Journal.destroy_all
+      end
     end
 
     def test_or_one_word
@@ -34,6 +38,21 @@ module FullTextSearch
         perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
           Issue.generate!.journals.create!(notes: "ぐるんが")
         end
+      attachment_groonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          issue = Issue.generate!
+          issue.save_attachments(
+            [
+              {
+                "file" => mock_file_with_options(
+                  :original_filename => "groonga.txt"),
+                "description" => "ぐるんが"
+              }
+            ]
+          )
+          issue.save!
+          issue
+        end
       query = IssueQuery.new(
         :name => "_",
         :filters => {
@@ -47,7 +66,8 @@ module FullTextSearch
       expected_issues = [
         subject_groonga,
         description_groonga,
-        journal_groonga.issue
+        journal_groonga.issue,
+        attachment_groonga
       ]
       assert_equal(expected_issues, query.issues)
     end
@@ -81,6 +101,21 @@ module FullTextSearch
           Issue.generate!(subject: "ぴーじーるんが")
               .journals.create!(notes: "ぐるんが")
         end
+      subject_groonga_attachment_pgroonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          issue = Issue.generate!(subject: "ぐるんが")
+          issue.save_attachments(
+            [
+              {
+                "file" => mock_file_with_options(
+                  :original_filename => "pgroonga.txt"),
+                "description" => "ぴーじーるんが"
+              }
+            ]
+          )
+          issue.save!
+          issue
+        end
       query = IssueQuery.new(
         :name => "_",
         :filters => {
@@ -94,7 +129,8 @@ module FullTextSearch
       expected_issues = [
         subject_groonga_description_pgroonga,
         subject_pgroonga_description_groonga,
-        subject_pgroonga_journal_groonga.issue
+        subject_pgroonga_journal_groonga.issue,
+        subject_groonga_attachment_pgroonga
       ]
       assert_equal(expected_issues, query.issues)
     end
@@ -127,6 +163,21 @@ module FullTextSearch
         perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
           Issue.generate!(subject: "ぴーじーるんが")
               .journals.create!(notes: "ぐるんが")
+        end
+      subject_groonga_attachment_pgroonga =
+        perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
+          issue = Issue.generate!(subject: "ぐるんが")
+          issue.save_attachments(
+            [
+              {
+                "file" => mock_file_with_options(
+                  :original_filename => "pgroonga.txt"),
+                "description" => "ぴーじーるんが"
+              }
+            ]
+          )
+          issue.save!
+          issue
         end
       query = IssueQuery.new(
         :name => "_",
@@ -307,7 +358,5 @@ module FullTextSearch
       ]
       assert_equal(expected_issues, query.issues)
     end
-
-    # TODO: Add test case to search the attachment's filename and description.
   end
 end
