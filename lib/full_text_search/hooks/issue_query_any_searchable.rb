@@ -18,7 +18,7 @@ module FullTextSearch
         else
           if Rails.env.production?
             logger.warn(r.message)
-            []
+            ''
           else
             raise r.message
           end
