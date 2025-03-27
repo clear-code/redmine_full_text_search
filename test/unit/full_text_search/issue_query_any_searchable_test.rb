@@ -9,11 +9,12 @@ module FullTextSearch
       unless Redmine::Database.postgresql?
         skip("Required PGroonga now. We will support Mroonga soon.")
       end
+      Issue.destroy_all
+      IssueContent.destroy_all
       User.current = nil
     end
 
     def test_or_one_word
-      Issue.destroy_all
       subject_groonga = Issue.generate!(subject: "ぐるんが")
       description_groonga = Issue.generate!(description: "ぐるんが")
       without_groonga = Issue.generate!(subject: "no-keyword",
@@ -38,7 +39,6 @@ module FullTextSearch
     end
 
     def test_and_two_words
-      Issue.destroy_all
       subject_groonga_description_pgroonga =
         Issue.generate!(subject: "ぐるんが",
                         description: "ぴーじーるんが")
@@ -71,7 +71,6 @@ module FullTextSearch
     end
 
     def test_not_and_two_words
-      Issue.destroy_all
       subject_groonga_description_pgroonga =
         Issue.generate!(subject: "ぐるんが",
                         description: "ぴーじーるんが")
@@ -104,7 +103,6 @@ module FullTextSearch
     end
 
     def test_and_two_words_within_my_projects
-      Issue.destroy_all
       my_user = User.find(1)
       project = Project.generate!
       User.add_to_project(my_user, project)
@@ -148,7 +146,6 @@ module FullTextSearch
     end
 
     def test_and_two_words_within_bookmarks
-      Issue.destroy_all
       bookmark_user = User.find(1)
       bookmarked_project =
         Project.where(id: [bookmark_user.bookmarked_project_ids])
@@ -195,7 +192,6 @@ module FullTextSearch
     end
 
     def test_and_two_words_for_open_issues_within_my_projects
-      Issue.destroy_all
       my_user = User.find(1)
       project = Project.generate!
       User.add_to_project(my_user, project)
