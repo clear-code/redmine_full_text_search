@@ -8,7 +8,6 @@ module FullTextSearch
         response = self.class.connection.select_value(
           build_any_searchable_query(query, build_filter_condition)
         )
-
         command = Groonga::Command.find("select").new("select", {})
         r = Groonga::Client::Response.parse(command, response)
         if r.success?
