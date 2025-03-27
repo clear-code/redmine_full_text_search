@@ -70,6 +70,39 @@ module FullTextSearch
       assert_equal(expected_issues, query.issues)
     end
 
+    def test_not_and_two_words
+      Issue.destroy_all
+      subject_groonga_description_pgroonga =
+        Issue.generate!(subject: "ぐるんが",
+                        description: "ぴーじーるんが")
+      subject_pgroonga_description_groonga =
+        Issue.generate!(subject: "ぴーじーるんが",
+                        description: "ぐるんが")
+      subject_groonga = Issue.generate!(description: "ぐるんが")
+      description_pgroonga = Issue.generate!(description: "ぴーじーるんが")
+      without_keywords = Issue.generate!(subject: "no-keyword",
+                                         description: "no-keyword")
+      subject_pgroonga_journal_groonga =
+        Issue.generate!(subject: "ぴーじーるんが")
+             .journals.create!(notes: "ぐるんが")
+      query = IssueQuery.new(
+        :name => "_",
+        :filters => {
+          "any_searchable" => {
+            :operator => "!~",
+            :values => ["ぐるんが ぴーじーるんが"]
+          }
+        },
+        :sort_criteria => [["id", "asc"]]
+      )
+      expected_issues = [
+        subject_groonga,
+        description_pgroonga,
+        without_keywords
+      ]
+      assert_equal(expected_issues, query.issues)
+    end
+
     def test_and_two_words_within_my_projects
       Issue.destroy_all
       my_user = User.find(1)
