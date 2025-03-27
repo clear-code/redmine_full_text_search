@@ -70,7 +70,7 @@ module FullTextSearch
         "index_issue_contents_pgroonga"
       end
 
-      def build_any_searchable_query(query, condition_filter)
+      def build_any_searchable_query(query, filter_condition)
         sql = case ActiveRecord::Base.connection_db_config.adapter
               when "postgresql"
                 <<-SQL.strip_heredoc
@@ -81,7 +81,7 @@ module FullTextSearch
                       'match_columns', 'content',
                       'output_columns', 'issue_id',
                       'query', pgroonga_query_escape(:query),
-                      'filter', '#{condition_filter}'
+                      'filter', '#{filter_condition}'
                     ]
                   )::json
                 SQL
