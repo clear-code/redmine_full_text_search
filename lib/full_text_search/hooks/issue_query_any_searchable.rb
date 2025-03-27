@@ -5,9 +5,8 @@ module FullTextSearch
 
       def sql_for_any_searchable_field(field, operator, value)
         query = value.first
-        filter_condition = build_filter_condition
         response = self.class.connection.select_value(
-          build_any_searchable_query(query, filter_condition)
+          build_any_searchable_query(query, build_filter_condition)
         )
 
         command = Groonga::Command.find("select").new("select", {})
