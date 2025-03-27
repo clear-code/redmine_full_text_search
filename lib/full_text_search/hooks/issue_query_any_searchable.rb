@@ -62,7 +62,7 @@ module FullTextSearch
         if target_issue_ids.present?
           conditions << "in_values(issue_id, #{target_issue_ids.join(",")})"
         end
-        conditions += "1==1" if conditions.empty?
+        conditions << "1==1" if conditions.empty?
         build_condition("&&", conditions)
       end
 
