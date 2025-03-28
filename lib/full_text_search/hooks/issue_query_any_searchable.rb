@@ -80,7 +80,8 @@ module FullTextSearch
                       'match_columns', 'content',
                       'output_columns', 'issue_id',
                       'query', pgroonga_query_escape(:query),
-                      'filter', '#{filter_condition}'
+                      'filter', '#{filter_condition}',
+                      'limit', '-1'
                     ]
                   )::json
                 SQL
