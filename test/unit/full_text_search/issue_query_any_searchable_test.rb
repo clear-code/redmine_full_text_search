@@ -11,13 +11,17 @@ module FullTextSearch
       unless Redmine::Database.postgresql?
         skip("Required PGroonga now. We will support Mroonga soon.")
       end
-      IssueContent.destroy_all
+      @default_adapter = ActiveJob::Base.queue_adapter
+      ActiveJob::Base.queue_adapter = :inline
       User.current = nil
-      perform_enqueued_jobs(only: FullTextSearch::UpdateIssueContentJob) do
-        Attachment.destroy_all
-        Issue.destroy_all
-        Journal.destroy_all
-      end
+      Attachment.destroy_all
+      Issue.destroy_all
+      IssueContent.destroy_all
+      Journal.destroy_all
+    end
+
+    teardown do
+      ActiveJob::Base.queue_adapter = @default_adapter
     end
 
     def test_or_one_word
