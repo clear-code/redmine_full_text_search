@@ -16,7 +16,7 @@ module FullTextSearch
         else
           if Rails.env.production?
             logger.warn(r.message)
-            ''
+            ""
           else
             raise r.message
           end
@@ -46,8 +46,8 @@ module FullTextSearch
       end
 
       def compute_target_issue_ids
-        return unless has_filter?('status_id')
-        staus_opened = operator_for('status_id') == 'o'
+        return unless has_filter?("status_id")
+        staus_opened = operator_for("status_id") == "o"
         Issue.visible.open(staus_opened).ids
       end
 
@@ -92,12 +92,12 @@ module FullTextSearch
       end
 
       def build_issue_id_condition(issue_ids, operator)
-        return operator == '!~' ? '1=1' : '1=0' if issue_ids.empty?
+        return operator == "!~" ? "1=1" : "1=0" if issue_ids.empty?
 
-        if operator == '!~'
-          "#{Issue.table_name}.id NOT IN (#{issue_ids.join(',')})"
+        if operator == "!~"
+          "#{Issue.table_name}.id NOT IN (#{issue_ids.join(",")})"
         else
-          "#{Issue.table_name}.id IN (#{issue_ids.join(',')})"
+          "#{Issue.table_name}.id IN (#{issue_ids.join(",")})"
         end
       end
     end
