@@ -4,7 +4,10 @@ module FullTextSearch
   class SimilarSearchIssueTest < ActiveSupport::TestCase
     include ActiveJob::TestHelper
 
+    fixtures :enumerations
+    fixtures :issue_statuses
     fixtures :roles
+    fixtures :trackers
     fixtures :users
 
     def setup
