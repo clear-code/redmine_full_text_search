@@ -51,7 +51,7 @@ module FullTextSearch
       # The default max wait time is 2 seconds in Capybara. But in these tests.
       # it's not enough to wait for the search results to be displayed in CI.
       @default_max_wait_time = Capybara.default_max_wait_time
-      Capybara.default_max_wait_time = 5
+      Capybara.default_max_wait_time = 10
 
       Target.destroy_all
       batch_runner = BatchRunner.new(show_progress: false)
