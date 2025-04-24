@@ -65,9 +65,9 @@ module FullTextSearch
 
     def test_keep_search_target
       visit(search_url)
-      click_on("search-target-wiki-pages")
+      find("#search-target-wiki-pages").click
       fill_in("search-input", with: "cookbook")
-      click_on("search-submit")
+      find("#search-submit").click
       wait_for_ajax
       within("#search-result #search-result-content #search-source-types") do
         wiki_tab = find(:link, "search-target-wiki-pages")
@@ -80,7 +80,7 @@ module FullTextSearch
       visit(url_for(controller: "search",
                     action: "index",
                     id: subproject1.identifier))
-      click_on("search-target-issues")
+      find("#search-target-issues").click
       wait_for_ajax
       within("#search-result #search-result-content #search-results") do
         assert_selector "li", count: 2
@@ -92,7 +92,7 @@ module FullTextSearch
 
     def test_pagination
       visit(search_url)
-      click_on("search-target-issues")
+      find("#search-target-issues").click
       wait_for_ajax
       within("#search-result #search-result-content #search-results") do
         assert_selector "li", count: 10
