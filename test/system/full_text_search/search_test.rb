@@ -60,8 +60,8 @@ module FullTextSearch
       click_on("search-target-wiki-pages")
       fill_in("search-input", with: "cookbook")
       click_on("search-submit")
-      assert_equal("selected",
-                   find(:link, "search-target-wiki-pages")["class"])
+      wiki_tab = find(:link, "search-target-wiki-pages")
+      assert_equal("selected", wiki_tab["class"])
     end
 
     def test_no_pagination
@@ -70,27 +70,19 @@ module FullTextSearch
                     action: "index",
                     id: subproject1.identifier))
       click_on("search-target-issues")
-      within("#search-results") do
-        assert_equal(2, all("li").size)
-      end
-      within(".pagination") do
-        assert_equal([], all("li").to_a)
-      end
+      assert_selector "#search-results li", count: 2
+      assert_selector ".pagination li", count: 0
     end
 
     def test_pagination
       visit(search_url)
       click_on("search-target-issues")
-      within("#search-results") do
-        assert_equal(10, all("li").size)
-      end
+      assert_selector "#search-results li", count: 10
       within(".pagination") do
         assert_equal("1", find(".current").text)
         find(".next a").click
       end
-      within("#search-results") do
-        assert_equal(10, all("li").size)
-      end
+      assert_selector "#search-results li", count: 10
     end
   end
 end
