@@ -90,8 +90,12 @@ module FullTextSearch
       @record = record
     end
 
-    def find_fts_target
-      Target.find_or_initialize_by(fts_target_keys)
+    def find_fts_target(initialize: true)
+      if initialize
+        Target.find_or_initialize_by(fts_target_keys)
+      else
+        Target.find_by(fts_target_keys)
+      end
     end
 
     def destroy_fts_target

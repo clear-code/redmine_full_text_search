@@ -44,6 +44,46 @@ module FullTextSearch
                    targets.collect {|target| target.attributes.except("id")})
     end
 
+    test "Test that when you update the status of an issue, journal status is also updated" do
+      issue = Issue.generate!
+      issue.reload
+      journal = issue.journals.create!(notes: "comment")
+      journal.reload
+      issue.status_id = 2
+      issue.save!
+      issue.reload
+
+      # Redmine 5.0 doesn't have updated_on
+      if journal.respond_to?(:updated_on)
+        last_modified_at = journal.updated_on
+      else
+        last_modified_at = journal.created_on
+      end
+      targets = Target.where(source_id: journal.id,
+                             source_type_id: Type.journal.id)
+      assert_equal([
+                     {
+                       "project_id" => issue.project_id,
+                       "source_id" => journal.id,
+                       "source_type_id" => Type.journal.id,
+                       "last_modified_at" => last_modified_at,
+                       "registered_at" => journal.created_on,
+                       "title" => null_string,
+                       "content" => journal.notes,
+                       "tag_ids" => [
+                         Tag.user(journal.user_id).id,
+                         Tag.tracker(issue.tracker_id).id,
+                         Tag.issue_status(issue.status_id).id,
+                       ],
+                       "is_private" => issue.is_private,
+                       "custom_field_id" => null_number,
+                       "container_id" => issue.id,
+                       "container_type_id" => Type.issue.id,
+                     }
+                   ],
+                   targets.collect {|target| target.attributes.except("id")})
+    end
+
     def test_destroy
       searchable_custom_field = custom_fields(:custom_fields_002)
       issue = Issue.generate! do |i|

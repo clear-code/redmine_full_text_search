@@ -32,10 +32,10 @@ module FullTextSearch
       fts_target.last_modified_at = @record.updated_on
       fts_target.registered_at = @record.created_on
       fts_target.save!
-      return unless options[:recursive]
+      return unless fts_target.saved_change_to_tag_ids
 
       @record.journals.each do |journal|
-        JournalMapper.redmine_mapper(journal).upsert_fts_target(options)
+        JournalMapper.redmine_mapper(journal).upsert_fts_target(options.merge(initialize: false))
       end
       # @record.custom_values
     end

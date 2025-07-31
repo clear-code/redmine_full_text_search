@@ -33,7 +33,9 @@ JOIN projects
       return if issue.nil?
       return unless issue.is_a?(Issue)
 
-      fts_target = find_fts_target
+      fts_target = find_fts_target(initialize: options.fetch(:initialize, true))
+      return if fts_target.blank?
+
       fts_target.source_id = @record.id
       fts_target.source_type_id = Type[@record.class].id
       fts_target.project_id = issue.project_id
