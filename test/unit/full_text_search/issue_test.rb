@@ -45,11 +45,11 @@ module FullTextSearch
     end
 
     test "Test that when you update the status of an issue, journal status is also updated" do
-      issue = Issue.generate!
+      issue = Issue.generate!(status: IssueStatus.find_by_name('New'))
       issue.reload
       journal = issue.journals.create!(notes: "comment")
       journal.reload
-      issue.status_id = 2
+      issue.status = IssueStatus.find_by_name('Closed')
       issue.save!
       issue.reload
 
