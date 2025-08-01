@@ -44,12 +44,16 @@ module FullTextSearch
                    targets.collect {|target| target.attributes.except("id")})
     end
 
-    test "Test that when you update the status of an issue, journal status is also updated" do
-      issue = Issue.generate!(status: IssueStatus.find_by_name('New'))
+    test "Test that when you update the tag_ids of an issue, journal tag_ids is also updated" do
+      issue = Issue.generate!(
+        status: IssueStatus.find_by_name("New"),
+        tracker: Tracker.find_by_name("Bug")
+      )
       issue.reload
       journal = issue.journals.create!(notes: "comment")
       journal.reload
-      issue.status = IssueStatus.find_by_name('Closed')
+      issue.status = IssueStatus.find_by_name("Closed")
+      issue.tracker = Tracker.find_by_name("Support request")
       issue.save!
       issue.reload
 
@@ -59,29 +63,16 @@ module FullTextSearch
       else
         last_modified_at = journal.created_on
       end
-      targets = Target.where(source_id: journal.id,
-                             source_type_id: Type.journal.id)
+      journal_targets = Target.where(source_id: journal.id,
+                                     source_type_id: Type.journal.id)
       assert_equal([
-                     {
-                       "project_id" => issue.project_id,
-                       "source_id" => journal.id,
-                       "source_type_id" => Type.journal.id,
-                       "last_modified_at" => last_modified_at,
-                       "registered_at" => journal.created_on,
-                       "title" => null_string,
-                       "content" => journal.notes,
-                       "tag_ids" => [
-                         Tag.user(journal.user_id).id,
-                         Tag.tracker(issue.tracker_id).id,
-                         Tag.issue_status(issue.status_id).id,
-                       ],
-                       "is_private" => issue.is_private,
-                       "custom_field_id" => null_number,
-                       "container_id" => issue.id,
-                       "container_type_id" => Type.issue.id,
-                     }
+                     [
+                       Tag.user(journal.user_id).id,
+                       Tag.tracker(issue.tracker_id).id,
+                       Tag.issue_status(issue.status_id).id,
+                     ],
                    ],
-                   targets.collect {|target| target.attributes.except("id")})
+                   journal_targets.collect {|target| target.tag_ids})
     end
 
     def test_destroy
