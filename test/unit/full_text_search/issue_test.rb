@@ -44,7 +44,7 @@ module FullTextSearch
                    targets.collect {|target| target.attributes.except("id")})
     end
 
-    test "Test that when you update the tag_ids of an issue, journal tag_ids is also updated" do
+    def test_save_journal_status_and_tracker
       issue = Issue.generate!(
         status: IssueStatus.find_by_name("New"),
         tracker: Tracker.find_by_name("Bug")
