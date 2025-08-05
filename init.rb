@@ -29,6 +29,13 @@ Redmine::Plugin.register :full_text_search do
   settings partial: "settings/full_text_search"
 end
 
+# For backward compatibility with Redmine < 6.
+# ApplicationRecord is inherited from ActiveRecord Models instead of ActiveRecord::Base in Redmine >= 6.
+# ref: https://www.redmine.org/issues/38975
+unless defined?(ApplicationRecord)
+  ApplicationRecord = ActiveRecord::Base
+end
+
 Redmine::Search.map do |search|
   search.register :changes
 end
