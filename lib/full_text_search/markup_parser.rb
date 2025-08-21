@@ -18,7 +18,7 @@ module FullTextSearch
       return ["", []] unless html.present?
 
       document = Document.new
-      parser = Nokogiri::HTML::SAX::Parser.new(document)
+      parser = Nokogiri::HTML::SAX::Parser.new(document, html.encoding)
       parser.parse(html)
       [document.text.strip, document.tag_ids]
     end
