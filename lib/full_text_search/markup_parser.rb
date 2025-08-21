@@ -18,7 +18,8 @@ module FullTextSearch
       return ["", []] unless html.present?
 
       document = Document.new
-      # We need .to_s for old Nokogiri. We can remove the .to_s after 1.17.0.
+      # We need .to_s for old Nokogiri. We can remove the .to_s after we drop support for Redmine < 6.0.
+      # Redmine 6.0 requires Nokogiri 1.18.3 or later.
       parser = Nokogiri::HTML::SAX::Parser.new(document, html.encoding.to_s)
       parser.parse(html)
       [document.text.strip, document.tag_ids]
