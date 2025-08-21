@@ -18,7 +18,8 @@ module FullTextSearch
       return ["", []] unless html.present?
 
       document = Document.new
-      parser = Nokogiri::HTML::SAX::Parser.new(document, html.encoding)
+      # We need .to_s for old Nokogiri. We can remove the .to_s after 1.17.0.
+      parser = Nokogiri::HTML::SAX::Parser.new(document, html.encoding.to_s)
       parser.parse(html)
       [document.text.strip, document.tag_ids]
     end
