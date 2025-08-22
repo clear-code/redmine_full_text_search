@@ -27,14 +27,11 @@ JOIN projects
       end
     end
 
-    def upsert_fts_target(options={})
+    def save_fts_target(fts_target)
       # journal belongs to an issue for now.
       issue = @record.journalized
       return if issue.nil?
       return unless issue.is_a?(Issue)
-
-      fts_target = find_fts_target(initialize: options.fetch(:initialize, true))
-      return unless fts_target
 
       fts_target.source_id = @record.id
       fts_target.source_type_id = Type[@record.class].id
@@ -59,6 +56,16 @@ JOIN projects
       end
       fts_target.registered_at = @record.created_on
       fts_target.save!
+    end
+
+    def update_fts_target(options={})
+      fts_target = find_fts_target(initialize: false)
+      return unless fts_target
+      save_fts_target(fts_target)
+    end
+
+    def upsert_fts_target(options={})
+      save_fts_target(find_fts_target(initialize: true))
     end
   end
 
