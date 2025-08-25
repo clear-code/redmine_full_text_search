@@ -49,30 +49,21 @@ module FullTextSearch
         status: IssueStatus.find_by_name("New"),
         tracker: Tracker.find_by_name("Bug")
       )
-      issue.reload
       journal = issue.journals.create!(notes: "comment")
-      journal.reload
       issue.status = IssueStatus.find_by_name("Closed")
       issue.tracker = Tracker.find_by_name("Support request")
       issue.save!
-      issue.reload
 
-      # Redmine 5.0 doesn't have updated_on
-      if journal.respond_to?(:updated_on)
-        last_modified_at = journal.updated_on
-      else
-        last_modified_at = journal.created_on
-      end
       journal_targets = Target.where(source_id: journal.id,
                                      source_type_id: Type.journal.id)
       assert_equal([
                      [
-                       Tag.user(journal.user_id).id,
-                       Tag.tracker(issue.tracker_id).id,
-                       Tag.issue_status(issue.status_id).id,
+                       Tag.user(journal.user_id),
+                       Tag.tracker(issue.tracker_id),
+                       Tag.issue_status(issue.status_id),
                      ],
                    ],
-                   journal_targets.collect {|target| target.tag_ids})
+                   journal_targets.collect(&:tags))
     end
 
     def test_destroy
