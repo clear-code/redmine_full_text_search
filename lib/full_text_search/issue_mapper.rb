@@ -32,10 +32,23 @@ module FullTextSearch
       fts_target.last_modified_at = @record.updated_on
       fts_target.registered_at = @record.created_on
       fts_target.save!
-      return unless options[:recursive]
 
       @record.journals.each do |journal|
-        JournalMapper.redmine_mapper(journal).upsert_fts_target(options)
+        redmine_mapper = JournalMapper.redmine_mapper(journal)
+        # We don't insert a new FTS target here to avoid an unique
+        # constraint error when a new journal is added. The following
+        # jobs are enqueued when a new journal is added:
+        #
+        # 1. UpsertTargetJob(IssueMapper)
+        # 2. UpsertTargetJob(JournalMapper)
+        #
+        # If both of jobs are executed in parallel, both of job 1. and
+        # job 2. may try adding new FTS target for the same
+        # journal. In the case, one of them is failed by an unique
+        # constraint error. If we don't create a new FTS target in
+        # here (job 1.), we can avoid the error.
+        next unless redmine_mapper.find_fts_target.persisted?
+        redmine_mapper.upsert_fts_target(options)
       end
       # @record.custom_values
     end
