@@ -63,7 +63,7 @@ module FullTextSearch
                        Tag.issue_status(issue.status_id),
                      ].sort_by(&:id),
                    ],
-                   journal_targets.order(:id).collect(&:tags))
+                   journal_targets.collect {|target| target.tags.sort_by(&:id)})
     end
 
     def test_destroy
