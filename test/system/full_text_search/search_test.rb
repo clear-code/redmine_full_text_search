@@ -63,8 +63,8 @@ module FullTextSearch
       within("#search-result") do
         within("#search-result-content") do
           within("#search-source-types") do
-            assert find_link("search-target-wiki-pages",
-                             class: "selected")
+            find_link("search-target-wiki-pages",
+                      class: "selected")
           end
         end
       end
