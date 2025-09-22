@@ -44,6 +44,28 @@ module FullTextSearch
                    targets.collect {|target| target.attributes.except("id")})
     end
 
+    def test_save_journal_status_and_tracker
+      issue = Issue.generate!(
+        status: IssueStatus.find_by_name("New"),
+        tracker: Tracker.find_by_name("Bug")
+      )
+      journal = issue.journals.create!(notes: "comment")
+      issue.status = IssueStatus.find_by_name("Closed")
+      issue.tracker = Tracker.find_by_name("Support request")
+      issue.save!
+
+      journal_targets = Target.where(source_id: journal.id,
+                                     source_type_id: Type.journal.id)
+      assert_equal([
+                     [
+                       Tag.user(journal.user_id),
+                       Tag.tracker(issue.tracker_id),
+                       Tag.issue_status(issue.status_id),
+                     ].sort_by(&:id),
+                   ],
+                   journal_targets.collect {|target| target.tags.sort_by(&:id)})
+    end
+
     def test_destroy
       searchable_custom_field = custom_fields(:custom_fields_002)
       issue = Issue.generate! do |i|
