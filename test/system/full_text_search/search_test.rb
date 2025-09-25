@@ -60,8 +60,14 @@ module FullTextSearch
       click_on("search-target-wiki-pages")
       fill_in("search-input", with: "cookbook")
       click_on("search-submit")
-      assert_equal("selected",
-                   find(:link, "search-target-wiki-pages")["class"])
+      within("#search-result") do
+        within("#search-result-content") do
+          within("#search-source-types") do
+            find_link("search-target-wiki-pages",
+                      class: "selected")
+          end
+        end
+      end
     end
 
     def test_no_pagination
