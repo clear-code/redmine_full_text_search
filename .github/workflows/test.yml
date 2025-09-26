@@ -66,6 +66,12 @@ jobs:
           - redmine-version: "master"
             ruby-version: "3.3"
             rdbms: "PostgreSQL"
+          - redmine-version: "master"
+            ruby-version: "3.4"
+            rdbms: "MySQL"
+          - redmine-version: "master"
+            ruby-version: "3.4"
+            rdbms: "PostgreSQL"
     steps:
       - uses: actions/checkout@v5
       - uses: ruby/setup-ruby@v1

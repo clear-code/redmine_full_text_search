@@ -20,14 +20,14 @@ module FullTextSearch
       else
         data = ChupaText::InputData.new(path)
       end
-      text = ""
+      text = +""
       begin
         data.need_screenshot = false
         data.mime_type = content_type
         data.timeout = @timeout
         data.max_body_size = @max_size
         self.class.extractor.extract(data) do |extracted|
-          body = extracted.body
+          body = +extracted.body
           extracted.release
           body.scrub!("")
           body.gsub!("\u0000", "")

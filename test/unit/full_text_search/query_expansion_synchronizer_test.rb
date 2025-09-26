@@ -14,7 +14,7 @@ module FullTextSearch
     end
 
     def test_json_array
-      synchronize(StringIO.new(<<-JSON))
+      synchronize(StringIO.new(+<<-JSON))
 [
 ["Groonga", "Groonga"],
 ["Groonga", "Senna"]
@@ -30,7 +30,7 @@ module FullTextSearch
     end
 
     def test_json_object
-      synchronize(StringIO.new(<<-JSON))
+      synchronize(StringIO.new(+<<-JSON))
 [
 {"source": "Groonga", "destination": "Groonga"},
 {"source": "Groonga", "destination": "Senna"}
@@ -46,7 +46,7 @@ module FullTextSearch
     end
 
     def test_csv
-      synchronize(StringIO.new(<<-CSV))
+      synchronize(StringIO.new(+<<-CSV))
 Groonga,Groonga
 Groonga,Senna
       CSV
@@ -66,7 +66,7 @@ Groonga,Senna
       FtsQueryExpansion.create!(source: "Groonga",
                                 destination: "Senna",
                                 updated_at: Time.current - 2)
-      synchronize(StringIO.new(<<-CSV))
+      synchronize(StringIO.new(+<<-CSV))
 Groonga,Groonga
       CSV
       assert_equal([

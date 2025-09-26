@@ -149,7 +149,7 @@ module FullTextSearch
         change = item
         changeset = change.changeset
         repository = changeset.repository
-        title = ""
+        title = +""
         title << "#{repository.identifier}:" unless repository.identifier.blank?
         title << "#{change.path}@#{changeset.revision}"
         title
