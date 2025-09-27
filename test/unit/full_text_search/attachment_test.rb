@@ -135,7 +135,7 @@ module FullTextSearch
 
     def format_log_message(message, context, error_message=nil)
       fts_target_id = context[:fts_target].id
-      formatted_message = "[full-text-search][text-extract] "
+      formatted_message = +"[full-text-search][text-extract] "
       formatted_message << "#{message}: "
       formatted_message << "FullTextSearch::Target: <#{fts_target_id}>: "
       formatted_message << "Attachment: <#{context[:attachment].id}>: "

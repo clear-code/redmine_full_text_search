@@ -40,7 +40,7 @@ module FullTextSearch
       attr_reader :text
       attr_reader :tag_ids
       def initialize
-        @text = ""
+        @text = +""
         @tag_ids = []
 
         @tag_stack = []

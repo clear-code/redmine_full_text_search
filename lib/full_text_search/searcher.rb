@@ -361,7 +361,7 @@ module FullTextSearch
         begin
           tag.value
         rescue ActiveRecord::RecordNotFound => error
-          message = "[full-text-search][searcher][drilldown][tag] "
+          message = +"[full-text-search][searcher][drilldown][tag] "
           message << "orphan tag exists: #{tag_id}(#{n_records}): "
           message << "<#{tag.name}>/<#{tag.type.name}>"
           Rails.logger.warn(message)
