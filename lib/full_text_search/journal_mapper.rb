@@ -49,12 +49,7 @@ JOIN projects
       tag_ids << Tag.tracker(issue.tracker_id).id if issue.tracker_id
       tag_ids << Tag.issue_status(issue.status_id).id if issue.status_id
       fts_target.tag_ids = tag_ids
-      # Redmine 5.0 doesn't have updated_on
-      if @record.respond_to?(:updated_on)
-        fts_target.last_modified_at = @record.updated_on
-      else
-        fts_target.last_modified_at = @record.created_on
-      end
+      fts_target.last_modified_at = @record.updated_on
       fts_target.registered_at = @record.created_on
       fts_target.save!
     end
