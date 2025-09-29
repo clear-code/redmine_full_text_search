@@ -1,5 +1,45 @@
 # Redmine FullTextSearch
 
+## 2.0.2 - 2025-09-29
+
+### Improvements
+
+  * Supported Redmine 6.0 and Remine 6.1.
+
+  * Changed to use the last update time in the issue notes, in Remine 6.0 and later.
+
+    * Since Remine 6.0 added the last update time to the issue notes, this plugin also uses it.
+
+  * Improved the import of repository changes.
+
+  * Dropped support for Redmine 5.0.
+
+  * Dropped support for end-of-life Ruby versions.
+
+    * For Redmine 5.1: Ruby 2.7, 3.0, 3.1.
+
+    * For Redmine 6.0: Ruby 3.1.
+
+### Fixed
+
+  * The status of issues's comment is corrected.
+
+    * The status was set at the time the comment was added, and differed from the actual issue status.
+
+  * Fixed property labels not matching language settings when editing issues.
+
+  * Fixed garbled text in Wiki snippets in search results.
+
+  * Shorten the text of the repository change history.
+
+    * This only impacts MySQL.
+
+    * This is due to the size limit of MySQL TEXT.
+
+### Thanks
+
+  * asyahanaicsp
+
 ## 2.0.1 - 2024-05-27
 
 ### Improvements
