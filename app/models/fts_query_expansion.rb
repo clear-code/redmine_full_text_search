@@ -1,10 +1,5 @@
 class FtsQueryExpansion < ApplicationRecord
-  if respond_to?(:connection_db_config)
-    adapter = connection_db_config.adapter
-  else
-    adapter = connection_config[:adapter]
-  end
-  case adapter
+  case connection_db_config.adapter
   when "postgresql"
     include FullTextSearch::Pgroonga
   when "mysql2"
