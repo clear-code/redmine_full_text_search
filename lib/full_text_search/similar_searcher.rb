@@ -3,12 +3,7 @@ module FullTextSearch
     module Model
       def self.included(base)
         base.include(InstanceMethods)
-        if base.respond_to?(:connection_db_config)
-          adapter = base.connection_db_config.adapter
-        else
-          adapter = base.connection_config[:adapter]
-        end
-        case adapter
+        case base.connection_db_config.adapter
         when "postgresql"
           base.include(FullTextSearch::SimilarSearcher::Pgroonga)
         when "mysql2"
