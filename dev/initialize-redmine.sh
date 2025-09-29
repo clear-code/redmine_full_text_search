@@ -18,7 +18,12 @@ fi
 ${RUBY:-ruby} bin/rails db:drop || true
 ${RUBY:-ruby} bin/rails generate_secret_token
 ${RUBY:-ruby} bin/rails db:create
-${RUBY:-ruby} bin/rails db:migrate
+rails_version_major=$(grep "^gem 'rails'" Gemfile | grep -o '[0-9]*' | head -n1)
+if [ ${rails_version_major} -ge 8 ]; then
+  ${RUBY:-ruby} bin/rails db:migrate:reset
+else
+  ${RUBY:-ruby} bin/rails db:migrate
+fi
 ${RUBY:-ruby} bin/rails redmine:load_default_data REDMINE_LANG=en
 ${RUBY:-ruby} bin/rails redmine:plugins:migrate
 
