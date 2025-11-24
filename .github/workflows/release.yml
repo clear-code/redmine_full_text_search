@@ -8,7 +8,7 @@ jobs:
     name: GitHub
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Extract release note
         run: |
           ruby \
