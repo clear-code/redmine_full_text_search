@@ -36,8 +36,30 @@ unless defined?(ApplicationRecord)
   ApplicationRecord = ActiveRecord::Base
 end
 
+
+# Knowledgebase記事用Mapperをrequire
+require_relative "lib/full_text_search/mapper_kb_article"
+
 Redmine::Search.map do |search|
   search.register :changes
+end
+
+
+# KbArticleを全文検索対象に追加（配置名に依存せず探索して読み込む）
+plugin_root = File.dirname(File.absolute_path(__FILE__))
+plugins_dir = File.dirname(plugin_root)
+kb_article_candidates =
+  Dir.glob(File.join(plugins_dir, '*', 'app', 'models', 'kb_article.rb')).sort
+kb_article_path = kb_article_candidates.first
+if kb_article_path
+  begin
+    require_dependency kb_article_path
+    if defined?(KbArticle)
+      FullTextSearch.resolver.register(KbArticle, FullTextSearch::MapperKbArticle)
+    end
+  rescue => e
+    Rails.logger.warn("[full_text_search] failed to load/register KbArticle: #{e}")
+  end
 end
 
 Redmine::MenuManager.map :admin_menu do |menu|
