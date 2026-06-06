@@ -26,7 +26,12 @@ Redmine::Plugin.register :full_text_search do
   # Redmine assumes that this is a path in Redmine's plugin directory. So we need to compute this from
   # __FILE__ not __dir__.
   directory File.dirname(File.absolute_path(__FILE__))
-  settings partial: "settings/full_text_search"
+  settings partial: "settings/full_text_search",
+           default: {
+             "semantic_model" => "hf:///groonga/multilingual-e5-base-Q4_K_M-GGUF",
+             "semantic_passage_prefix" => "passage: ",
+             "semantic_query_prefix" => "query: ",
+           }
 end
 
 # For backward compatibility with Redmine < 6.

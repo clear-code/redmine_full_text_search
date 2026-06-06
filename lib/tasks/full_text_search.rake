@@ -97,4 +97,25 @@ namespace :full_text_search do
       synchronizer.synchronize
     end
   end
+
+  namespace :semantic do
+    namespace :index do
+      desc "Create semantic search index (PostgreSQL + PGroonga only)"
+      task :create => :environment do
+        case FullTextSearch::SemanticIndex.ensure_created(concurrently: ENV["CONCURRENTLY"] == "1")
+        when :created
+          puts "Created: #{FullTextSearch::SemanticIndex::INDEX_NAME} (model: #{FullTextSearch::SemanticIndex.model})"
+        when :exist
+          puts "Already exists: #{FullTextSearch::SemanticIndex::INDEX_NAME}"
+        else
+          puts "Skipped: semantic search index is PostgreSQL + PGroonga only"
+        end
+      end
+
+      desc "Drop semantic search index"
+      task :drop => :environment do
+        FullTextSearch::SemanticIndex.ensure_dropped(concurrently: ENV["CONCURRENTLY"] == "1")
+      end
+    end
+  end
 end
