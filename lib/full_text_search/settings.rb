@@ -25,6 +25,22 @@ module FullTextSearch
       @raw["enable_tracking"] != FALSE_VALUE
     end
 
+    def enable_semantic_search?
+      @raw["enable_semantic_search"] == TRUE_VALUE
+    end
+
+    def semantic_model
+      @raw["semantic_model"].presence
+    end
+
+    def semantic_passage_prefix
+      @raw["semantic_passage_prefix"].presence
+    end
+
+    def semantic_query_prefix
+      @raw["semantic_query_prefix"].presence
+    end
+
     DEFAULT_ATTACHMENT_MAX_TEXT_SIZE_IN_MB = 4
     def attachment_max_text_size_in_mb
       size = @raw.fetch("attachment_max_text_size_in_mb",
