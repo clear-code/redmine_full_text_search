@@ -54,3 +54,42 @@
   <%= text_field_tag("settings[server_url]",
                      settings.server_url) %>
 </p>
+
+<section>
+  <h3>
+    <%= l(:label_full_text_search_semantic_section) %>
+  </h3>
+
+  <p>
+    <%= label_tag("settings[enable_semantic_search]",
+                  l(:label_full_text_search_enable_semantic_search)) %>
+    <%= check_box("settings",
+                  "enable_semantic_search",
+                  checked: settings.enable_semantic_search?) %>
+  </p>
+
+  <p>
+    <%= label_tag("settings[semantic_model]",
+                  l(:label_full_text_search_semantic_model)) %>
+    <%= text_field_tag("settings[semantic_model]",
+                       settings.semantic_model) %>
+  </p>
+
+  <p>
+    <%= label_tag("settings[semantic_passage_prefix]",
+                  l(:label_full_text_search_semantic_passage_prefix)) %>
+    <%= text_field_tag("settings[semantic_passage_prefix]",
+                       settings.semantic_passage_prefix) %>
+  </p>
+
+  <p>
+    <%= label_tag("settings[semantic_query_prefix]",
+                  l(:label_full_text_search_semantic_query_prefix)) %>
+    <%= text_field_tag("settings[semantic_query_prefix]",
+                       settings.semantic_query_prefix) %>
+  </p>
+
+  <div class="flash notice">
+    <%= l(:text_full_text_search_semantic_note) %>
+  </div>
+</section>
