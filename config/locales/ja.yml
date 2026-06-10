@@ -18,8 +18,8 @@ ja:
   label_full_text_search_semantic_section: セマンティックサーチ
   label_full_text_search_enable_semantic_search: セマンティックサーチを有効化
   label_full_text_search_semantic_model: 使用するモデル
-  label_full_text_search_semantic_passage_prefix: Passage prefix
-  label_full_text_search_semantic_query_prefix: Query prefix
+  label_full_text_search_semantic_passage_prefix: パッセージのプレフィックス
+  label_full_text_search_semantic_query_prefix: クエリーのプレフィックス
   text_full_text_search_semantic_note: セマンティックサーチにはPostgreSQL + PGroongaと、rake full_text_search:semantic:index:createで作成する専用インデックスが必要です。
   label_similar_issues: 類似チケット
   label_extension: 拡張子
