@@ -15,6 +15,12 @@ en:
   label_full_text_search_external_command_max_memory: Max memory usage for executing an external command
   label_full_text_search_server_url: ChupaText server URL
   label_full_text_search_enable_tracking: Enable tracking
+  label_full_text_search_semantic_section: Semantic search
+  label_full_text_search_enable_semantic_search: Enable semantic search
+  label_full_text_search_semantic_model: Model
+  label_full_text_search_semantic_passage_prefix: Passage prefix
+  label_full_text_search_semantic_query_prefix: Query prefix
+  text_full_text_search_semantic_note: Semantic search requires PostgreSQL + PGroonga and a dedicated index created via rake full_text_search:semantic:index:create.
   label_similar_issues: Similar issues
   label_extension: Extension
   label_text_extraction: Text extraction

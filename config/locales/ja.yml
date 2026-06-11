@@ -15,6 +15,12 @@ ja:
   label_full_text_search_external_command_max_memory: 外部コマンドの最大使用可能メモリー
   label_full_text_search_server_url: ChupaTextサーバーのURL
   label_full_text_search_enable_tracking: トラッキングを有効化
+  label_full_text_search_semantic_section: セマンティックサーチ
+  label_full_text_search_enable_semantic_search: セマンティックサーチを有効化
+  label_full_text_search_semantic_model: 使用するモデル
+  label_full_text_search_semantic_passage_prefix: パッセージのプレフィックス
+  label_full_text_search_semantic_query_prefix: クエリーのプレフィックス
+  text_full_text_search_semantic_note: セマンティックサーチにはPostgreSQL + PGroongaと、rake full_text_search:semantic:index:createで作成する専用インデックスが必要です。
   label_similar_issues: 類似チケット
   label_extension: 拡張子
   label_text_extraction: テキスト抽出
