@@ -21,6 +21,7 @@ en:
   label_full_text_search_semantic_passage_prefix: Passage prefix
   label_full_text_search_semantic_query_prefix: Query prefix
   text_full_text_search_semantic_note: Semantic search requires PostgreSQL + PGroonga and a dedicated index created via rake full_text_search:semantic:index:create.
+  label_full_text_search_search_semantic: Search semantically
   label_similar_issues: Similar issues
   label_extension: Extension
   label_text_extraction: Text extraction

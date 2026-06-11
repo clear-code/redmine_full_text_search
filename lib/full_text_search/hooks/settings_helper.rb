@@ -12,6 +12,10 @@ module FullTextSearch
       def fts_enable_tracking?
         Setting.plugin_full_text_search.enable_tracking?
       end
+
+      def fts_enable_semantic_search?
+        Setting.plugin_full_text_search.enable_semantic_search?
+      end
     end
   end
 end

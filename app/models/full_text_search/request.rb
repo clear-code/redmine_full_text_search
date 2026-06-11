@@ -21,6 +21,7 @@ module FullTextSearch
     attr_writer :order_type
     attr_writer :options
     attr_accessor :tags
+    attr_writer :semantic
 
     Redmine::Search.available_search_types.each do |type|
       attr_accessor type
@@ -48,6 +49,7 @@ module FullTextSearch
         "order_target" => custom_params[:order_target] || order_target,
         "order_type" => custom_params[:order_type] || order_type,
         "options" => options,
+        "semantic" => semantic,
       }
       to_params_types(params, custom_params)
       to_params_order_type(params, custom_params)
@@ -131,6 +133,14 @@ module FullTextSearch
 
     def options
       @options.presence || "0"
+    end
+
+    def semantic
+      @semantic.presence || "0"
+    end
+
+    def semantic?
+      semantic == "1"
     end
 
     def search_types
