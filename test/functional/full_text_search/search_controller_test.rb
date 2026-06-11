@@ -249,6 +249,28 @@ module FullTextSearch
         end
       end
 
+      def test_semantic_checkbox_visible_when_enabled
+        with_settings(plugin_full_text_search: {"enable_semantic_search" => "1"}) do
+          get :index
+        end
+        assert_select("input[type=checkbox][name=?]", "semantic")
+      end
+
+      def test_semantic_checkbox_hidden_when_disabled
+        with_settings(plugin_full_text_search: {"enable_semantic_search" => "0"}) do
+          get :index
+        end
+        assert_select("input[type=checkbox][name=?]", "semantic", false)
+      end
+
+      def test_semantic_ignored_when_disabled
+        project = Project.first
+        with_settings(plugin_full_text_search: {"enable_semantic_search" => "0"}) do
+          get :index, params: {"id" => project.identifier, "semantic" => "1"}
+        end
+        assert_select("a[href*=?]", "semantic=1", false)
+      end
+
       def test_search_order_links
         project = Project.first
         get :index, params: {"id" => project.identifier}
@@ -285,6 +307,7 @@ module FullTextSearch
             "q" => "",
             "titles_only" => "0",
             "wiki_pages" => "1",
+            "semantic" => "0",
             "search_id" => @search_id,
           }
           expected_search_path = "/projects/#{project.identifier}/search"
@@ -358,6 +381,7 @@ module FullTextSearch
             "order_type" => "desc",
             "q" => "",
             "titles_only" => "0",
+            "semantic" => "0",
             "search_id" => @search_id,
           }
           expected_search_path = "/projects/#{project.identifier}/search"

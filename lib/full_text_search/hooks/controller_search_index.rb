@@ -6,6 +6,10 @@ module FullTextSearch
         @search_request.user = User.current
         @search_request.project = @project
 
+        unless Setting.plugin_full_text_search.enable_semantic_search?
+          @search_request.semantic = "0"
+        end
+
         page = (params[:page].presence || 1).to_i
         case params[:format]
         when 'xml', 'json'
@@ -60,6 +64,7 @@ module FullTextSearch
           :order_target,
           :order_type,
           :options,
+          :semantic,
         ]
         Redmine::Search.available_search_types.each do |type|
           permitted_names << type.to_sym

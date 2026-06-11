@@ -79,6 +79,10 @@
             </label>
           </p>
         </fieldset>
+        <% if fts_enable_semantic_search? %>
+          <p><label><%= form.check_box "semantic", name: "semantic" %>
+                    <%= l(:label_full_text_search_search_semantic) %></label></p>
+        <% end %>
       </div>
     </fieldset>
     <%= form.hidden_field "options", id: "show-options", name: "options" %>
