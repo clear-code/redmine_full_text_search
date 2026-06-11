@@ -60,6 +60,10 @@
     <%= l(:label_full_text_search_semantic_section) %>
   </h3>
 
+  <div class="box">
+    <%= l(:text_full_text_search_semantic_note) %>
+  </div>
+
   <p>
     <%= label_tag("settings[enable_semantic_search]",
                   l(:label_full_text_search_enable_semantic_search)) %>
@@ -88,8 +92,4 @@
     <%= text_field_tag("settings[semantic_query_prefix]",
                        settings.semantic_query_prefix) %>
   </p>
-
-  <div class="flash notice">
-    <%= l(:text_full_text_search_semantic_note) %>
-  </div>
 </section>
