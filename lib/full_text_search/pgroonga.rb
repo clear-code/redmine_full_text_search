@@ -3,8 +3,8 @@ module FullTextSearch
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def select(command)
-        sql = build_sql(command)
+      def select(command, index_name: pgroonga_index_name)
+        sql = build_sql(command, index_name: index_name)
         raw_response = connection.select_value(sql)
         Groonga::Client::Response.parse(command, raw_response)
       end
@@ -45,10 +45,10 @@ SHOW pgroonga.libgroonga_version;
       end
 
       private
-      def build_sql(command)
+      def build_sql(command, index_name: pgroonga_index_name)
         arguments = []
         placeholders = []
-        command["table"] = "pgroonga_table_name('#{pgroonga_index_name}')"
+        command["table"] = "pgroonga_table_name('#{index_name}')"
         if command["filter"].present?
           command["filter"] += " && pgroonga_tuple_is_alive(ctid)"
         else
