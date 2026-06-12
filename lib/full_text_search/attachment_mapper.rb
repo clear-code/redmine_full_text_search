@@ -138,7 +138,7 @@ JOIN projects
 
   class FtsAttachmentMapper < FtsMapper
     def title
-      @record.filename
+      @record.title
     end
 
     def url
