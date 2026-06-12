@@ -29,7 +29,7 @@ module FullTextSearch
       if not_search_type_conditions.empty?
         prefix = ""
       else
-        if Target.use_slices?
+        if use_slices?
           prefix = "slices[type_filtered]."
           arguments["#{prefix}filter"] =
             (["all_records()"] + not_search_type_conditions).join(" &! ")
@@ -72,12 +72,20 @@ module FullTextSearch
       arguments["#{prefix}limit"] = limit
       arguments["filter"] = "false" unless arguments["filter"]
       command = Groonga::Command::Select.new("select", arguments)
-      response = Target.select(command)
+      response = Target.select(command, index_name: index_name)
       raise Groonga::Client::Error, response.message unless response.success?
       ResultSet.new(response)
     end
 
     private
+    def index_name
+      Target.pgroonga_index_name
+    end
+
+    def use_slices?
+      Target.use_slices?
+    end
+
     def match_columns
       if @request.titles_only?
         ["title"]

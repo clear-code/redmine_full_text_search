@@ -3,7 +3,7 @@ module FullTextSearch
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def select(command)
+      def select(command, index_name: nil)
         sql = build_sql(command)
         now = Time.zone.now.to_f
         raw_response = connection.select_value(sql)
