@@ -17,6 +17,7 @@ module FullTextSearch
     end
 
     def teardown
+      return unless ENV["SEMANTIC_SEARCH_TEST"]
       SemanticIndex.ensure_dropped
     end
 
