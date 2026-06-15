@@ -29,7 +29,6 @@ module FullTextSearch
           return
         end
 
-        searcher = Searcher.new(@search_request)
         @result_set = searcher.search
         context = @search_request.to_params
         context = context.merge("user_id" => @search_request.user.id,
@@ -71,6 +70,14 @@ module FullTextSearch
         end
         params.permit(*permitted_names,
                       tags: [])
+      end
+
+      def searcher
+        if @search_request.semantic? && SemanticIndex.exist?
+          SemanticSearcher.new(@search_request)
+        else
+          Searcher.new(@search_request)
+        end
       end
     end
   end
