@@ -83,6 +83,7 @@ FullTextSearch::Hooks::IssuesShowDescriptionBottomHook
 FullTextSearch::Hooks::SimilarIssuesHelper
 
 FullTextSearch::Searcher
+FullTextSearch::SemanticSearcher
 FullTextSearch::SimilarSearcher
 
 class << Setting
