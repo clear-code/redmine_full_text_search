@@ -72,14 +72,14 @@ module FullTextSearch
       arguments["#{prefix}limit"] = limit
       arguments["filter"] = "false" unless arguments["filter"]
       command = Groonga::Command::Select.new("select", arguments)
-      response = Target.select(command, index_name: index_name)
+      response = Target.select(command, semantic: semantic?)
       raise Groonga::Client::Error, response.message unless response.success?
       ResultSet.new(response)
     end
 
     private
-    def index_name
-      Target.pgroonga_index_name
+    def semantic?
+      false
     end
 
     def use_slices?

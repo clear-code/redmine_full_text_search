@@ -3,8 +3,8 @@ module FullTextSearch
     K = 50
 
     private
-    def index_name
-      SemanticIndex::INDEX_NAME
+    def semantic?
+      true
     end
 
     def use_slices?
