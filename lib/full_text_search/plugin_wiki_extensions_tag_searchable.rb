@@ -7,7 +7,7 @@ module FullTextSearch
 
     included do
       after_create :fts_after_create
-      after_destroy :fts_after_destroy
+      before_destroy :fts_before_destroy
     end
 
     private
@@ -29,7 +29,7 @@ module FullTextSearch
       fts_target.save!
     end
 
-    def fts_after_destroy
+    def fts_before_destroy
       fts_target = find_fts_target
       return unless fts_target
       fts_target.tag_ids -= [find_fts_tag_label_id]
