@@ -84,6 +84,12 @@ jobs:
           - redmine-version: "master"
             ruby-version: "3.4"
             rdbms: "PostgreSQL"
+          - redmine-version: "redmica-4.1"
+            ruby-version: "3.4"
+            rdbms: "MySQL"
+          - redmine-version: "redmica-4.1"
+            ruby-version: "3.4"
+            rdbms: "PostgreSQL"
     steps:
       - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
@@ -91,12 +97,23 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
       - name: Setup environment variables
         run: |
-          case "${{ matrix.redmine-version }}" in
+          REDMINE_VERSION="${{ matrix.redmine-version }}"
+          case "${REDMINE_VERSION}" in
+            redmica-*)
+              echo "REDMINE_REPOSITORY=https://github.com/redmica/redmica.git" >> \
+                ${GITHUB_ENV}
+              echo "REDMINE_BRANCH=stable-${REDMINE_VERSION#redmica-}" >> \
+                ${GITHUB_ENV}
+              ;;
             master)
+              echo "REDMINE_REPOSITORY=https://github.com/redmine/redmine.git" >> \
+                ${GITHUB_ENV}
               echo "REDMINE_BRANCH=master" >> ${GITHUB_ENV}
               ;;
             *)
-              echo "REDMINE_BRANCH=${{ matrix.redmine-version }}-stable" >> \
+              echo "REDMINE_REPOSITORY=https://github.com/redmine/redmine.git" >> \
+                ${GITHUB_ENV}
+              echo "REDMINE_BRANCH=${REDMINE_VERSION}-stable" >> \
                 ${GITHUB_ENV}
               ;;
           esac
@@ -138,8 +155,9 @@ jobs:
           cd ..
           git clone \
             --depth 1 \
-            --branch ${REDMINE_BRANCH} \
-            https://github.com/redmine/redmine.git
+            --branch "${REDMINE_BRANCH}" \
+            "${REDMINE_REPOSITORY}" \
+            redmine
           cd redmine
           sed \
             -i'' \
