@@ -39,6 +39,12 @@ module FullTextSearch
       fts_target.last_modified_at = @record.updated_on
       fts_target.registered_at = @record.created_on
       fts_target.save!
+
+      # When a wiki page moves to another project, its attachments move with it,
+      # so we need to update them too.
+      if fts_target.saved_change_to_project_id? && !fts_target.saved_change_to_id?
+        update_attachments_project_id
+      end
     end
 
     private
@@ -47,6 +53,14 @@ module FullTextSearch
       @record.wiki_ext_tags.collect do |tag|
         Tag.label(tag.name).id
       end
+    end
+
+    def update_attachments_project_id
+      attachment_ids = @record.attachments.ids
+      return if attachment_ids.empty?
+      Target
+        .where(source_type_id: Type.attachment.id, source_id: attachment_ids)
+        .update_all(project_id: @record.wiki.project_id)
     end
   end
 
