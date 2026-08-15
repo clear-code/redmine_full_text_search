@@ -72,7 +72,9 @@ module FullTextSearch
     scope :projects,      -> {where(source_type_id: Type.project.id)}
     scope :repositories,  -> {where(source_type_id: Type.repository.id)}
     scope :versions,      -> {where(source_type_id: Type.version.id)}
-    scope :wiki_pages,    -> {where(source_type_id: Type.wiki_page.id)}
+
+      scope :kb_articles, -> {where(source_type_id: Type.kb_article.id)}
+      scope :wiki_pages,    -> {where(source_type_id: Type.wiki_page.id)}
 
     attr_accessor :_score
     attr_accessor :highlighted_title
