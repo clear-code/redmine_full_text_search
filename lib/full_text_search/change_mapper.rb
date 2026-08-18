@@ -59,7 +59,7 @@ module FullTextSearch
         end
         fts_target ||= find_old_fts_targets.first
         fts_target ||= find_fts_target
-        fts_target.title = @record.path
+        fts_target.title = target_title
         fts_target.source_id = @record.id
         fts_target.source_type_id = Type[@record.class].id
         fts_target.container_id = repository.id
@@ -67,7 +67,7 @@ module FullTextSearch
         fts_target.project_id = repository.project_id
         fts_target.last_modified_at = changeset.committed_on
         fts_target.registered_at = changeset.committed_on
-        fts_target.tag_ids = extract_tag_ids_from_path(fts_target.title)
+        fts_target.tag_ids = extract_tag_ids_from_path(@record.path)
         if fts_target.changed?
           prepare_text_extraction(fts_target)
           fts_target.save!
@@ -108,15 +108,20 @@ module FullTextSearch
     end
 
     private
+    def target_title
+      "#{@record.path}@#{@record.changeset.identifier}"
+    end
+
     def fts_target_keys
       {
         source_id: @record.id,
         source_type_id: Type[@record].id,
-        title: @record.path,
+        title: target_title,
       }
     end
 
     def find_fts_targets
+      escaped_path = Target.sanitize_sql_like(@record.path)
       Target
         .joins(<<-JOIN)
   JOIN changes
@@ -127,8 +132,12 @@ module FullTextSearch
   JOIN repositories
     ON changesets.repository_id = repositories.id
         JOIN
-        .where(repositories: {id: @record.changeset.repository.id},
-               title: @record.path)
+        .where(repositories: {id: @record.changeset.repository.id})
+        # Exclude `@%@%` so that `file.txt@<revision>` doesn't match `file.txt@2026`
+        # when both `file.txt` and `file.txt@2026` exist.
+        .where("title LIKE ? AND title NOT LIKE ?",
+               "#{escaped_path}@%",
+               "#{escaped_path}@%@%")
     end
 
     def find_old_fts_targets
@@ -166,26 +175,20 @@ module FullTextSearch
       end
     end
 
-    def title_suffix
-      change = redmine_record
-      "@#{change.changeset.identifier}"
-    end
-
     def type
       "file"
     end
 
     def url
-      change = redmine_record
-      changeset = change.changeset
-      repository = changeset.repository
+      repository = redmine_record.changeset.repository
+      path, separator, revision = @record.title.rpartition("@")
       {
         controller: "repositories",
         action: "entry",
         id: @record.project_id,
         repository_id: repository.identifier_param,
-        rev: changeset.identifier,
-        path: PathResolver.new(repository, change.path).resolve,
+        rev: revision,
+        path: PathResolver.new(repository, path).resolve,
       }
     end
   end
