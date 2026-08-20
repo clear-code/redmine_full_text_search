@@ -125,8 +125,8 @@ module FullTextSearch
     def test_move_directory
       Dir.mktmpdir do |dir|
         repository_url = build_move_directory_repository(dir)
-        repository = Repository::Subversion.create(project: @project,
-                                                   url: repository_url)
+        repository = Repository::Subversion.create(:project => @project,
+                                                   :url => repository_url)
         repository.fetch_changesets
 
         move_changeset = repository.changesets.find_by!(revision: "2")

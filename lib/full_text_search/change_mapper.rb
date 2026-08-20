@@ -81,9 +81,9 @@ module FullTextSearch
         return if directory_move_destination?
 
         # In the case of `D`, `entry.{file?,directory?}` is `nil` and cannot be used.
-        # Therefore, we use `find_old_fts_targets_with_descendants`, which can find targets
-        # in both file and directory.
-        find_old_fts_targets_with_descendants(@record.path).destroy_all
+        # Therefore, we use `descendants: true`, which can find targets in both file
+        # and directory.
+        find_old_fts_targets(descendants: true).destroy_all
       end
     end
 
@@ -142,7 +142,18 @@ module FullTextSearch
       entry.directory?
     end
 
-    def find_fts_targets_by_repository
+    def find_fts_targets(path: nil, descendants: false)
+      escaped_path = Target.sanitize_sql_like(path || @record.path)
+      # Exclude `@%@%` so that `file.txt@<revision>` doesn't match `file.txt@2026`
+      # when both `file.txt` and `file.txt@2026` exist.
+      condition = "title LIKE ? AND title NOT LIKE ?"
+      values = ["#{escaped_path}@%", "#{escaped_path}@%@%"]
+      if descendants
+        # Also match descendants, to support cases where `path` is a directory.
+        condition = "(#{condition}) OR title LIKE ?"
+        values << "#{escaped_path}/%"
+      end
+
       Target
         .joins(<<-JOIN)
   JOIN changes
@@ -154,32 +165,11 @@ module FullTextSearch
     ON changesets.repository_id = repositories.id
         JOIN
         .where(repositories: {id: @record.changeset.repository.id})
+        .where(condition, *values)
     end
 
-    def find_fts_targets
-      escaped_path = Target.sanitize_sql_like(@record.path)
-      find_fts_targets_by_repository
-        # Exclude `@%@%` so that `file.txt@<revision>` doesn't match `file.txt@2026`
-        # when both `file.txt` and `file.txt@2026` exist.
-        .where("title LIKE ? AND title NOT LIKE ?",
-               "#{escaped_path}@%",
-               "#{escaped_path}@%@%")
-    end
-
-    def find_old_fts_targets
-      find_fts_targets
-        .where(changesets: {id: -Float::INFINITY...@record.changeset_id})
-    end
-
-    def find_old_fts_targets_with_descendants(path)
-      escaped_path = Target.sanitize_sql_like(path)
-      find_fts_targets_by_repository
-        # Use `#{escaped_path}/%` as a condition to also support cases where `path` is a directory.
-        # See also the comments for `find_fts_targets`.
-        .where("(title LIKE ? AND title NOT LIKE ?) OR title LIKE ?",
-               "#{escaped_path}@%",
-               "#{escaped_path}@%@%",
-               "#{escaped_path}/%")
+    def find_old_fts_targets(path: nil, descendants: false)
+      find_fts_targets(path: path, descendants: descendants)
         .where(changesets: {id: -Float::INFINITY...@record.changeset_id})
     end
 
