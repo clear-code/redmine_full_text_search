@@ -30,7 +30,7 @@ module FullTextSearch
                   order(source_id: :asc)
       first_change = Change.find_by!(path: "images/edit.png")
       last_change = Change.where(path: "issue-8857/test01.txt").last
-      expected_titles = [
+      expected_paths = [
         "images/edit.png",
         "copied_README",
         "renamed_test.txt",
@@ -45,6 +45,13 @@ module FullTextSearch
         "issue-8857/test00.txt",
         "issue-8857/test01.txt",
       ]
+      expected_titles = expected_paths.collect do |path|
+        change = Change.joins(:changeset)
+          .where(path: path, changesets: {repository_id: repository.id})
+          .order(:id)
+          .last
+        "#{change.path}@#{change.changeset.identifier}"
+      end
       expected_first_change = {
         "project_id" => @project.id,
         "source_id" => first_change.id,
@@ -53,7 +60,7 @@ module FullTextSearch
         "registered_at" => parse_time("2007-12-14T09:24:01Z"),
         "container_id" => repository.id,
         "container_type_id" => Type.repository.id,
-        "title" => "images/edit.png",
+        "title" => "#{first_change.path}@#{first_change.changeset.identifier}",
         "content" => "",
         "custom_field_id" => null_number,
         "is_private" => null_boolean,
@@ -68,7 +75,7 @@ module FullTextSearch
         "container_id" => repository.id,
         "container_type_id" => Type.repository.id,
         "custom_field_id" => null_number,
-        "title" => "issue-8857/test01.txt",
+        "title" => "#{last_change.path}@#{last_change.changeset.identifier}",
         "content" => <<-CONTENT,
 test
 test

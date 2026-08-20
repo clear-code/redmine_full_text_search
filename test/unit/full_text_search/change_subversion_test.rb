@@ -23,7 +23,11 @@ module FullTextSearch
       repository.fetch_changesets
       repository_info = RepositoryInfo.new(repository)
       files = repository_info.files.collect do |file|
-        "/#{file}"
+        change = Change.joins(:changeset)
+          .where(path: "/#{file}", changesets: {repository_id: repository.id})
+          .order(:id)
+          .last
+        "#{change.path}@#{change.changeset.identifier}"
       end
       records = Target.
                   where(container_id: repository.id,
@@ -40,7 +44,7 @@ module FullTextSearch
                        "registered_at" => parse_time("2007-09-10T16:54:52.203Z"),
                        "container_id" => repository.id,
                        "container_type_id" => Type.repository.id,
-                       "title" => "/subversion_test/.project",
+                       "title" => "#{first_change.path}@#{first_change.changeset.identifier}",
                        "content" => <<-PROJECT,
 <?xml version="1.0" encoding="UTF-8"?>\r
 <projectDescription>\r
@@ -72,7 +76,11 @@ module FullTextSearch
       repository.fetch_changesets
       repository_info = RepositoryInfo.new(repository)
       sub_path_files = repository_info.files.collect do |file|
-        "/subversion_test/#{file}"
+        change = Change.joins(:changeset)
+          .where(path: "/subversion_test/#{file}", changesets: {repository_id: repository.id})
+          .order(:id)
+          .last
+        "#{change.path}@#{change.changeset.identifier}"
       end
       records = Target.
                   where(container_id: repository.id,
@@ -89,7 +97,7 @@ module FullTextSearch
                        "registered_at" => parse_time("2007-09-10T16:54:52.203Z"),
                        "container_id" => repository.id,
                        "container_type_id" => Type.repository.id,
-                       "title" => "/subversion_test/.project",
+                       "title" => "#{first_change.path}@#{first_change.changeset.identifier}",
                        "content" => <<-PROJECT,
 <?xml version="1.0" encoding="UTF-8"?>\r
 <projectDescription>\r
