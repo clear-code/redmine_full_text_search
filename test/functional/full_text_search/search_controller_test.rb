@@ -505,8 +505,8 @@ module FullTextSearch
             {
               title: @attachment.filename,
               description: <<-DESCRIPTION,
-this is a text file for <span class="keyword">upload</span> tests\r
-with multiple lines\r
+this is a text file for <span class="keyword">upload</span> tests
+with multiple lines
               DESCRIPTION
               rank: adjust_slice_score(2),
             }

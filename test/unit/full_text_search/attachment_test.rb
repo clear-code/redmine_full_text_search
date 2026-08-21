@@ -16,7 +16,7 @@ module FullTextSearch
     def test_save
       filename = "testfile.txt"
       file = uploaded_test_file(filename, "text/plain")
-      content = "this is a text file for upload tests\r\nwith multiple lines\r\n"
+      content = "this is a text file for upload tests\nwith multiple lines\n"
       attachment = Attachment.generate!(file: file)
       attachment.reload
       issue = attachment.container
