@@ -40,6 +40,17 @@ module FullTextSearch
         entry = RepositoryEntry.new(repository,
                                     @record.path,
                                     changeset.identifier)
+        if entry.directory?
+          return unless @record.from_path
+
+          # NOTE: We currently don't support copy, for the following reasons:
+          # * It seems unlikely that someone would commit the exact same files with only a copy.
+          # * It's hard to support given the data structure.
+          return unless directory_move_source?
+
+          # TODO: rename the moved directory's files in place.
+          return
+        end
         return unless entry.file?
         return if find_newer_fts_targets.exists?
 
@@ -119,6 +130,14 @@ module FullTextSearch
     private
     def target_title
       "#{@record.path}@#{@record.changeset.identifier}"
+    end
+
+    def directory_move_source?
+      Change
+        .where(changeset_id: @record.changeset_id,
+               action: "D",
+               path: @record.from_path)
+        .exists?
     end
 
     def fts_target_keys
