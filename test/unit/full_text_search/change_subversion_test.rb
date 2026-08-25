@@ -141,20 +141,11 @@ module FullTextSearch
             "project_id" => @project.id,
             "source_id" => original_a_change.id,
             "source_type_id" => Type.change.id,
-
-            # TODO: Support for move
-            # "last_modified_at" => move_changeset.committed_on,
-            # "registered_at" => move_changeset.committed_on,
-            "last_modified_at" => original_a_change.changeset.committed_on,
-            "registered_at" => original_a_change.changeset.committed_on,
-
+            "last_modified_at" => move_changeset.committed_on,
+            "registered_at" => move_changeset.committed_on,
             "container_id" => repository.id,
             "container_type_id" => Type.repository.id,
-
-            # TODO: Support for move
-            # "title" => "/renamed/a.txt@2",
-            "title" => "/dir/a.txt@1",
-
+            "title" => "/renamed/a.txt@2",
             "content" => "FILE: a.txt\n",
             "custom_field_id" => null_number,
             "is_private" => null_boolean,
@@ -164,20 +155,11 @@ module FullTextSearch
             "project_id" => @project.id,
             "source_id" => original_b_change.id,
             "source_type_id" => Type.change.id,
-
-            # TODO: Support for move
-            # "last_modified_at" => move_changeset.committed_on,
-            # "registered_at" => move_changeset.committed_on,
-            "last_modified_at" => original_b_change.changeset.committed_on,
-            "registered_at" => original_b_change.changeset.committed_on,
-
+            "last_modified_at" => move_changeset.committed_on,
+            "registered_at" => move_changeset.committed_on,
             "container_id" => repository.id,
             "container_type_id" => Type.repository.id,
-
-            # TODO: Support for move
-            # "title" => "/renamed/b.txt@2",
-            "title" => "/dir/b.txt@1",
-
+            "title" => "/renamed/b.txt@2",
             "content" => "FILE: b.txt\n",
             "custom_field_id" => null_number,
             "is_private" => null_boolean,

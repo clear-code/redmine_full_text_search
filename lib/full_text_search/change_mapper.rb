@@ -48,7 +48,7 @@ module FullTextSearch
           # * It's hard to support given the data structure.
           return unless directory_move_source?
 
-          # TODO: rename the moved directory's files in place.
+          upsert_fts_targets_for_moved_directory(repository, changeset)
           return
         end
         return unless entry.file?
@@ -197,6 +197,55 @@ module FullTextSearch
     def find_newer_fts_targets
       find_fts_targets
         .where(changesets: {id: (@record.changeset_id + 1)..Float::INFINITY})
+    end
+
+    def each_entries(repository, path, identifier, &block)
+      entries = repository.scm.entries(repository.relative_path(path), identifier)
+      return unless entries
+
+      entries.each do |entry|
+        entry_path = "#{path}/#{entry.name}"
+        if entry.is_dir?
+          each_entries(repository, entry_path, identifier, &block)
+        else
+          yield entry_path
+        end
+      end
+    end
+
+    def upsert_fts_targets_for_moved_directory(repository, changeset)
+      each_entries(repository, @record.path, changeset.identifier) do |new_path|
+        relative_path = new_path.delete_prefix(@record.path)
+        from_full_path = @record.from_path + relative_path
+        upsert_fts_target_for_moved_file(repository, changeset, new_path, from_full_path)
+      end
+    end
+
+    def upsert_fts_target_for_moved_file(repository, changeset, new_path, from_path)
+      # If `change` in `path` is a directory, there are no `change` operations on files.
+      # Therefore, link the `change` from the previous version of the target file to `fts_target`.
+      from_change =
+        Change
+          .joins(changeset: :repository)
+          .where(repositories: {id: repository.id}, path: from_path)
+          .order("changesets.id")
+          .last
+      return unless from_change
+
+      fts_target = Target.find_by(source_id: from_change.id,
+                                  source_type_id: Type[from_change].id)
+      return unless fts_target
+
+      fts_target.title = "#{new_path}@#{changeset.identifier}"
+      fts_target.container_id = repository.id
+      fts_target.container_type_id = Type.repository.id
+      fts_target.project_id = repository.project_id
+      fts_target.last_modified_at = changeset.committed_on
+      fts_target.registered_at = changeset.committed_on
+      fts_target.tag_ids = extract_tag_ids_from_path(new_path)
+
+      # Since the file's content should be the same, we don't re-fetch it
+      fts_target.save!
     end
   end
 
