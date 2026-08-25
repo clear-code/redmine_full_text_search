@@ -60,6 +60,12 @@ module FullTextSearch
                           name: user_id.to_s)
       end
 
+      def user_group(group_id)
+        type = TagType.user_group
+        find_or_create_by(type_id: type.id,
+                          name: group_id.to_s)
+      end
+
       def label(label)
         type = TagType.label
         find_or_create_by(type_id: type.id,
@@ -80,6 +86,8 @@ module FullTextSearch
         Tracker.find(name.to_i)
       when TagType.user.id
         User.find(name.to_i)
+      when TagType.user_group.id
+        Group.find(name.to_i)
       else
         name
       end

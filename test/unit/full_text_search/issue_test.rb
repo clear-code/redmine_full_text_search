@@ -44,6 +44,42 @@ module FullTextSearch
                    targets.collect {|target| target.attributes.except("id")})
     end
 
+    def test_save_assigned_to_user
+      user = User.find(3)
+      issue = Issue.generate!(:assigned_to => user)
+      targets = Target.where(source_id: issue.id,
+                             source_type_id: Type.issue.id)
+      assert_equal([
+                     [
+                       Tag.tracker(issue.tracker_id),
+                       Tag.user(issue.author_id),
+                       Tag.user(user.id),
+                       Tag.issue_status(issue.status_id),
+                     ].sort_by(&:id),
+                   ],
+                   targets.collect {|target| target.tags.sort_by(&:id)})
+    end
+
+    def test_save_assigned_to_group
+      group = Group.find(11)
+      issue = nil
+      with_settings(:issue_group_assignment => "1") do
+        issue = Issue.generate!(:project => Project.find(2),
+                                :assigned_to => group)
+      end
+      targets = Target.where(source_id: issue.id,
+                             source_type_id: Type.issue.id)
+      assert_equal([
+                     [
+                       Tag.tracker(issue.tracker_id),
+                       Tag.user(issue.author_id),
+                       Tag.user_group(group.id),
+                       Tag.issue_status(issue.status_id),
+                     ].sort_by(&:id),
+                   ],
+                   targets.collect {|target| target.tags.sort_by(&:id)})
+    end
+
     def test_save_journal_status_and_tracker
       issue = Issue.generate!(
         status: IssueStatus.find_by_name("New"),

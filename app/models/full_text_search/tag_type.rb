@@ -28,6 +28,10 @@ module FullTextSearch
         find_or_create_by(name: "user")
       end
 
+      def user_group
+        find_or_create_by(name: "group")
+      end
+
       def label
         find_or_create_by(name: "label")
       end
