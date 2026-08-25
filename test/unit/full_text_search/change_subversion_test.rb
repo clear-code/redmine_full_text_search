@@ -209,6 +209,23 @@ module FullTextSearch
       end
     end
 
+    def test_copy_directory
+      Dir.mktmpdir do |dir|
+        repository_url = build_copy_directory_repository(dir)
+        repository = Repository::Subversion.create(project: @project,
+                                                   url: repository_url)
+        repository.fetch_changesets
+
+        assert_not(
+          Target
+            .where(container_id: repository.id,
+                   container_type_id: Type.repository.id)
+            .where("title LIKE ?", "/copied/%")
+            .exists?
+        )
+      end
+    end
+
     private
     def run_command(*args)
       assert(system(*args), "Command failed: #{args.join(' ')}")
@@ -243,6 +260,14 @@ module FullTextSearch
       run_command("svn", "rm",
                   "#{repository_url}/dir",
                   "-m", "Delete dir")
+      repository_url
+    end
+
+    def build_copy_directory_repository(dir)
+      repository_url = create_test_repository(dir)
+      run_command("svn", "copy",
+                  "#{repository_url}/dir", "#{repository_url}/copied",
+                  "-m", "Copy dir to copied")
       repository_url
     end
   end
