@@ -227,13 +227,17 @@ module FullTextSearch
       from_change =
         Change
           .joins(changeset: :repository)
-          .where(repositories: {id: repository.id}, path: from_path)
+          .where(repositories: {id: repository.id},
+                 changesets: {id: -Float::INFINITY...@record.changeset_id},
+                 path: from_path)
           .order("changesets.id")
           .last
-      return unless from_change
-
-      fts_target = Target.find_by(source_id: from_change.id,
-                                  source_type_id: Type[from_change].id)
+      fts_target =
+        if from_change
+          Target.find_by(source_id: from_change.id,
+                         source_type_id: Type[from_change].id)
+        end
+      fts_target ||= find_old_fts_targets(path: from_path).first
       return unless fts_target
 
       fts_target.title = "#{new_path}@#{changeset.identifier}"
