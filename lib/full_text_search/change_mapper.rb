@@ -214,10 +214,12 @@ module FullTextSearch
     end
 
     def upsert_fts_targets_for_moved_directory(repository, changeset)
-      each_entries(repository, @record.path, changeset.identifier) do |new_path|
-        relative_path = new_path.delete_prefix(@record.path)
-        from_full_path = @record.from_path + relative_path
-        upsert_fts_target_for_moved_file(repository, changeset, new_path, from_full_path)
+      # Since the file may have been deleted from the new path after being moved,
+      # we'll process it based on `from_path`.
+      each_entries(repository, @record.from_path, @record.from_revision) do |from_path|
+        relative_path = from_path.delete_prefix(@record.from_path)
+        new_path = @record.path + relative_path
+        upsert_fts_target_for_moved_file(repository, changeset, new_path, from_path)
       end
     end
 
@@ -239,6 +241,12 @@ module FullTextSearch
         end
       fts_target ||= find_old_fts_targets(path: from_path).first
       return unless fts_target
+
+      unless RepositoryEntry.new(repository, new_path, changeset.identifier).file?
+        # Since it was deleted from the directory after the move, delete it.
+        fts_target.destroy
+        return
+      end
 
       fts_target.title = "#{new_path}@#{changeset.identifier}"
       fts_target.container_id = repository.id
