@@ -216,7 +216,8 @@ module FullTextSearch
             existing_target =
               RedmineChangeMapper
                 .find_fts_targets_by_path(repository, entry.path)
-                .first
+                .order(:last_modified_at)
+                .last
             existing_target_ids.delete(existing_target.source_id) if existing_target
             next
           end

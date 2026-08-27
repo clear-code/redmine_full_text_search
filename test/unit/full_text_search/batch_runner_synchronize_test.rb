@@ -85,7 +85,8 @@ module FullTextSearch
 
         a_target = Target.find_by(title: "/renamed/a.txt@2")
         b_target = Target.find_by(title: "/renamed/b.txt@2")
-
+        assert_not_nil(a_target, "Expected /renamed/a.txt@2 to be indexed")
+        assert_not_nil(b_target, "Expected /renamed/b.txt@2 to be indexed")
         runner = BatchRunner.new
         assert_no_difference("Target.count") do
           runner.synchronize_repositories(project: project)
