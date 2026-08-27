@@ -77,7 +77,7 @@ module FullTextSearch
                     id: subproject1.identifier))
       click_on("search-target-issues")
       within("#search-results") do
-        assert_equal(2, all("li").size)
+        assert_equal(3, all("li").size)
       end
       within(".pagination") do
         assert_equal([], all("li").to_a)

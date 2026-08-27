@@ -45,6 +45,14 @@ module FullTextSearch
       Searcher.new(request).search
     end
 
+    def generate_private_issue(attributes={})
+      Issue.generate!({
+                        project: @project,
+                        subject: "FTS: PRIVATE ISSUE",
+                        is_private: true,
+                      }.merge(attributes))
+    end
+
     def test_open_issues
       parameters = {
         issues: "1",
@@ -181,6 +189,93 @@ module FullTextSearch
       searched_issues = targets.collect(&:source_record)
       ordered_issues = [issue_with_low_score, issue_with_middle_score, issue_with_high_score]
       assert_equal(ordered_issues, searched_issues)
+    end
+
+    def test_private_issue_invisible
+      issue = generate_private_issue(author: User.find(2))
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      assert_not_include(issue.subject,
+                         search(parameters).records.collect(&:title))
+    end
+
+    def test_private_issue_invisible_by_anonymous_user
+      # Anonymous users cannot view issues they created themselves.
+      @user = User.anonymous
+      issue = generate_private_issue(author: @user)
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      assert_not_include(issue.subject,
+                         search(parameters).records.collect(&:title))
+    end
+
+    def test_private_issue_visible_by_author
+      issue = generate_private_issue(author: @user)
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      assert_include(issue.subject,
+                     search(parameters).records.collect(&:title))
+    end
+
+    def test_private_issue_visible_by_assigned_user
+      # An assignee must be a member of the project.
+      # Since `@user = User.find(4)` is not a member, use `User.find(3)` instead.
+      @user = User.find(3)
+      issue = generate_private_issue(author: User.find(2),
+                                     assigned_to: @user)
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      assert_include(issue.subject,
+                     search(parameters).records.collect(&:title))
+    end
+
+    def test_private_issue_visible_by_assigned_group
+      # User.find(8) belongs to Group.find(11) and Group.find(11) is a member
+      # of Project.find(2).
+      @project = Project.find(2)
+      @user = User.find(8)
+      issue = nil
+      with_settings(:issue_group_assignment => "1") do
+        issue = generate_private_issue(author: User.find(2),
+                                       assigned_to: Group.find(11))
+      end
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      assert_include(issue.subject,
+                     search(parameters).records.collect(&:title))
+    end
+
+    def test_private_issue_visible_by_all_issues_visibility_role
+      # Use `User.find(2)`, as `role.issues_visibility == "all"`.
+      @user = User.find(2)
+      issue = generate_private_issue(author: User.find(3))
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      assert_include(issue.subject,
+                     search(parameters).records.collect(&:title))
+    end
+
+    def test_private_issue_visible_by_admin
+      @user = User.find(1)
+      issue = generate_private_issue(author: User.find(3))
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      assert_include(issue.subject,
+                     search(parameters).records.collect(&:title))
     end
   end
 end

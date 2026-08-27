@@ -170,6 +170,19 @@ module FullTextSearch
       viewable_projects.pluck(:id)
     end
 
+    def all_private_issues_visible_project_ids
+      return [] unless user.logged?
+      # For administrators, all projects are targeted.
+      condition = Project.allowed_to_condition(user, :view_issues) do |role|
+        if role.issues_visibility == "all"
+          "1=1"
+        else
+          "1=0"
+        end
+      end
+      Project.where(condition).pluck(:id)
+    end
+
     def tag_drilldown?(tag_type_id)
       each_tag.any? do |tag|
         tag.type_id == tag_type_id
