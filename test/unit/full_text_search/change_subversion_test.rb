@@ -296,6 +296,92 @@ module FullTextSearch
       end
     end
 
+    def test_replace_directory_with_add
+      Dir.mktmpdir do |dir|
+        repository_url = build_replace_directory_with_add_repository(dir)
+        repository = Repository::Subversion.create(:project => @project,
+                                                   :url => repository_url)
+        repository.fetch_changesets
+
+        move_changeset = repository.changesets.find_by!(revision: "2")
+        original_a_change = Change.find_by!(path: "/dir/a.txt")
+        original_b_change = Change.find_by!(path: "/dir/b.txt")
+        new_change = Change.find_by!(path: "/dir/new.txt")
+        a_target = Target.find_by(source_id: original_a_change.id,
+                                  source_type_id: Type.change.id)
+        b_target = Target.find_by(source_id: original_b_change.id,
+                                  source_type_id: Type.change.id)
+        new_target = Target.find_by(source_id: new_change.id,
+                                    source_type_id: Type.change.id)
+        assert_equal([
+          nil,
+          nil,
+          {
+            "project_id" => @project.id,
+            "source_id" => new_change.id,
+            "source_type_id" => Type.change.id,
+            "last_modified_at" => move_changeset.committed_on,
+            "registered_at" => move_changeset.committed_on,
+            "container_id" => repository.id,
+            "container_type_id" => Type.repository.id,
+            "title" => "/dir/new.txt@2",
+            "content" => "FILE: new.txt\n",
+            "custom_field_id" => null_number,
+            "is_private" => null_boolean,
+            "tag_ids" => [Tag.extension("txt").id],
+          },
+        ],
+        [
+          a_target,
+          b_target,
+          new_target.attributes.except("id"),
+        ])
+      end
+    end
+
+    def test_replace_directory_with_move
+      Dir.mktmpdir do |dir|
+        repository_url = build_replace_directory_with_move_repository(dir)
+        repository = Repository::Subversion.create(:project => @project,
+                                                   :url => repository_url)
+        repository.fetch_changesets
+
+        move_changeset = repository.changesets.find_by!(revision: "3")
+        original_a_change = Change.find_by!(path: "/dir/a.txt")
+        original_b_change = Change.find_by!(path: "/dir/b.txt")
+        original_c_change = Change.find_by!(path: "/other/c.txt")
+        a_target = Target.find_by(source_id: original_a_change.id,
+                                  source_type_id: Type.change.id)
+        b_target = Target.find_by(source_id: original_b_change.id,
+                                  source_type_id: Type.change.id)
+        c_target = Target.find_by(source_id: original_c_change.id,
+                                  source_type_id: Type.change.id)
+        assert_equal([
+          nil,
+          nil,
+          {
+            "project_id" => @project.id,
+            "source_id" => original_c_change.id,
+            "source_type_id" => Type.change.id,
+            "last_modified_at" => move_changeset.committed_on,
+            "registered_at" => move_changeset.committed_on,
+            "container_id" => repository.id,
+            "container_type_id" => Type.repository.id,
+            "title" => "/dir/c.txt@3",
+            "content" => "FILE: c.txt\n",
+            "custom_field_id" => null_number,
+            "is_private" => null_boolean,
+            "tag_ids" => [Tag.extension("txt").id],
+          },
+        ],
+        [
+          a_target,
+          b_target,
+          c_target.attributes.except("id"),
+        ])
+      end
+    end
+
     private
     def run_command(*args)
       assert(system(*args), "Command failed: #{args.join(' ')}")
@@ -360,6 +446,42 @@ module FullTextSearch
       run_command("svn", "rm", File.join(work_path, "renamed", "b.txt"))
       run_command("svn", "commit",
                   "-m", "Move dir to renamed and remove b.txt",
+                  work_path)
+      repository_url
+    end
+
+    def build_replace_directory_with_add_repository(dir)
+      repository_url = create_test_repository(dir)
+
+      work_path = File.join(dir, "work")
+      run_command("svn", "checkout", repository_url, work_path)
+      run_command("svn", "rm", File.join(work_path, "dir"))
+      run_command("svn", "mkdir", File.join(work_path, "dir"))
+      File.write(File.join(work_path, "dir", "new.txt"), "FILE: new.txt\n")
+      run_command("svn", "add", File.join(work_path, "dir", "new.txt"))
+      run_command("svn", "commit",
+                  "-m", "Replace dir with a new directory",
+                  work_path)
+      repository_url
+    end
+
+    def build_replace_directory_with_move_repository(dir)
+      repository_url = create_test_repository(dir)
+
+      import_other_path = File.join(dir, "import_other")
+      FileUtils.mkdir_p(import_other_path)
+      File.write(File.join(import_other_path, "c.txt"), "FILE: c.txt\n")
+      run_command("svn", "import",
+                  import_other_path, "#{repository_url}/other",
+                  "-m", "Add other/c.txt")
+
+      work_path = File.join(dir, "work")
+      run_command("svn", "checkout", repository_url, work_path)
+      run_command("svn", "rm", File.join(work_path, "dir"))
+      run_command("svn", "move",
+                  File.join(work_path, "other"), File.join(work_path, "dir"))
+      run_command("svn", "commit",
+                  "-m", "Replace dir with move directory",
                   work_path)
       repository_url
     end
