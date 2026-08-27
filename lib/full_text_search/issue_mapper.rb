@@ -26,6 +26,13 @@ module FullTextSearch
       fts_target.content = content_text
       tag_ids.concat(content_tag_ids)
       tag_ids << Tag.user(@record.author_id).id if @record.author_id
+      if @record.assigned_to_id
+        if @record.assigned_to.is_a?(Group)
+          tag_ids << Tag.user_group(@record.assigned_to_id).id
+        else
+          tag_ids << Tag.user(@record.assigned_to_id).id
+        end
+      end
       fts_target.is_private = @record.is_private
       tag_ids << Tag.issue_status(@record.status_id).id if @record.status_id
       fts_target.tag_ids = tag_ids
