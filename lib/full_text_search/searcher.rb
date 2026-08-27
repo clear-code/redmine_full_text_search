@@ -126,6 +126,38 @@ module FullTextSearch
       "(#{conditions.join(operator)})"
     end
 
+    def private_issue_bypass_condition
+      user = @request.user
+      # Only logged-in users can view private issues.
+      return nil unless user.logged?
+      # Only relevant when issues are part of the search target.
+      return nil unless @request.target_search_types.include?("issues")
+
+      sub_conditions = []
+      # In a project, users with the `issues_visibility == "all"` role
+      # can view private issues in that project.
+      project_ids = @request.all_private_issues_visible_project_ids
+      if project_ids.present?
+        sub_conditions << "in_values(project_id, #{project_ids.join(', ')})"
+      end
+
+      # The author and the assignee can view private issues.
+      tag_ids = [Tag.user(user.id).id]
+      tag_ids += user.groups.pluck(:id).collect do |group_id|
+        Tag.user_group(group_id).id
+      end
+      if Target.highlight_keyword_extraction_is_broken?
+        sub_conditions << "query('tag_ids', '#{tag_ids.join(' ')}')"
+      else
+        tag_ids.each do |tag_id|
+          sub_conditions << "tag_ids @ #{tag_id}"
+        end
+      end
+
+      "source_type_id == #{Type.issue.id} && " +
+        "(#{sub_conditions.join(' || ')})"
+    end
+
     def filter
       project_ids = @request.target_project_ids
       return nil if project_ids.empty?
@@ -169,7 +201,12 @@ module FullTextSearch
       # TODO: Support private notes again
       # Project.allowed_to(user, :view_private_notes).pluck(:id)
       conditions << "&!"
-      conditions << "is_private == true"
+      bypass_condition = private_issue_bypass_condition
+      if bypass_condition
+        conditions << "(is_private == true && !(#{bypass_condition}))"
+      else
+        conditions << "is_private == true"
+      end
 
       unless @request.attachments?
         conditions << "&!"
