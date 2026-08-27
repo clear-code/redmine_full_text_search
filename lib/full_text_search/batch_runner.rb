@@ -210,7 +210,7 @@ module FullTextSearch
                        },
                        path: entry.path)
           unless change
-            # In some cases, `change.path` and `fts_targets.title` do not match.
+            # In some cases, there is no `Change` whose `path` matches `entry.path`.
             # For details, see `change_mapper.rb`.
             # Therefore, we check if the data matching `entry.path` exists in `fts_targets`.
             existing_target =
