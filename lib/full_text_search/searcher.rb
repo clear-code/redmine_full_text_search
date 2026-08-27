@@ -137,7 +137,7 @@ module FullTextSearch
       # In a project, users with the `issues_visibility == "all"` role
       # can view private issues in that project.
       project_ids = @request.all_private_issues_visible_project_ids
-      unless project_ids.empty?
+      if project_ids.present?
         sub_conditions << "in_values(project_id, #{project_ids.join(', ')})"
       end
 
