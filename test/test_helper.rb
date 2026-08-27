@@ -198,3 +198,9 @@ class RepositoryInfo
     files
   end
 end
+
+module CommandRunner
+  def run_command(*args)
+    assert(system(*args), "Command failed: #{args.join(' ')}")
+  end
+end

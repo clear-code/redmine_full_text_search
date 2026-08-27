@@ -209,7 +209,18 @@ module FullTextSearch
                          revision: entry_identifier,
                        },
                        path: entry.path)
-          next unless change
+          unless change
+            # In some cases, `change.path` and `fts_targets.title` do not match.
+            # For details, see `change_mapper.rb`.
+            # Therefore, we check if the data matching `entry.path` exists in `fts_targets`.
+            existing_target =
+              RedmineChangeMapper
+                .find_fts_targets_by_path(repository, entry.path)
+                .first
+            existing_target_ids.delete(existing_target.source_id) if existing_target
+            next
+          end
+
           existing_target_ids.delete(change.id)
           if options.upsert == :later
             UpsertTargetJob
