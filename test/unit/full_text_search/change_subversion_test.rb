@@ -259,6 +259,43 @@ module FullTextSearch
       end
     end
 
+    def test_move_directory_with_deleted_file
+      Dir.mktmpdir do |dir|
+        repository_url = build_move_directory_with_deleted_file_repository(dir)
+        repository = Repository::Subversion.create(:project => @project,
+                                                   :url => repository_url)
+        repository.fetch_changesets
+        move_changeset = repository.changesets.find_by!(revision: "2")
+        original_a_change = Change.find_by!(path: "/dir/a.txt")
+        original_b_change = Change.find_by!(path: "/dir/b.txt")
+        a_target = Target.find_by(source_id: original_a_change.id,
+                                  source_type_id: Type.change.id)
+        b_target = Target.find_by(source_id: original_b_change.id,
+                                  source_type_id: Type.change.id)
+        assert_equal([
+          {
+            "project_id" => @project.id,
+            "source_id" => original_a_change.id,
+            "source_type_id" => Type.change.id,
+            "last_modified_at" => move_changeset.committed_on,
+            "registered_at" => move_changeset.committed_on,
+            "container_id" => repository.id,
+            "container_type_id" => Type.repository.id,
+            "title" => "/renamed/a.txt@2",
+            "content" => "FILE: a.txt\n",
+            "custom_field_id" => null_number,
+            "is_private" => null_boolean,
+            "tag_ids" => [Tag.extension("txt").id],
+          },
+          nil,
+        ],
+        [
+          a_target.attributes.except("id"),
+          b_target,
+        ])
+      end
+    end
+
     private
     def run_command(*args)
       assert(system(*args), "Command failed: #{args.join(' ')}")
@@ -309,6 +346,21 @@ module FullTextSearch
       run_command("svn", "copy",
                   "#{repository_url}/dir", "#{repository_url}/copied",
                   "-m", "Copy dir to copied")
+      repository_url
+    end
+
+    def build_move_directory_with_deleted_file_repository(dir)
+      repository_url = create_test_repository(dir)
+      # Checkout to perform both `move` and `rm` in the same commit.
+      # (Operations on `repository_url` result in a separate commit for each operation.)
+      work_path = File.join(dir, "work")
+      run_command("svn", "checkout", repository_url, work_path)
+      run_command("svn", "move",
+                  File.join(work_path, "dir"), File.join(work_path, "renamed"))
+      run_command("svn", "rm", File.join(work_path, "renamed", "b.txt"))
+      run_command("svn", "commit",
+                  "-m", "Move dir to renamed and remove b.txt",
+                  work_path)
       repository_url
     end
   end
