@@ -2,8 +2,8 @@ require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
   class BatchRunnerSynchronizeTest < ActiveSupport::TestCase
-    include CommandRunner
     include PrettyInspectable
+    include SubversionRepositoryBuilder
 
     fixtures :attachments
     fixtures :boards
@@ -347,26 +347,6 @@ module FullTextSearch
       not_archived_projects = Project.where.not(status: Project::STATUS_ARCHIVED)
       assert_equal([],
                    Target.pluck(:project_id) - not_archived_projects.pluck(:id))
-    end
-
-    private
-    def build_move_directory_repository(dir)
-      repository_path = File.join(dir, "repository")
-      run_command("svnadmin", "create", repository_path)
-
-      import_path = File.join(dir, "import")
-      FileUtils.mkdir_p(import_path)
-      File.write(File.join(import_path, "a.txt"), "FILE: a.txt\n")
-      File.write(File.join(import_path, "b.txt"), "FILE: b.txt\n")
-
-      repository_url = "file://#{repository_path}"
-      run_command("svn", "import",
-                  import_path, "#{repository_url}/dir",
-                  "-m", "Add dir/{a.txt,b.txt}")
-      run_command("svn", "move",
-                  "#{repository_url}/dir", "#{repository_url}/renamed",
-                  "-m", "Move dir to renamed")
-      repository_url
     end
   end
 end
