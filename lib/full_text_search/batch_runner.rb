@@ -68,6 +68,23 @@ module FullTextSearch
         end
       end
       bar.finish
+
+      # If titles were updated with `move` operation, reloading `Change` will
+      # revert the titles to their previous values.
+      # Replay the `move` operation and update the `title`.
+      return unless options.type.blank? || options.type == Type.change
+      if options.upsert == :later
+        Rails.logger.warn("[full_text_search][reload] " +
+                          "Run `full_text_search:change:replay_directories` " +
+                          "once the queued jobs have finished.")
+      else
+        replay_change_directories_internal(options)
+      end
+    end
+
+    def replay_change_directories(project: nil)
+      options = Options.new(project)
+      replay_change_directories_internal(options)
     end
 
     def extract_text(ids: nil)
@@ -277,6 +294,38 @@ module FullTextSearch
         bar.finish
       end
       all_bar.finish
+    end
+
+    def replay_change_directories_internal(options)
+      # Only Subversion records a change whose path is a directory. For the
+      # other SCMs a move is recorded per file, so there is nothing to replay.
+      # Since `action=D` is executed with synchronize, it is not targeted here.
+      changes =
+        Change
+          .joins(changeset: :repository)
+          .where(repositories: {type: Repository::Subversion.name})
+          .where(action: ["A", "R"])
+          .where.not(from_path: nil)
+      if options.project
+        changes =
+          changes
+            .joins(changeset: {repository: :project})
+            .where(projects: {id: options.project.id})
+      end
+
+      bar = create_progress_bar("FullTextSearch::Change",
+                                total: changes.count)
+      bar.start
+      # Since updates will not be applied correctly if not executed in the order
+      # of the commits, we perform synchronization.
+      #
+      # Redmine inserts `Change` in commit order.
+      # `find_each` processes the records in `id` order.
+      bar.iterate(changes.find_each) do |change|
+        mapper = ChangeMapper.redmine_mapper(change)
+        mapper.upsert_fts_target(replay: true)
+      end
+      bar.finish
     end
 
     def process_orphan_change_targets?(repository)
