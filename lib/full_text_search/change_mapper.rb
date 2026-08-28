@@ -150,14 +150,6 @@ module FullTextSearch
         .exists?
     end
 
-    def fts_target_keys
-      {
-        source_id: @record.id,
-        source_type_id: Type[@record].id,
-        title: target_title,
-      }
-    end
-
     def directory_move_destination?
       change = Change
         .where(changeset_id: @record.changeset_id,
