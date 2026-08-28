@@ -2,8 +2,9 @@ require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
   class ChangeSubversionTest < ActiveSupport::TestCase
-    include PrettyInspectable
+    include CommandRunner
     include NullValues
+    include PrettyInspectable
     include TimeValue
 
     fixtures :enabled_modules
@@ -383,10 +384,6 @@ module FullTextSearch
     end
 
     private
-    def run_command(*args)
-      assert(system(*args), "Command failed: #{args.join(' ')}")
-    end
-
     def create_test_repository(dir)
       repository_path = File.join(dir, "repository")
       run_command("svnadmin", "create", repository_path)

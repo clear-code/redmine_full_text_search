@@ -2,6 +2,7 @@ require File.expand_path("../../../test_helper", __FILE__)
 
 module FullTextSearch
   class BatchRunnerSynchronizeTest < ActiveSupport::TestCase
+    include CommandRunner
     include PrettyInspectable
 
     fixtures :attachments
@@ -71,6 +72,30 @@ module FullTextSearch
       # Including only the latest files at the default branch.
       assert_difference("Target.count", repository_info.files.size) do
         runner.synchronize_repositories(project: project)
+      end
+    end
+
+    def test_subversion_repository_moved_directory
+      project = Project.find(3)
+      Dir.mktmpdir do |dir|
+        repository_url = build_move_directory_repository(dir)
+        repository = Repository::Subversion.create(:project => project,
+                                                   :url => repository_url)
+        repository.fetch_changesets
+
+        a_target = Target.find_by(title: "/renamed/a.txt@2")
+        b_target = Target.find_by(title: "/renamed/b.txt@2")
+        assert_not_nil(a_target, "Expected /renamed/a.txt@2 to be indexed")
+        assert_not_nil(b_target, "Expected /renamed/b.txt@2 to be indexed")
+        runner = BatchRunner.new
+        assert_no_difference("Target.count") do
+          runner.synchronize_repositories(project: project)
+        end
+        assert_equal([a_target.id, b_target.id],
+                     [
+                       Target.find_by(title: "/renamed/a.txt@2").id,
+                       Target.find_by(title: "/renamed/b.txt@2").id,
+                     ])
       end
     end
 
@@ -322,6 +347,26 @@ module FullTextSearch
       not_archived_projects = Project.where.not(status: Project::STATUS_ARCHIVED)
       assert_equal([],
                    Target.pluck(:project_id) - not_archived_projects.pluck(:id))
+    end
+
+    private
+    def build_move_directory_repository(dir)
+      repository_path = File.join(dir, "repository")
+      run_command("svnadmin", "create", repository_path)
+
+      import_path = File.join(dir, "import")
+      FileUtils.mkdir_p(import_path)
+      File.write(File.join(import_path, "a.txt"), "FILE: a.txt\n")
+      File.write(File.join(import_path, "b.txt"), "FILE: b.txt\n")
+
+      repository_url = "file://#{repository_path}"
+      run_command("svn", "import",
+                  import_path, "#{repository_url}/dir",
+                  "-m", "Add dir/{a.txt,b.txt}")
+      run_command("svn", "move",
+                  "#{repository_url}/dir", "#{repository_url}/renamed",
+                  "-m", "Move dir to renamed")
+      repository_url
     end
   end
 end

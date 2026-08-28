@@ -27,6 +27,32 @@ module FullTextSearch
         super.where(action: ["A", "M", "R"],
                     id: source_ids)
       end
+
+      def find_fts_targets_by_path(repository, path, descendants: false)
+        escaped_path = Target.sanitize_sql_like(path)
+        # Exclude `@%@%` so that `file.txt@<revision>` doesn't match `file.txt@2026`
+        # when both `file.txt` and `file.txt@2026` exist.
+        condition = "title LIKE ? AND title NOT LIKE ?"
+        values = ["#{escaped_path}@%", "#{escaped_path}@%@%"]
+        if descendants
+          # Also match descendants, to support cases where `path` is a directory.
+          condition = "(#{condition}) OR title LIKE ?"
+          values << "#{escaped_path}/%"
+        end
+
+        Target
+          .joins(<<-JOIN)
+JOIN changes
+  ON source_type_id = #{Type.change.id} AND
+     source_id = changes.id
+JOIN changesets
+  ON changes.changeset_id = changesets.id
+JOIN repositories
+  ON changesets.repository_id = repositories.id
+          JOIN
+          .where(repositories: {id: repository.id})
+          .where(condition, *values)
+      end
     end
 
     def upsert_fts_target(options={})
@@ -172,29 +198,9 @@ module FullTextSearch
     end
 
     def find_fts_targets(path: nil, descendants: false)
-      escaped_path = Target.sanitize_sql_like(path || @record.path)
-      # Exclude `@%@%` so that `file.txt@<revision>` doesn't match `file.txt@2026`
-      # when both `file.txt` and `file.txt@2026` exist.
-      condition = "title LIKE ? AND title NOT LIKE ?"
-      values = ["#{escaped_path}@%", "#{escaped_path}@%@%"]
-      if descendants
-        # Also match descendants, to support cases where `path` is a directory.
-        condition = "(#{condition}) OR title LIKE ?"
-        values << "#{escaped_path}/%"
-      end
-
-      Target
-        .joins(<<-JOIN)
-  JOIN changes
-    ON source_type_id = #{Type.change.id} AND
-       source_id = changes.id
-  JOIN changesets
-    ON changes.changeset_id = changesets.id
-  JOIN repositories
-    ON changesets.repository_id = repositories.id
-        JOIN
-        .where(repositories: {id: @record.changeset.repository.id})
-        .where(condition, *values)
+      self.class.find_fts_targets_by_path(@record.changeset.repository,
+                                          path || @record.path,
+                                          descendants: descendants)
     end
 
     def find_old_fts_targets(path: nil, descendants: false)
