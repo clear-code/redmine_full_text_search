@@ -41,6 +41,14 @@ module FullTextSearch
                                     @record.path,
                                     changeset.identifier)
         if entry.directory?
+          if @record.action == "R"
+            # `R dir` is used when executing commands such as `rm -rf dir; cp -R from dir`.
+            # In this case, `D dir` is not inserted.
+            # Also, as the command examples show, the old `dir` and the new `dir` are completely different.
+            # Therefore, first delete the records in the old `dir`.
+            find_old_fts_targets(descendants: true).destroy_all
+          end
+
           return unless @record.from_path
 
           # NOTE: We currently don't support copy, for the following reasons:
