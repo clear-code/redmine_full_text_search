@@ -33,10 +33,30 @@ module FullTextSearch
                        "custom_field_id" => custom_field.id,
                        "container_id" => issue.id,
                        "container_type_id" => Type.issue.id,
-                       "tag_ids" => null_number_array,
+                       "tag_ids" => [
+                         Tag.user(issue.author_id).id,
+                       ],
                      },
                    ],
                    targets.collect {|target| target.attributes.except("id")})
+    end
+
+    def test_update_issue
+      issue = Issue.find(1)
+      custom_field = IssueCustomField.generate!(searchable: true)
+      custom_value = custom_field.custom_values.create!(value: "Hello",
+                                                        customized: issue)
+      issue.assigned_to = User.find(3)
+      issue.save!
+      targets = Target.where(source_id: custom_value.id,
+                             source_type_id: Type.custom_value.id)
+      assert_equal([
+                     [
+                       Tag.user(issue.author_id),
+                       Tag.user(issue.assigned_to_id),
+                     ].sort_by(&:id),
+                   ],
+                   targets.collect {|target| target.tags.sort_by(&:id)})
     end
 
     def test_save_project
