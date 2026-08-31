@@ -57,6 +57,7 @@ JOIN projects
       when "Issue"
         fts_target.project_id = customized.project_id
         fts_target.is_private = customized.is_private
+        fts_target.tag_ids = extract_tag_ids_from_issue(customized)
       when "Project"
         fts_target.project_id = customized.id
       else

@@ -128,6 +128,19 @@ module FullTextSearch
       [Tag.extension(extension).id]
     end
 
+    def extract_tag_ids_from_issue(issue)
+      tag_ids = []
+      tag_ids << Tag.user(issue.author_id).id if issue.author_id
+      if issue.assigned_to_id
+        if issue.assigned_to.is_a?(Group)
+          tag_ids << Tag.user_group(issue.assigned_to_id).id
+        else
+          tag_ids << Tag.user(issue.assigned_to_id).id
+        end
+      end
+      tag_ids
+    end
+
     def extract_content(fts_target, options)
       case options[:extract_text] || :immediate
       when :immediate

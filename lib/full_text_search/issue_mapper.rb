@@ -24,15 +24,8 @@ module FullTextSearch
       parser = MarkupParser.new(@record.project)
       content_text, content_tag_ids = parser.parse(@record, :description)
       fts_target.content = content_text
-      tag_ids.concat(content_tag_ids)
-      tag_ids << Tag.user(@record.author_id).id if @record.author_id
-      if @record.assigned_to_id
-        if @record.assigned_to.is_a?(Group)
-          tag_ids << Tag.user_group(@record.assigned_to_id).id
-        else
-          tag_ids << Tag.user(@record.assigned_to_id).id
-        end
-      end
+      tag_ids.concat(content_tag_ids,
+                     extract_tag_ids_from_issue(@record))
       fts_target.is_private = @record.is_private
       tag_ids << Tag.issue_status(@record.status_id).id if @record.status_id
       fts_target.tag_ids = tag_ids
@@ -57,7 +50,11 @@ module FullTextSearch
         next unless redmine_mapper.find_fts_target.persisted?
         redmine_mapper.upsert_fts_target(options)
       end
-      # @record.custom_values
+      @record.custom_values.each do |custom_value|
+        redmine_mapper = CustomValueMapper.redmine_mapper(custom_value)
+        next unless redmine_mapper.find_fts_target.persisted?
+        redmine_mapper.upsert_fts_target(options)
+      end
     end
   end
 
