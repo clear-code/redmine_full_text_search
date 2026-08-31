@@ -67,11 +67,14 @@ JOIN repositories
                                     @record.path,
                                     changeset.identifier)
         if entry.directory?
-          if @record.action == "R"
+          if @record.action == "R" and not options[:replay]
             # `R dir` is used when executing commands such as `rm -rf dir; cp -R from dir`.
             # In this case, `D dir` is not inserted.
             # Also, as the command examples show, the old `dir` and the new `dir` are completely different.
             # Therefore, first delete the records in the old `dir`.
+            #
+            # If delete is executed in `replay`, it may delete files added after this commit.
+            # Therefore, `replay` does not perform the delete.
             find_old_fts_targets(descendants: true).destroy_all
           end
 
@@ -114,9 +117,11 @@ JOIN repositories
         fts_target.registered_at = changeset.committed_on
         fts_target.tag_ids = extract_tag_ids_from_path(@record.path)
         if fts_target.changed?
-          prepare_text_extraction(fts_target)
+          # Since the purpose of `replay` is to update the title when performing directory operations,
+          # it does not update the content.
+          prepare_text_extraction(fts_target) unless options[:replay]
           fts_target.save!
-          extract_content(fts_target, options)
+          extract_content(fts_target, options) unless options[:replay]
         end
       when "D"
         # For Subversion:
@@ -260,7 +265,12 @@ JOIN repositories
       fts_target.project_id = repository.project_id
       fts_target.last_modified_at = changeset.committed_on
       fts_target.registered_at = changeset.committed_on
-      fts_target.tag_ids = extract_tag_ids_from_path(new_path)
+      # Keep the text extraction tags. Otherwise a move that happens while
+      # the extraction is still pending would drop `text_extraction_yet`
+      # and the target would stay without its content forever.
+      fts_target.tag_ids =
+        extract_tag_ids_from_path(new_path) +
+        (fts_target.tag_ids & Tag.text_extraction_ids)
 
       # Since the file's content should be the same, we don't re-fetch it
       fts_target.save!

@@ -232,7 +232,7 @@ module SubversionRepositoryBuilder
     repository_url
   end
 
-  def build_2move_directory_repository(dir)
+  def build_move_directory_twice_repository(dir)
     repository_url = build_move_directory_repository(dir)
     run_command("svn", "move",
                 "#{repository_url}/renamed", "#{repository_url}/rerenamed",

@@ -77,6 +77,14 @@ namespace :full_text_search do
     end
   end
 
+  namespace :change do
+    desc "Rename targets for files under directories moved in Subversion. Run this before repository:synchronize"
+    task :replay_directories => :environment do
+      batch_runner = FullTextSearch::BatchRunner.new(show_progress: true)
+      batch_runner.replay_change_directories(project: ENV["PROJECT"])
+    end
+  end
+
   namespace :text do
     desc "Extract texts"
     task :extract => :environment do
