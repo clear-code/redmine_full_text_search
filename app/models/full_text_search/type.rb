@@ -79,6 +79,16 @@ module FullTextSearch
       def wiki_page
         find_or_create_by(name: "WikiPage")
       end
+
+      # Knowledgebase記事用Type
+      def kb_article
+        find_or_create_by(name: "KbArticle")
+      end
+
+      # Backward compatibility for existing calls.
+      def kb_articles
+        kb_article
+      end
     end
   end
 end
