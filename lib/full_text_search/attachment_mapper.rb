@@ -60,7 +60,7 @@ JOIN projects
       fts_target.source_id = @record.id
       fts_target.source_type_id = Type[@record.class].id
       fts_target.title = @record.filename
-      fts_target.content = @record.description
+      fts_target.content = @record.description unless options[:skip_extract_content]
       fts_target.last_modified_at = @record.created_on
       fts_target.registered_at = @record.created_on
       tag_ids = []
@@ -71,6 +71,7 @@ JOIN projects
         fts_target.project_id = issue.project_id
         fts_target.is_private = issue.is_private
         tag_ids << Tag.issue_status(issue.status_id).id
+        tag_ids.concat(extract_tag_ids_from_issue(issue))
       when "Message"
         fts_target.project_id = @record.container.board.project_id
       when "Project"
@@ -85,10 +86,15 @@ JOIN projects
       fts_target.container_id = @record.container_id
       fts_target.container_type_id = Type[@record.container_type].id
       tag_ids.concat(extract_tag_ids_from_path(@record.filename))
+      if options[:skip_extract_content]
+        # Keep the tags for the status of the text extraction
+        # because we don't extract the text here.
+        tag_ids.concat((fts_target.tag_ids || []) & Tag.text_extraction_ids)
+      end
       fts_target.tag_ids = tag_ids
-      prepare_text_extraction(fts_target)
+      prepare_text_extraction(fts_target) unless options[:skip_extract_content]
       fts_target.save!
-      extract_content(fts_target, options)
+      extract_content(fts_target, options) unless options[:skip_extract_content]
     end
 
     def extract_text

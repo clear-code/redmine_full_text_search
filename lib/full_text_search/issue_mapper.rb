@@ -50,6 +50,14 @@ module FullTextSearch
         next unless redmine_mapper.find_fts_target.persisted?
         redmine_mapper.upsert_fts_target(options)
       end
+      @record.attachments.each do |attachment|
+        redmine_mapper = AttachmentMapper.redmine_mapper(attachment)
+        next unless redmine_mapper.find_fts_target.persisted?
+        # The attachment itself isn't changed here.
+        # Extracting its text again is expensive, so we keep the extracted
+        # content.
+        redmine_mapper.upsert_fts_target(options.merge(skip_extract_content: true))
+      end
       @record.custom_values.each do |custom_value|
         redmine_mapper = CustomValueMapper.redmine_mapper(custom_value)
         next unless redmine_mapper.find_fts_target.persisted?
