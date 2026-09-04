@@ -201,7 +201,8 @@ end
 
 module CommandRunner
   def run_command(*args)
-    assert(system(*args), "Command failed: #{args.join(' ')}")
+    assert(system(*args, out: File::NULL),
+           "Command failed: #{args.join(' ')}")
   end
 end
 
