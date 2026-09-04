@@ -41,6 +41,10 @@ module FullTextSearch
       @raw["semantic_query_prefix"].presence
     end
 
+    def enable_partition?
+      @raw["enable_partition"] != FALSE_VALUE
+    end
+
     DEFAULT_ATTACHMENT_MAX_TEXT_SIZE_IN_MB = 4
     def attachment_max_text_size_in_mb
       size = @raw.fetch("attachment_max_text_size_in_mb",

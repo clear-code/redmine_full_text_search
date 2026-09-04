@@ -93,3 +93,11 @@
                        settings.semantic_query_prefix) %>
   </p>
 </section>
+
+<p>
+  <%= label_tag("settings[enable_partition]",
+                l(:label_full_text_search_enable_partition)) %>
+  <%= check_box("settings",
+                "enable_partition",
+                checked: settings.enable_partition?) %>
+</p>
