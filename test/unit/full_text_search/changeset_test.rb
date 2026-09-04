@@ -28,6 +28,7 @@ module FullTextSearch
                        "last_modified_at" => changeset.committed_on,
                        "registered_at" => changeset.committed_on,
                        "is_private" => null_boolean,
+                       "private_notes" => null_boolean,
                        "title" => "Fix a memory leak",
                        "content" => "This is critical.",
                        "custom_field_id" => null_number,

@@ -64,6 +64,7 @@ module FullTextSearch
         "content" => "",
         "custom_field_id" => null_number,
         "is_private" => null_boolean,
+        "private_notes" => null_boolean,
         "tag_ids" => [Tag.extension("png").id],
       }
       expected_last_change = {
@@ -81,6 +82,7 @@ test
 test
         CONTENT
         "is_private" => null_boolean,
+        "private_notes" => null_boolean,
         "tag_ids" => [Tag.extension("txt").id],
       }
       assert_equal([

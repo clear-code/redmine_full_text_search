@@ -45,7 +45,8 @@ JOIN projects
       fts_target.content = content_text
       tag_ids.concat(content_tag_ids)
       tag_ids << Tag.user(@record.user_id).id if @record.user_id
-      fts_target.is_private = (issue.is_private or @record.private_notes)
+      fts_target.is_private = issue.is_private
+      fts_target.private_notes = @record.private_notes
       tag_ids << Tag.tracker(issue.tracker_id).id if issue.tracker_id
       tag_ids << Tag.issue_status(issue.status_id).id if issue.status_id
       fts_target.tag_ids = tag_ids

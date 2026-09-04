@@ -36,6 +36,7 @@ module FullTextSearch
                          Tag.issue_status(issue.status_id).id,
                        ],
                        "is_private" => issue.is_private,
+                       "private_notes" => null_boolean,
                        "custom_field_id" => null_number,
                        "container_id" => null_number,
                        "container_type_id" => null_number,
