@@ -31,6 +31,7 @@ module FullTextSearch
                        "registered_at" => attachment.created_on,
                        "title" => filename,
                        "is_private" => issue.is_private,
+                       "is_container_private" => null_boolean,
                        "content" => [
                          attachment.description,
                          content,
