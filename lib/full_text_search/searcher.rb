@@ -154,7 +154,14 @@ module FullTextSearch
         end
       end
 
-      "source_type_id == #{Type.issue.id} && " +
+      type_conditions = [
+        Type.issue.id,
+        Type.attachment.id,
+        Type.custom_value.id,
+      ].collect do |type_id|
+        "source_type_id == #{type_id}"
+      end
+      "(#{type_conditions.join(' || ')}) && " +
         "(#{sub_conditions.join(' || ')})"
     end
 
