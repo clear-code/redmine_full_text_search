@@ -267,6 +267,68 @@ module FullTextSearch
                      search(parameters).records.collect(&:title))
     end
 
+    def test_private_issue_attachment_invisible
+      issue = generate_private_issue(author: User.find(2))
+      attachment = Attachment.generate!(container: issue)
+      parameters = {
+        issues: "1",
+        attachments: "1",
+        limit: "-1",
+      }
+      attachment_records = search(parameters).records.find_all do |record|
+        record.source_type_id == Type.attachment.id
+      end
+      assert_not_include(attachment.id,
+                         attachment_records.collect(&:source_id))
+    end
+
+    def test_private_issue_attachment_visible_by_author
+      issue = generate_private_issue(author: @user)
+      attachment = Attachment.generate!(container: issue)
+      parameters = {
+        issues: "1",
+        attachments: "1",
+        limit: "-1",
+      }
+      attachment_records = search(parameters).records.find_all do |record|
+        record.source_type_id == Type.attachment.id
+      end
+      assert_include(attachment.id,
+                     attachment_records.collect(&:source_id))
+    end
+
+    def test_private_issue_custom_value_invisible
+      issue = generate_private_issue(author: User.find(2))
+      custom_field = IssueCustomField.generate!(searchable: true)
+      custom_value = custom_field.custom_values.create!(value: "FTS CUSTOM FIELD",
+                                                        customized: issue)
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      custom_value_records = search(parameters).records.find_all do |record|
+        record.source_type_id == Type.custom_value.id
+      end
+      assert_not_include(custom_value.id,
+                         custom_value_records.collect(&:source_id))
+    end
+
+    def test_private_issue_custom_value_visible_by_author
+      issue = generate_private_issue(author: @user)
+      custom_field = IssueCustomField.generate!(searchable: true)
+      custom_value = custom_field.custom_values.create!(value: "FTS CUSTOM FIELD",
+                                                        customized: issue)
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      custom_value_records = search(parameters).records.find_all do |record|
+        record.source_type_id == Type.custom_value.id
+      end
+      assert_include(custom_value.id,
+                     custom_value_records.collect(&:source_id))
+    end
+
     def test_private_issue_visible_by_admin
       @user = User.find(1)
       issue = generate_private_issue(author: User.find(3))
