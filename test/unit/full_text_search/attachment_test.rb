@@ -40,11 +40,37 @@ module FullTextSearch
                        "custom_field_id" => null_number,
                        "tag_ids" => [
                          Tag.issue_status(issue.status_id).id,
+                         Tag.user(issue.author_id).id,
                          Tag.extension("txt").id,
                        ],
                      }
                    ],
                    targets.collect {|target| target.attributes.except("id")})
+    end
+
+    def test_update_issue
+      file = uploaded_test_file("testfile.txt", "text/plain")
+      content = "this is a text file for upload tests\nwith multiple lines\n"
+      attachment = Attachment.generate!(file: file)
+      attachment.reload
+
+      issue = attachment.container
+      issue.assigned_to = User.find(3)
+      issue.save!
+
+      targets = Target.where(source_id: attachment.id,
+                             source_type_id: Type.attachment.id)
+      assert_equal([
+                     [
+                       Tag.issue_status(issue.status_id),
+                       Tag.user(issue.author_id),
+                       Tag.user(issue.assigned_to_id),
+                       Tag.extension("txt"),
+                     ].sort_by(&:id),
+                   ],
+                   targets.collect {|target| target.tags.sort_by(&:id)})
+      assert_equal([content],
+                   targets.collect {|target| target.content})
     end
 
     def test_destroy
