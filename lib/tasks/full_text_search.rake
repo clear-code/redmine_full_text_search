@@ -126,4 +126,16 @@ namespace :full_text_search do
       end
     end
   end
+
+  namespace :partition do
+    desc "Drop the table before partitioning"
+    task :drop => :environment do
+      FullTextSearch::Partition.ensure_dropped_before_partitioning
+    end
+
+    desc "Create a next year partition"
+    task :create => :environment do
+      FullTextSearch::Partition.ensure_created_next_year_partition
+    end
+  end
 end
