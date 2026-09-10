@@ -64,23 +64,7 @@ INSERT INTO fts_targets_new
        FROM fts_targets;
 SQL
 
-    execute(<<~SQL)
-CREATE INDEX fts_targets_index_pgroonga
-    ON fts_targets_new
- USING pgroonga (id,
-                 source_id,
-                 source_type_id,
-                 project_id,
-                 container_id,
-                 container_type_id,
-                 custom_field_id,
-                 is_private,
-                 last_modified_at,
-                 registered_at,
-                 title,
-                 content,
-                 tag_ids) WITH (normalizer='NormalizerNFKC121');
-SQL
+    execute("REINDEX INDEX fts_targets_index_pgroonga")
     execute("ALTER TABLE fts_targets RENAME_TO fts_targets_old")
     execute("ALTER TABLE fts_targets_new RENAME_TO fts_targets")
   end
@@ -113,24 +97,7 @@ INSERT INTO fts_targets_new
        FROM fts_targets;
 SQL
 
-    execute(<<~SQL)
-CREATE INDEX fts_targets_index_pgroonga
-    ON fts_targets_new
- USING pgroonga (id,
-                 source_id,
-                 source_type_id,
-                 project_id,
-                 container_id,
-                 container_type_id,
-                 custom_field_id,
-                 is_private,
-                 last_modified_at,
-                 registered_at,
-                 title,
-                 content,
-                 tag_ids) WITH (normalizer='NormalizerNFKC121');
-SQL
-
+    execute("REINDEX INDEX fts_targets_index_pgroonga")
     execute("ALTER TABLE fts_targets RENAME_TO fts_targets_old")
     execute("ALTER TABLE fts_targets_new RENAME_TO fts_targets")
   end
