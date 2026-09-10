@@ -86,6 +86,52 @@ SQL
   end
 
   def down
-    raise ActiveRecord::IrreversibleMigration
+    return unless table_exists?(:fts_targets)
+    return if Redmine::Database.mysql?
+
+    execute(<<~SQL)
+CREATE TABLE fts_targets_new (
+  id bigint NOT NULL,
+  source_id integer NOT NULL,
+  source_type_id integer NOT NULL,
+  project_id integer NOT NULL,
+  container_id integer,
+  container_type_id integer,
+  custom_field_id integer,
+  is_private boolean,
+  last_modified_at timestamp without time zone,
+  title text,
+  content text,
+  tag_ids integer[],
+  registered_at timestamp without time zone
+);
+SQL
+
+    execute(<<~SQL)
+INSERT INTO fts_targets_new
+     SELECT *
+       FROM fts_targets;
+SQL
+
+    execute(<<~SQL)
+CREATE INDEX fts_targets_index_pgroonga
+    ON fts_targets_new
+ USING pgroonga (id,
+                 source_id,
+                 source_type_id,
+                 project_id,
+                 container_id,
+                 container_type_id,
+                 custom_field_id,
+                 is_private,
+                 last_modified_at,
+                 registered_at,
+                 title,
+                 content,
+                 tag_ids) WITH (normalizer='NormalizerNFKC121');
+SQL
+
+    execute("ALTER TABLE fts_targets RENAME_TO fts_targets_old")
+    execute("ALTER TABLE fts_targets_new RENAME_TO fts_targets")
   end
 end
