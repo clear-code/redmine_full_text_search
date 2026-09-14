@@ -44,6 +44,9 @@ JOIN projects
       content_text, content_tag_ids = parser.parse(@record, :notes)
       fts_target.content = content_text
       tag_ids.concat(content_tag_ids)
+      # Add only the user who wrote this journal.
+      # If we also added the author of its issue, we couldn't tell
+      # which of them wrote the note.
       tag_ids << Tag.user(@record.user_id).id if @record.user_id
       fts_target.is_private = @record.private_notes
       fts_target.is_container_private = issue.is_private

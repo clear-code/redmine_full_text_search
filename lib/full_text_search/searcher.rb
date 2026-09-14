@@ -126,6 +126,21 @@ module FullTextSearch
       "(#{conditions.join(operator)})"
     end
 
+    def build_project_ids_bypass_condition(project_ids)
+      return [] if project_ids.blank?
+      ["in_values(project_id, #{project_ids.join(', ')})"]
+    end
+
+    def build_tag_ids_bypass_condition(tag_ids)
+      if Target.highlight_keyword_extraction_is_broken?
+        ["query('tag_ids', '#{tag_ids.join(' ')}')"]
+      else
+        tag_ids.collect do |tag_id|
+          "tag_ids @ #{tag_id}"
+        end
+      end
+    end
+
     def private_issue_bypass_condition
       user = @request.user
       # Only logged-in users can view private issues.
@@ -137,22 +152,14 @@ module FullTextSearch
       # In a project, users with the `issues_visibility == "all"` role
       # can view private issues in that project.
       project_ids = @request.all_private_issues_visible_project_ids
-      if project_ids.present?
-        sub_conditions << "in_values(project_id, #{project_ids.join(', ')})"
-      end
+      sub_conditions.concat(build_project_ids_bypass_condition(project_ids))
 
       # The author and the assignee can view private issues.
       tag_ids = [Tag.user(user.id).id]
       tag_ids += user.groups.pluck(:id).collect do |group_id|
         Tag.user_group(group_id).id
       end
-      if Target.highlight_keyword_extraction_is_broken?
-        sub_conditions << "query('tag_ids', '#{tag_ids.join(' ')}')"
-      else
-        tag_ids.each do |tag_id|
-          sub_conditions << "tag_ids @ #{tag_id}"
-        end
-      end
+      sub_conditions.concat(build_tag_ids_bypass_condition(tag_ids))
 
       type_conditions = [
         Type.issue.id,
@@ -163,6 +170,52 @@ module FullTextSearch
       end
       "(#{type_conditions.join(' || ')}) && " +
         "(#{sub_conditions.join(' || ')})"
+    end
+
+    def private_note_bypass_condition
+      user = @request.user
+      # Only logged-in users can view private notes.
+      return nil unless user.logged?
+      # Only relevant when issues are part of the search target.
+      return nil unless @request.target_search_types.include?("issues")
+
+      sub_conditions = []
+      # In a project, users with the `view_private_notes` permission
+      # can view private notes in that project.
+      project_ids = @request.private_notes_visible_project_ids
+      sub_conditions.concat(build_project_ids_bypass_condition(project_ids))
+
+      # The user who wrote a private note can view it.
+      sub_conditions.concat(build_tag_ids_bypass_condition([Tag.user(user.id).id]))
+
+      "source_type_id == #{Type.journal.id} && " +
+        "(#{sub_conditions.join(' || ')})"
+    end
+
+    def private_container_bypass_condition
+      # The condition built here is whether the user can view the issue.
+      # `tag_ids` of a journal have the ID of the author of the journal,
+      # not the author of its issue.
+      # If we used it to check the author as the other bypass conditions do,
+      # we wouldn't get the expected result. So we don't use `tag_ids` here.
+      #
+      # TODO:
+      # Add the tags of the author and the assignee of the container to the
+      # journals so that they can find the journals in their private issues.
+
+      # Only logged-in users can view private issues.
+      return nil unless @request.user.logged?
+      # Only relevant when issues are part of the search target.
+      return nil unless @request.target_search_types.include?("issues")
+
+      # In a project, users with the `issues_visibility == "all"` role
+      # can view private issues in that project.
+      project_ids = @request.all_private_issues_visible_project_ids
+      conditions = build_project_ids_bypass_condition(project_ids)
+      return nil if conditions.empty?
+
+      "container_type_id == #{Type.issue.id} && " +
+        "(#{conditions.join(' || ')})"
     end
 
     def filter
@@ -205,14 +258,24 @@ module FullTextSearch
         end
       end
 
-      # TODO: Support private notes again
-      # Project.allowed_to(user, :view_private_notes).pluck(:id)
       conditions << "&!"
-      bypass_condition = private_issue_bypass_condition
-      if bypass_condition
-        conditions << "(is_private == true && !(#{bypass_condition}))"
-      else
+      bypass_conditions = [
+        private_issue_bypass_condition,
+        private_note_bypass_condition,
+      ].compact
+      if bypass_conditions.blank?
         conditions << "is_private == true"
+      else
+        conditions << "(is_private == true && " +
+                      "!(#{bypass_conditions.join(' || ')}))"
+      end
+
+      conditions << "&!"
+      bypass_condition = private_container_bypass_condition
+      if bypass_condition
+        conditions << "(is_container_private == true && !(#{bypass_condition}))"
+      else
+        conditions << "is_container_private == true"
       end
 
       unless @request.attachments?

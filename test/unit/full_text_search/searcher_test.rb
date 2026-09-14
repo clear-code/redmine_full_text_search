@@ -53,6 +53,15 @@ module FullTextSearch
                       }.merge(attributes))
     end
 
+    def generate_private_note(attributes={})
+      Journal.generate!({
+                          journalized: Issue.find(1),
+                          user: User.find(3),
+                          notes: "FTS: PRIVATE NOTE",
+                          private_notes: true,
+                        }.merge(attributes))
+    end
+
     def test_open_issues
       parameters = {
         issues: "1",
@@ -338,6 +347,83 @@ module FullTextSearch
       }
       assert_include(issue.subject,
                      search(parameters).records.collect(&:title))
+    end
+
+    def test_private_note_invisible
+      journal = generate_private_note
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      journal_records = search(parameters).records.find_all do |record|
+        record.source_type_id == Type.journal.id
+      end
+      assert_not_include(journal.id,
+                         journal_records.collect(&:source_id))
+    end
+
+    def test_private_note_visible_by_view_private_notes_permission
+      # Use `User.find(2)`.
+      # For users who have `view_private_notes`.
+      @user = User.find(2)
+      journal = generate_private_note(user: User.find(3))
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      journal_records = search(parameters).records.find_all do |record|
+        record.source_type_id == Type.journal.id
+      end
+      assert_include(journal.id,
+                     journal_records.collect(&:source_id))
+    end
+
+    def test_private_note_visible_by_author
+      @user = User.find(3)
+      journal = generate_private_note(user: @user)
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      journal_records = search(parameters).records.find_all do |record|
+        record.source_type_id == Type.journal.id
+      end
+      assert_include(journal.id,
+                     journal_records.collect(&:source_id))
+    end
+
+    def test_private_issue_journal_invisible
+      issue = generate_private_issue(author: User.find(2))
+      # A normal note (`private_notes = false`) on a private issue
+      journal = Journal.generate!(journalized: issue,
+                                  user: User.find(2),
+                                  notes: "FTS: NOTE")
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      journal_records = search(parameters).records.find_all do |record|
+        record.source_type_id == Type.journal.id
+      end
+      assert_not_include(journal.id,
+                         journal_records.collect(&:source_id))
+    end
+
+    def test_private_issue_journal_visible_by_all_issues_visibility_role
+      # Use `User.find(2)`, as `role.issues_visibility == "all"`.
+      @user = User.find(2)
+      issue = generate_private_issue(author: User.find(3))
+      journal = generate_private_note(journalized: issue,
+                                      user: User.find(3))
+      parameters = {
+        issues: "1",
+        limit: "-1",
+      }
+      journal_records = search(parameters).records.find_all do |record|
+        record.source_type_id == Type.journal.id
+      end
+      assert_include(journal.id,
+                     journal_records.collect(&:source_id))
     end
   end
 end
