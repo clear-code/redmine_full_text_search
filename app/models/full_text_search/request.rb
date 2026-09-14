@@ -183,6 +183,10 @@ module FullTextSearch
       Project.where(condition).pluck(:id)
     end
 
+    def private_notes_visible_project_ids
+      Project.allowed_to(user, :view_private_notes).pluck(:id)
+    end
+
     def tag_drilldown?(tag_type_id)
       each_tag.any? do |tag|
         tag.type_id == tag_type_id
