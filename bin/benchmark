@@ -1,0 +1,47 @@
+# Usage:
+#   bin/rails runner plugins/full_text_search/bin/benchmark --file /path/to/queries.txt
+#
+# `QUERIES_FILE` has one query per line.
+# Each query is searched `--iterations` times and the median, max and min elapsed times are
+# reported:
+#   redmine median=8.24ms   max=60.20ms     min=7.56ms
+#   hoge hoge       median=7.57ms   max=19.77ms     min=6.88ms
+
+require "benchmark"
+require "optparse"
+
+def benchmark(query, user, n_iterations)
+  times = n_iterations.times.map do
+    request = FullTextSearch::Request.new(q: query, user: user, offset: 0, limit: 10)
+    Benchmark.realtime { FullTextSearch::Searcher.new(request).search }
+  end.sort
+  puts "%s\tmedian=%.2fms\tmax=%.2fms\tmin=%.2fms" % [
+    query,
+    times[n_iterations / 2] * 1000,
+    times.last * 1000,
+    times.first * 1000
+  ]
+end
+
+options = {
+  user: "admin",
+  iterations: 20
+}
+parser = OptionParser.new("Usage: bin/rails runner #{$0} [options]")
+parser.on("--file=QUERIES_FILE",
+          "Read queries from QUERIES_FILE (one query per line)")
+parser.on("--user=LOGIN_NAME",
+          "LOGIN_NAME used for search (default: #{options[:user]})")
+parser.on("--iterations=N", Integer,
+          "Run each query N times (default: #{options[:iterations]})")
+parser.parse!(into: options)
+unless options[:file]
+  puts parser.help
+  exit(false)
+end
+
+user = User.find_by!(login: options[:user])
+File.foreach(options[:file], chomp: true) do |query|
+  next if query.empty?
+  benchmark(query, user, options[:iterations])
+end

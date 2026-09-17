@@ -172,6 +172,60 @@ $ RAILS_ENV=production bin/rails full_text_search:query_expansion:synchronize IN
 You can confirm the current query expansion list in administration
 page.
 
+### Benchmark search speed
+
+This plugin provides `bin/benchmark` to measure search speed.
+It searches each query multiple times and reports the median, max and min elapsed times.
+Note that it measures only the search itself.
+The elapsed times don't include HTTP request/response and rendering.
+
+Example query file:
+
+```text
+redmine
+hoge hoge
+```
+
+Write one query per line.
+
+Then run the script with the query file:
+
+```console
+$ cd redmine
+$ RAILS_ENV=production bin/rails runner plugins/full_text_search/bin/benchmark --file /path/to/queries.txt
+redmine median=8.24ms   max=60.20ms     min=7.56ms
+hoge hoge       median=7.57ms   max=19.77ms     min=6.88ms
+```
+
+There are also the following options:
+
+* `--user`
+  * Search as the specified user
+  * Search speed depends on the user because visible projects are different for each user.
+  * Default: `admin`
+* `--iterations`
+  * Change how many times each query is searched
+  * Default: `20`
+
+#### Create a query file from log
+
+If you are already using this plugin, you can generate a query file from the logs.
+
+This plugin writes a log for each search like the following:
+
+```text
+[full-text-search][search] {"search_id":"...","q":"redmine",...,"elapsed_time":0.00824,...}
+```
+
+You can create a query file from real queries in your log:
+
+```console
+$ cd redmine
+$ grep -o '\[full-text-search\]\[search\] {.*}' log/production.log |
+  ruby -rjson -ne 'query = JSON.parse($_.split(" ", 2)[1])["q"]; puts(query)' |
+  sort | uniq > queries.txt
+```
+
 ## How to recover broken database
 
 ### Mroonga
