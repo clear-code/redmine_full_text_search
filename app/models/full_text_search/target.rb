@@ -1,6 +1,7 @@
 module FullTextSearch
   class Target < ApplicationRecord
     self.table_name = :fts_targets
+    self.primary_key = :id
 
     case connection_db_config.adapter
     when "postgresql"

@@ -53,6 +53,7 @@ Redmine::MenuManager.map :admin_menu do |menu|
 end
 
 require_relative "config/initializers/chupa_text"
+require_relative "config/initializers/schema_dumper"
 
 FullTextSearch::Settings
 FullTextSearch::Tracer

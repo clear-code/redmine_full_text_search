@@ -16,6 +16,10 @@ module FullTextSearch
         response
       end
 
+      def build_select_command(arguments)
+        Groonga::Command::Select.new("select", arguments)
+      end
+
       def full_text_search(column, query)
         where("MATCH (#{connection.quote_column_name(column)}) " +
               "AGAINST (? IN BOOLEAN MODE)",
