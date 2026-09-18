@@ -9,6 +9,10 @@ module FullTextSearch
         Groonga::Client::Response.parse(command, raw_response)
       end
 
+      def build_select_command(arguments)
+        Groonga::Command::LogicalSelect.new("logical_select", arguments)
+      end
+
       def full_text_search(column, query)
         where("#{connection.quote_column_name(column)} &@~ ?",
               query)
@@ -49,7 +53,7 @@ SHOW pgroonga.libgroonga_version;
         index_name = semantic ? SemanticIndex::INDEX_NAME : pgroonga_index_name
         arguments = []
         placeholders = []
-        command["table"] = "pgroonga_table_name('#{index_name}')"
+        command["shard_key"] = "registered_at"
         if command["filter"].present?
           command["filter"] += " && pgroonga_tuple_is_alive(ctid)"
         else
@@ -70,10 +74,12 @@ SHOW pgroonga.libgroonga_version;
             arguments << value
           end
         end
+
+        shards = "pgroonga_physical_table_names('#{index_name}', 'shard')"
         sql_template = <<-SELECT
 SELECT pgroonga_command(?,
+  #{shards} ||
   ARRAY[
-    'table', #{command["table"]},
     #{placeholders.join(", ")}
   ]
 )

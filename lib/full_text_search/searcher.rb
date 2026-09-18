@@ -71,7 +71,7 @@ module FullTextSearch
       end
       arguments["#{prefix}limit"] = limit
       arguments["filter"] = "false" unless arguments["filter"]
-      command = Groonga::Command::Select.new("select", arguments)
+      command = Target.build_select_command(arguments)
       response = Target.select(command, semantic: semantic?)
       raise Groonga::Client::Error, response.message unless response.success?
       ResultSet.new(response)
