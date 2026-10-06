@@ -126,4 +126,53 @@ namespace :full_text_search do
       end
     end
   end
+
+  namespace :partition do
+    validate_migration_version = lambda do
+      plugin = Redmine::Plugin.find(:full_text_search)
+      Redmine::Plugin::Migrator.current_plugin = plugin
+      migration_version = FullTextSearch::Partition::MIGRATION_VERSION
+      return if Redmine::Plugin::Migrator.current_version(plugin) == migration_version
+      abort "This task can be used only when the migration is #{migration_version}"
+    end
+
+    run_migration = lambda do |direction|
+      migration_version = FullTextSearch::Partition::MIGRATION_VERSION
+      plugin = Redmine::Plugin.find(:full_text_search)
+      require(File.join(plugin.directory,
+                        "db",
+                        "migrate",
+                        "#{migration_version}_partition_fts_targets.rb"))
+      PartitionFtsTargets.migrate(direction)
+    end
+
+    desc "Partition fts_targets. Run this when the migration for " +
+      "partitioning is skipped because Groonga or PGroonga is old"
+    task :up => :environment do
+      validate_migration_version.call
+
+      partition = FullTextSearch::Partition
+      if !Redmine::Database.postgresql?
+        puts("Skipped: partitioning is only for PostgreSQL + PGroonga")
+      elsif partition.partitioned?
+        puts("Already partitioned: #{partition.table_name}")
+      elsif !partition.available?
+        puts("Skipped: #{partition.requirements_message}")
+      else
+        run_migration.call(:up)
+      end
+    end
+
+    desc "Revert the partitioned fts_targets to a normal table"
+    task :revert => :environment do
+      validate_migration_version.call
+
+      partition = FullTextSearch::Partition
+      if !partition.partitioned?
+        puts("Skipped: #{partition.table_name} isn't partitioned")
+      else
+        run_migration.call(:down)
+      end
+    end
+  end
 end

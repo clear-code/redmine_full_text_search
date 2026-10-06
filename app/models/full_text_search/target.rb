@@ -1,6 +1,7 @@
 module FullTextSearch
   class Target < ApplicationRecord
     self.table_name = :fts_targets
+    self.primary_key = :id
 
     case connection_db_config.adapter
     when "postgresql"
@@ -44,8 +45,7 @@ module FullTextSearch
 
       def use_slices?
         if @use_slices.nil?
-          @use_slices = (Gem::Version.new(groonga_version) >=
-                         Gem::Version.new("9.0.7"))
+          @use_slices = slices_are_supported?
         end
         @use_slices
       end

@@ -113,13 +113,13 @@ jobs:
           esac
           case "${{ matrix.rdbms }}" in
             MySQL)
-              echo "DOCKER_TAG=mysql-8.0-latest" >> ${GITHUB_ENV}
+              echo "DOCKER_TAG=mysql-8.4-latest" >> ${GITHUB_ENV}
               echo "GROONGA_ADAPTER=mroonga" >> ${GITHUB_ENV}
               echo "RDBMS=mysql" >> ${GITHUB_ENV}
               echo "RDBMS_PORT=3306" >> ${GITHUB_ENV}
               ;;
             PostgreSQL)
-              echo "DOCKER_TAG=latest-debian-13" >> ${GITHUB_ENV}
+              echo "DOCKER_TAG=latest-debian-16" >> ${GITHUB_ENV}
               echo "GROONGA_ADAPTER=pgroonga" >> ${GITHUB_ENV}
               echo "RDBMS=postgresql" >> ${GITHUB_ENV}
               echo "RDBMS_PORT=5432" >> ${GITHUB_ENV}
@@ -188,6 +188,15 @@ jobs:
           bin/rails db:migrate
           bin/rails redmine:load_default_data REDMINE_LANG=en
           bin/rails redmine:plugins:migrate
+      - name: Show partitioning status
+        run: |
+          cd ../redmine
+          bin/rails runner '
+            puts({
+              adapter: ActiveRecord::Base.connection.adapter_name,
+              partitioned: FullTextSearch::Partition.partitioned?,
+              available: FullTextSearch::Partition.available?,
+            })'
       - name: Test
         run: |
           cd ../redmine

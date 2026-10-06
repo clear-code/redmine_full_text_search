@@ -9,6 +9,31 @@ module FullTextSearch
         Groonga::Client::Response.parse(command, raw_response)
       end
 
+      def build_select_command(arguments)
+        if Partition.partitioned?
+          Partition.ensure_sharding_plugin_registered
+          Groonga::Command::LogicalSelect.new("logical_select", arguments)
+        else
+          Groonga::Command::Select.new("select", arguments)
+        end
+      end
+
+      def slices_are_supported?
+        if Partition.partitioned?
+          Partition.logical_select_features_are_supported?
+        else
+          Gem::Version.new(groonga_version) >= Gem::Version.new("9.0.7")
+        end
+      end
+
+      def dynamic_column_stage
+        if output_stage_is_supported?
+          "output"
+        else
+          "filtered"
+        end
+      end
+
       def full_text_search(column, query)
         where("#{connection.quote_column_name(column)} &@~ ?",
               query)
@@ -45,11 +70,16 @@ SHOW pgroonga.libgroonga_version;
       end
 
       private
+      def output_stage_is_supported?
+        return @output_stage_is_supported unless @output_stage_is_supported.nil?
+        @output_stage_is_supported = (!Partition.partitioned? || Partition.logical_select_features_are_supported?)
+      end
+
       def build_sql(command, semantic: false)
         index_name = semantic ? SemanticIndex::INDEX_NAME : pgroonga_index_name
         arguments = []
         placeholders = []
-        command["table"] = "pgroonga_table_name('#{index_name}')"
+        command["shard_key"] = "registered_at" if Partition.partitioned?
         if command["filter"].present?
           command["filter"] += " && pgroonga_tuple_is_alive(ctid)"
         else
@@ -70,10 +100,16 @@ SHOW pgroonga.libgroonga_version;
             arguments << value
           end
         end
+
+        if Partition.partitioned?
+          tables = "pgroonga_physical_table_names('#{index_name}', 'shard')"
+        else
+          tables = "ARRAY['table', pgroonga_table_name('#{index_name}')]"
+        end
         sql_template = <<-SELECT
 SELECT pgroonga_command(?,
+  #{tables} ||
   ARRAY[
-    'table', #{command["table"]},
     #{placeholders.join(", ")}
   ]
 )
