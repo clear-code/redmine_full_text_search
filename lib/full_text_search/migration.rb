@@ -13,8 +13,15 @@ module FullTextSearch
         def visit_CreateIndexDefinition(o)
           sql = super
           with = o.index.with
-          sql << " WITH (#{with})" if with
-          sql
+          return sql unless with
+
+          with_sql = " WITH (#{with})"
+          where = o.index.where
+          if where
+            sql.sub(" WHERE #{where}", "#{with_sql} WHERE #{where}")
+          else
+            sql << with_sql
+          end
         end
       end
       ::ActiveRecord::ConnectionAdapters::SchemaCreation.prepend(SchemaCreationWithSupport)

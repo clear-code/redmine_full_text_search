@@ -7,10 +7,6 @@ module FullTextSearch
       true
     end
 
-    def use_slices?
-      false
-    end
-
     def query
       nil
     end
@@ -34,7 +30,7 @@ module FullTextSearch
     end
 
     def sort_keys
-      ["-#{knn_expression}"]
+      ["-_score"]
     end
   end
 end

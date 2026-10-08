@@ -3,21 +3,8 @@ require_relative "migration"
 module FullTextSearch
   class SemanticIndex
     INDEX_NAME = "fts_targets_semantic_index_pgroonga"
-
-    INDEX_COLUMNS = [
-      "id",
-      "source_id",
-      "source_type_id",
-      "project_id",
-      "container_id",
-      "container_type_id",
-      "custom_field_id",
-      "is_private",
-      "last_modified_at",
-      "registered_at",
-      "title",
-      "tag_ids"
-    ]
+    # The column for the semantic search.
+    CONTENT_COLUMN = "content"
 
     class << self
       def available?
@@ -35,16 +22,25 @@ module FullTextSearch
         Target.table_name
       end
 
+      def index_columns
+        [CONTENT_COLUMN] | Target.column_names
+      end
+
       def ensure_created(concurrently: false)
         return false unless available?
         return :exist if exist?
         connection.add_index(
           table_name,
-          ["content", *INDEX_COLUMNS],
+          index_columns,
           name: INDEX_NAME,
           using: :pgroonga,
-          opclass: {content: :pgroonga_text_semantic_search_ops_v2},
+          opclass: {CONTENT_COLUMN => :pgroonga_text_semantic_search_ops_v2},
           with: build_with,
+
+          # Even empty strings generate vectors and have their distances calculated.
+          # Since this generates meaningless vectors, it will be excluded.
+          where: "#{CONTENT_COLUMN} != ''",
+
           algorithm: (concurrently ? :concurrently : nil),
           if_not_exists: true
         )
