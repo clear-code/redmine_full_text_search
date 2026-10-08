@@ -26,6 +26,7 @@ module FullTextSearch
     fixtures :roles
     fixtures :trackers
     fixtures :users
+    fixtures :groups_users
     fixtures :wiki_pages
     fixtures :wikis
 
