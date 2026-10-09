@@ -58,6 +58,35 @@ SELECT pgroonga_command('plugin_register', ARRAY['name', 'sharding']);
         @logical_select_features_are_supported
       end
 
+      def ensure_created(year)
+        return false unless partitioned?
+        return :exist if connection.data_source_exists?(partition_name(year))
+        create(year)
+      rescue ActiveRecord::StatementInvalid => error
+        # There may be cases where you try to create a partition
+        # that is older than the oldest partition.
+        # In that case, it will be treated as a warning.
+        # This is because the `past` partition handles older data.
+        raise unless error.cause.is_a?(PG::InvalidObjectDefinition)
+        Rails.logger.warn("[full-text-search][partition][create] " +
+                          "failed to create the partition for #{year}: #{error}")
+        :covered
+      end
+
+      def ensure_created_later(year)
+        return false unless partitioned?
+        return :exist if ensured_years.member?(year)
+        if connection.data_source_exists?(partition_name(year))
+          ensured_years.add(year)
+          enqueued_years.delete(year)
+          return :exist
+        end
+        return :enqueued if enqueued_years.member?(year)
+        CreatePartitionJob.perform_later(year)
+        enqueued_years.add(year)
+        :enqueued
+      end
+
       def requirements_message
         "partitioning requires " +
           "Groonga #{GROONGA_REQUIRED_VERSION} or later and " +
@@ -68,6 +97,63 @@ SELECT pgroonga_command('plugin_register', ARRAY['name', 'sharding']);
       def physical_table_names_available?
         connection.select_value(<<~SQL).present?
 SELECT to_regprocedure('pgroonga_physical_table_names(text, text)');
+        SQL
+      end
+
+      def partition_name(year)
+        "#{table_name}_#{year}"
+      end
+
+      def default_partition_name
+        "#{table_name}_default"
+      end
+
+      def ensured_years
+        @ensured_years ||= Concurrent::Set.new
+      end
+
+      def enqueued_years
+        @enqueued_years ||= Concurrent::Set.new
+      end
+
+      def create(year)
+        name = partition_name(year)
+        connection.transaction(requires_new: true) do
+          # Lock the table so that no record is inserted into the
+          # default partition after moving the records.
+          connection.execute("LOCK TABLE #{table_name} IN ACCESS EXCLUSIVE MODE;")
+          next :exist if connection.data_source_exists?(name)
+
+          connection.execute(<<~SQL)
+CREATE TABLE #{name} (
+  LIKE #{table_name}
+    INCLUDING DEFAULTS
+    INCLUDING CONSTRAINTS
+);
+          SQL
+
+          # Move the records because having them in the default table causes an error.
+          move_default_records(year)
+
+          connection.execute(<<~SQL)
+ALTER TABLE #{table_name}
+ATTACH PARTITION #{name}
+FOR VALUES FROM ('#{year}-01-01') TO ('#{year + 1}-01-01');
+          SQL
+          :created
+        end
+      end
+
+      def move_default_records(year)
+        connection.execute(<<~SQL)
+WITH moved AS (
+  DELETE FROM #{default_partition_name}
+        WHERE registered_at >= '#{year}-01-01'
+          AND registered_at < '#{year + 1}-01-01'
+    RETURNING *
+)
+INSERT INTO #{partition_name(year)}
+SELECT * FROM moved;
         SQL
       end
 

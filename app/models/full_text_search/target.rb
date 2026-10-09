@@ -6,6 +6,13 @@ module FullTextSearch
     case connection_db_config.adapter
     when "postgresql"
       include Pgroonga
+
+      before_save :ensure_partition
+
+      private def ensure_partition
+        return if registered_at.blank?
+        Partition.ensure_created_later(registered_at.year)
+      end
     when "mysql2"
       include Mroonga
       attribute :tag_ids,
