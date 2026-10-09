@@ -90,9 +90,7 @@ SELECT extversion FROM pg_extension WHERE extname = 'pgroonga';
           # `pgroonga_tuple_is_alive()` isn't thread safe.
           # `post_filter` is evaluated in the main thread even with `n_workers`.
           command["post_filter"] = "pgroonga_tuple_is_alive(ctid)"
-
-          # TODO: User can set n_workers.
-          command["n_workers"] = "-1"
+          command["n_workers"] = Setting.plugin_full_text_search.n_workers.to_s
         elsif command["filter"].present?
           command["filter"] += " && pgroonga_tuple_is_alive(ctid)"
         else

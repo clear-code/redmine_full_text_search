@@ -55,6 +55,18 @@
                      settings.server_url) %>
 </p>
 
+<% if FullTextSearch::Partition.partitioned? &&
+      FullTextSearch::Partition.parallel_logical_select_is_supported? %>
+  <p>
+    <%= label_tag("settings[n_workers]",
+                  l(:label_full_text_search_n_workers)) %>
+    <%= text_field_tag("settings[n_workers]",
+                       settings.n_workers,
+                       size: 6) %>
+    <em class="info"><%= l(:text_full_text_search_n_workers_note) %></em>
+  </p>
+<% end %>
+
 <section>
   <h3>
     <%= l(:label_full_text_search_semantic_section) %>

@@ -14,6 +14,8 @@ ja:
   label_full_text_search_text_extraction_timeout: テキスト抽出処理のタイムアウト時間（秒）
   label_full_text_search_external_command_max_memory: 外部コマンドの最大使用可能メモリー
   label_full_text_search_server_url: ChupaTextサーバーのURL
+  label_full_text_search_n_workers: 検索のワーカー数
+  text_full_text_search_n_workers_note: "0か1: 並列検索しない、2以上: その数、-1: CPUコア数"
   label_full_text_search_enable_tracking: トラッキングを有効化
   label_full_text_search_semantic_section: セマンティックサーチ
   label_full_text_search_enable_semantic_search: セマンティックサーチを有効化

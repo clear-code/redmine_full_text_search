@@ -108,5 +108,15 @@ module FullTextSearch
     def server_url
       @raw["server_url"].presence
     end
+
+    DEFAULT_N_WORKERS = 0
+    def n_workers
+      n_workers = @raw.fetch("n_workers", DEFAULT_N_WORKERS)
+      begin
+        Integer(n_workers.to_s, 10)
+      rescue ArgumentError
+        DEFAULT_N_WORKERS
+      end
+    end
   end
 end

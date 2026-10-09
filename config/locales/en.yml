@@ -14,6 +14,8 @@ en:
   label_full_text_search_text_extraction_timeout: Timeout in seconds for text extraction
   label_full_text_search_external_command_max_memory: Max memory usage for executing an external command
   label_full_text_search_server_url: ChupaText server URL
+  label_full_text_search_n_workers: Number of workers for search
+  text_full_text_search_n_workers_note: "0 or 1: no parallel search, 2 or more: the specified number, -1: the number of CPU cores"
   label_full_text_search_enable_tracking: Enable tracking
   label_full_text_search_semantic_section: Semantic search
   label_full_text_search_enable_semantic_search: Enable semantic search
