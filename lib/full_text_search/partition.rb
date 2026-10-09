@@ -13,6 +13,12 @@ module FullTextSearch
     # It's needed to specify the Groonga table of each partition.
     PGROONGA_REQUIRED_VERSION = "4.0.9"
 
+    # "n_workers" of "logical_select" is available since Groonga 16.1.1
+    # but it has bugs when it's used via PGroonga. They are fixed in
+    # the following versions.
+    GROONGA_PARALLEL_REQUIRED_VERSION = "16.1.3"
+    PGROONGA_PARALLEL_REQUIRED_VERSION = "4.1.0"
+
     class << self
       def available?
         return false unless Redmine::Database.postgresql?
@@ -56,6 +62,17 @@ SELECT pgroonga_command('plugin_register', ARRAY['name', 'sharding']);
              Gem::Version.new(GROONGA_REQUIRED_VERSION))
         end
         @logical_select_features_are_supported
+      end
+
+      def parallel_logical_select_is_supported?
+        if @parallel_logical_select_is_supported.nil?
+          @parallel_logical_select_is_supported =
+            (Gem::Version.new(Target.groonga_version) >=
+             Gem::Version.new(GROONGA_PARALLEL_REQUIRED_VERSION) &&
+             Gem::Version.new(Target.pgroonga_version) >=
+             Gem::Version.new(PGROONGA_PARALLEL_REQUIRED_VERSION))
+        end
+        @parallel_logical_select_is_supported
       end
 
       def ensure_created(year)

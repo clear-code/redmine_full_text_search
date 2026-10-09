@@ -65,6 +65,12 @@ SHOW pgroonga.libgroonga_version;
         SQL
       end
 
+      def pgroonga_version
+        connection.select_value(<<~SQL)
+SELECT extversion FROM pg_extension WHERE extname = 'pgroonga';
+        SQL
+      end
+
       def multiple_column_unique_key_update_is_supported?
         true
       end
@@ -80,7 +86,14 @@ SHOW pgroonga.libgroonga_version;
         arguments = []
         placeholders = []
         command["shard_key"] = "registered_at" if Partition.partitioned?
-        if command["filter"].present?
+        if Partition.partitioned? && Partition.parallel_logical_select_is_supported?
+          # `pgroonga_tuple_is_alive()` isn't thread safe.
+          # `post_filter` is evaluated in the main thread even with `n_workers`.
+          command["post_filter"] = "pgroonga_tuple_is_alive(ctid)"
+
+          # TODO: User can set n_workers.
+          command["n_workers"] = "-1"
+        elsif command["filter"].present?
           command["filter"] += " && pgroonga_tuple_is_alive(ctid)"
         else
           command["filter"] = "pgroonga_tuple_is_alive(ctid)"
