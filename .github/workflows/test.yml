@@ -196,6 +196,7 @@ jobs:
               adapter: ActiveRecord::Base.connection.adapter_name,
               partitioned: FullTextSearch::Partition.partitioned?,
               available: FullTextSearch::Partition.available?,
+              parallel_logical_select: Redmine::Database.postgresql? && FullTextSearch::Partition.parallel_logical_select_is_supported?,
             })'
       - name: Test
         run: |
