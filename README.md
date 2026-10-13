@@ -193,8 +193,8 @@ Then run the script with the query file:
 ```console
 $ cd redmine
 $ RAILS_ENV=production bin/rails runner plugins/full_text_search/bin/benchmark --file /path/to/queries.txt
-redmine median=8.24ms   max=60.20ms     min=7.56ms
-hoge hoge       median=7.57ms   max=19.77ms     min=6.88ms
+redmine   n_hits=10 median=8.24ms   max=60.20ms     min=7.56ms
+hoge hoge n_hits=8  median=7.57ms   max=19.77ms     min=6.88ms
 ```
 
 There are also the following options:
