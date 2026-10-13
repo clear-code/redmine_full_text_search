@@ -4,19 +4,31 @@
 # `QUERIES_FILE` has one query per line.
 # Each query is searched `--iterations` times and the median, max and min elapsed times are
 # reported:
-#   redmine median=8.24ms   max=60.20ms     min=7.56ms
-#   hoge hoge       median=7.57ms   max=19.77ms     min=6.88ms
+#   redmine   n_hits=10 median=8.24ms   max=60.20ms     min=7.56ms
+#   hoge hoge n_hits=8  median=7.57ms   max=19.77ms     min=6.88ms
 
 require "benchmark"
 require "optparse"
 
+def set_cache_limit(max)
+  if Redmine::Database.postgresql?
+    sql = "SELECT pgroonga_command('cache_limit', ARRAY['max', '#{max}'])"
+  else
+    sql = "SELECT mroonga_command('cache_limit --max #{max}')"
+  end
+  response = JSON.parse(ActiveRecord::Base.connection.select_value(sql))
+  response[1]
+end
+
 def benchmark(query, user, n_iterations)
+  request = FullTextSearch::Request.new(q: query, user: user, offset: 0, limit: 10)
+  result = FullTextSearch::Searcher.new(request).search
   times = n_iterations.times.map do
-    request = FullTextSearch::Request.new(q: query, user: user, offset: 0, limit: 10)
     Benchmark.realtime { FullTextSearch::Searcher.new(request).search }
   end.sort
-  puts "%s\tmedian=%.2fms\tmax=%.2fms\tmin=%.2fms" % [
+  puts "%s\tn_hits=%d\tmedian=%.2fms\tmax=%.2fms\tmin=%.2fms" % [
     query,
+    result.n_hits,
     times[n_iterations / 2] * 1000,
     times.last * 1000,
     times.first * 1000
@@ -41,7 +53,14 @@ unless options[:file]
 end
 
 user = User.find_by!(login: options[:user])
-File.foreach(options[:file], chomp: true) do |query|
-  next if query.empty?
-  benchmark(query, user, options[:iterations])
+previous_cache_limit = set_cache_limit(0)
+begin
+  ActiveRecord::Base.uncached do
+    File.foreach(options[:file], chomp: true) do |query|
+      next if query.empty?
+      benchmark(query, user, options[:iterations])
+    end
+  end
+ensure
+  set_cache_limit(previous_cache_limit)
 end
