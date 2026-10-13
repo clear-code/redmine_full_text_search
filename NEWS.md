@@ -1,5 +1,110 @@
 # Redmine FullTextSearch
 
+## 2.0.3 - 2026-10-13
+
+### Notes
+
+  * `redmine:plugins:migrate` is required.
+
+    ```bash
+    RAILS_ENV=production bin/rails redmine:plugins:migrate
+    ```
+
+    * It updates many records and recreates the search index, so it takes a long time on a large database.
+
+  * If you use a Subversion repository, run the following after the migration.
+
+    ```bash
+    RAILS_ENV=production bin/rails full_text_search:synchronize
+    RAILS_ENV=production bin/rails full_text_search:change:replay_directories
+    RAILS_ENV=production bin/rails full_text_search:repository:synchronize
+    ```
+
+  * If you use PostgreSQL + PGroonga, `fts_targets` is partitioned by year by the migration.
+
+    * It requires Groonga 16.1.1 or later and PGroonga 4.0.9 or later.
+      If they are older, partitioning is skipped and this plugin works without it.
+      Run the following after upgrading them.
+
+      ```bash
+      RAILS_ENV=production bin/rails full_text_search:partition:up
+      ```
+
+    * Run the following to revert it to a normal table.
+
+      ```bash
+      RAILS_ENV=production bin/rails full_text_search:partition:revert
+      ```
+
+### Improvements
+
+  * Supported Redmine 7.0.
+
+  * Supported RedMica 4.1.
+
+  * Dropped support for Redmine 5.1.
+
+  * Partitioned `fts_targets`, the table that this plugin uses for search, by year for PostgreSQL + PGroonga.
+
+    * It requires Groonga 16.1.1 or later and PGroonga 4.0.9 or later.
+
+    * The partition for a new year is created automatically.
+
+  * Supported parallel search for partitioned PostgreSQL + PGroonga.
+
+    * It requires Groonga 16.1.3 or later and PGroonga 4.1.0 or later.
+
+    * The number of workers can be set in the plugin settings. It's disabled by default.
+
+  * Included private issues in the search results.
+
+    * As in Redmine's permission management, a private issue is included in the search results for the following users.
+
+      * Its author.
+
+      * Its assignee.
+
+      * The users who have a role with the "all" issues visibility in its project.
+
+      * The administrators.
+
+  * Included private notes in the search results.
+
+    * A private note is included in the search results for the following users.
+
+      * Its author.
+
+      * The users who have the "view private notes" permission.
+
+      * The administrators.
+
+    * A private note in a private issue isn't included for the author and the assignee of the issue.
+      It's included only for the users who have a role with the "all" issues visibility in its project.
+
+  * Supported drilldown by assignee.
+
+  * Added `bin/benchmark` that measures the search speed.
+
+  * Added semantic search.
+
+    * This is an experimental feature.
+
+    * Semantic search requires PostgreSQL + PGroonga and a dedicated index created via `bin/rails full_text_search:semantic:index:create`.
+
+### Fixed
+
+  * Fixed attachment search results to show the correct title.
+
+  * Fixed an error when removing a tag added by Wiki Extensions.
+
+  * Fixed the attachments not being moved when a wiki page moves to another project.
+
+  * Fixed the directory operations in Subversion not being reflected.
+
+    * When a directory was moved, renamed or deleted, the targets of the files under it kept the old path. They were never updated nor removed, so the search results pointed at the path before the operation.
+
+    * Run the commands in "Notes" to fix the existing records.
+
 ## 2.0.2 - 2025-09-29
 
 ### Improvements
