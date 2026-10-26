@@ -137,13 +137,22 @@ jobs:
       - name: Run RDBMS
         run: |
           mkdir -p mysql
-          docker run \
+          docker container run \
             --detach \
+            --name rdbms \
             -e MYSQL_ALLOW_EMPTY_PASSWORD=yes \
             -e POSTGRES_HOST_AUTH_METHOD=trust \
             -p ${RDBMS_PORT}:${RDBMS_PORT} \
             -v ${PWD}/mysql:/var/lib/mysql \
             groonga/${GROONGA_ADAPTER}:${DOCKER_TAG}
+      - name: Install mroonga_command()
+        if: matrix.rdbms == 'MySQL'
+        run: |
+          # Wait for MySQL to start.
+          docker container exec rdbms mysqladmin -h127.0.0.1 -uroot ping --wait=60
+          # Mroonga 16.15 or later doesn't register mroonga_command() by install.sql.
+          docker container exec rdbms sh -c \
+            "mysql -h127.0.0.1 -uroot < /usr/share/mroonga/install_mroonga_command.sql"
       - name: Prepare Redmine
         run: |
           cd ..

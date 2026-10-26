@@ -25,9 +25,23 @@ Groonga 9.0.3 or later.
 
 ### Install PGroonga or Mroonga
 
+#### Install PGroonga
+
 See [PGroonga document](https://pgroonga.github.io/install/)
 
+#### Install Mroonga
+
 See [Mroonga document](https://mroonga.org/docs/install.html)
+
+This plugin uses [`mroonga_command()` UDF](https://mroonga.org/docs/reference/udf/mroonga_command.html).
+Mroonga 16.15 or later doesn't register it by `install.sql`.
+You need to register it explicitly:
+
+```console
+$ mysql -u root -p < /usr/share/mroonga/install_mroonga_command.sql
+```
+
+Note that `mroonga_command()` bypasses the privilege control of MySQL/MariaDB.
 
 ### Install ChupaText server (optional)
 
@@ -271,6 +285,7 @@ Mroonga isn't installed, install Mroonga like the following:
 
 ```console
 $ mysql -u root -p < /usr/share/mroonga/install.sql
+$ mysql -u root -p < /usr/share/mroonga/install_mroonga_command.sql
 ```
 
 Destruct tables explicitly for this plugin:
