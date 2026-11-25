@@ -86,6 +86,62 @@
   </p>
 <% end %>
 
+
+<section>
+  <h3>
+    <%= l(:label_full_text_search_synchronization_section) %>
+  </h3>
+
+  <div class="box">
+    <p>
+      <%= l(:text_full_text_search_synchronization_note) %>
+    </p>
+    <p>
+      <%= button_to(l(:button_full_text_search_synchronize_now),
+                    full_text_search_synchronize_path,
+                    method: :post,
+                    class: "button-positive",
+                    data: { confirm: l(:text_full_text_search_synchronize_confirmation) }) %>
+    </p>
+  </div>
+
+  <p>
+    <%= label_tag("settings[enable_periodic_synchronization]",
+                  l(:label_full_text_search_enable_periodic_synchronization)) %>
+    <%= check_box("settings",
+                  "enable_periodic_synchronization",
+                  checked: settings.enable_periodic_synchronization?) %>
+  </p>
+
+  <p>
+    <%= label_tag("settings[synchronization_interval]",
+                  l(:label_full_text_search_synchronization_interval)) %>
+    <%= select_tag("settings[synchronization_interval]",
+                   options_for_select([
+                     [l(:label_interval_hourly), "hourly"],
+                     [l(:label_interval_every_6_hours), "every_6_hours"],
+                     [l(:label_interval_daily), "daily"],
+                     [l(:label_interval_weekly), "weekly"],
+                     [l(:label_interval_custom), "custom"]
+                   ], settings.synchronization_interval)) %>
+  </p>
+
+  <p>
+    <%= label_tag("settings[synchronization_custom_cron]",
+                  l(:label_full_text_search_synchronization_custom_cron)) %>
+    <%= text_field_tag("settings[synchronization_custom_cron]",
+                       settings.to_h["synchronization_custom_cron"],
+                       placeholder: "0 2 * * *",
+                       size: 15) %>
+    <em class="info"><%= l(:text_full_text_search_custom_cron_note) %></em>
+  </p>
+
+  <div class="box info">
+    <strong><%= l(:label_full_text_search_cron_command_example) %>:</strong><br>
+    <code><%= settings.synchronization_cron %> cd <%= Rails.root %> && RAILS_ENV=production bundle exec rake full_text_search:synchronize</code>
+  </div>
+</section>
+
 <section>
   <h3>
     <%= l(:label_full_text_search_semantic_section) %>

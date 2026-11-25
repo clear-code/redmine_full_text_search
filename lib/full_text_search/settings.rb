@@ -51,6 +51,31 @@ module FullTextSearch
       end
     end
 
+    def enable_periodic_synchronization?
+      @raw["enable_periodic_synchronization"] == TRUE_VALUE
+    end
+
+    DEFAULT_SYNCHRONIZATION_INTERVAL = "daily"
+    def synchronization_interval
+      interval = @raw["synchronization_interval"].presence || DEFAULT_SYNCHRONIZATION_INTERVAL
+      interval
+    end
+
+    def synchronization_cron
+      case synchronization_interval
+      when "hourly"
+        "0 * * * *"
+      when "every_6_hours"
+        "0 */6 * * *"
+      when "daily"
+        "0 2 * * *"
+      when "weekly"
+        "0 2 * * 0"
+      else
+        @raw["synchronization_custom_cron"].presence || "0 2 * * *"
+      end
+    end
+
     def enable_semantic_search?
       @raw["enable_semantic_search"] == TRUE_VALUE
     end
