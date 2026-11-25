@@ -13,6 +13,18 @@ module FullTextSearch
       @raw = raw || {}
     end
 
+    def with_indifferent_access
+      @raw.with_indifferent_access
+    end
+
+    def to_h
+      @raw.to_h
+    end
+
+    def to_hash
+      @raw.to_h
+    end
+
     def display_score?
       @raw["display_score"] == TRUE_VALUE
     end

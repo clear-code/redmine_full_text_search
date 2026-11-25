@@ -1,3 +1,4 @@
+<% settings = FullTextSearch::Settings.new(settings) unless settings.is_a?(FullTextSearch::Settings) %>
 <p>
   <%= label_tag("settings[display_score]",
                 l(:label_full_text_search_display_score)) %>
