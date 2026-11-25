@@ -18,6 +18,10 @@ ja:
   text_full_text_search_n_workers_note: "0か1: 並列検索しない、2以上: その数、-1: CPUコア数"
   label_full_text_search_enable_tracking: トラッキングを有効化
   label_full_text_search_semantic_section: セマンティックサーチ
+  label_full_text_search_enable_fuzzy_search: あいまい検索を有効化
+  label_full_text_search_fuzzy_max_distance_ratio: あいまい検索の最大距離率
+  text_full_text_search_fuzzy_max_distance_ratio_note: あいまい一致の許容閾値（デフォルト 0.34）。
+  label_full_text_search_search_fuzzy: あいまい検索
   label_full_text_search_enable_semantic_search: セマンティックサーチを有効化
   label_full_text_search_semantic_model: 使用するモデル
   label_full_text_search_semantic_passage_prefix: パッセージのプレフィックス

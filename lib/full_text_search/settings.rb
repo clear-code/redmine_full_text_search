@@ -37,6 +37,20 @@ module FullTextSearch
       @raw["enable_tracking"] != FALSE_VALUE
     end
 
+    def enable_fuzzy_search?
+      @raw["enable_fuzzy_search"] == TRUE_VALUE
+    end
+
+    DEFAULT_FUZZY_MAX_DISTANCE_RATIO = 0.34
+    def fuzzy_max_distance_ratio
+      ratio = @raw.fetch("fuzzy_max_distance_ratio", DEFAULT_FUZZY_MAX_DISTANCE_RATIO)
+      begin
+        Float(ratio)
+      rescue ArgumentError
+        DEFAULT_FUZZY_MAX_DISTANCE_RATIO
+      end
+    end
+
     def enable_semantic_search?
       @raw["enable_semantic_search"] == TRUE_VALUE
     end

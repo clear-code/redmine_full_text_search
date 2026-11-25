@@ -13,6 +13,10 @@ module FullTextSearch
         Setting.plugin_full_text_search.enable_tracking?
       end
 
+      def fts_enable_fuzzy_search?
+        Setting.plugin_full_text_search.enable_fuzzy_search?
+      end
+
       def fts_enable_semantic_search?
         Setting.plugin_full_text_search.enable_semantic_search?
       end
