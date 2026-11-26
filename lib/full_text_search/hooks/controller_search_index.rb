@@ -10,6 +10,10 @@ module FullTextSearch
           @search_request.semantic = "0"
         end
 
+        unless Setting.plugin_full_text_search.enable_fuzzy_search?
+          @search_request.fuzzy = "0"
+        end
+
         page = (params[:page].presence || 1).to_i
         case params[:format]
         when 'xml', 'json'
@@ -64,6 +68,7 @@ module FullTextSearch
           :order_type,
           :options,
           :semantic,
+          :fuzzy,
         ]
         Redmine::Search.available_search_types.each do |type|
           permitted_names << type.to_sym

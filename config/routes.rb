@@ -3,4 +3,7 @@ scope :full_text_search do
   get "query_expand",
       to: "fts_query_expand#index",
       as: :fts_query_expand
+  post "synchronize",
+       to: "full_text_search_synchronize#create",
+       as: :full_text_search_synchronize
 end

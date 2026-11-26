@@ -114,6 +114,14 @@ module FullTextSearch
       conditions.join(" OR ")
     end
 
+    def fuzzy?
+      @request.respond_to?(:fuzzy?) && @request.fuzzy?
+    end
+
+    def fuzzy_max_distance_ratio
+      Setting.plugin_full_text_search.fuzzy_max_distance_ratio
+    end
+
     def build_condition(operator, conditions)
       conditions = conditions.compact.collect do |condition|
         if condition.is_a?(Array)

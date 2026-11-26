@@ -22,6 +22,7 @@ module FullTextSearch
     attr_writer :options
     attr_accessor :tags
     attr_writer :semantic
+    attr_writer :fuzzy
 
     Redmine::Search.available_search_types.each do |type|
       attr_accessor type
@@ -50,6 +51,7 @@ module FullTextSearch
         "order_type" => custom_params[:order_type] || order_type,
         "options" => options,
         "semantic" => semantic,
+        "fuzzy" => fuzzy,
       }
       to_params_types(params, custom_params)
       to_params_order_type(params, custom_params)
@@ -133,6 +135,14 @@ module FullTextSearch
 
     def options
       @options.presence || "0"
+    end
+
+    def fuzzy
+      @fuzzy.presence || "0"
+    end
+
+    def fuzzy?
+      fuzzy == "1"
     end
 
     def semantic
