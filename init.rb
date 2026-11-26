@@ -49,7 +49,7 @@ Redmine::MenuManager.map :admin_menu do |menu|
   menu.push :fts_query_expansion,
             {controller: "fts_query_expansions", action: "index"},
             caption: :"label.full_text_search.menu.query_expansions.plural",
-            html: {class: "icon icon-search"},
+            html: {class: "icon"},
             icon: "search"
 end
 
